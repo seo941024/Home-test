@@ -9,7 +9,7 @@ class BowlingGame:
 
     def play_game(self):
         for frame in range(10):
-            if frame < 9:
+            if frame < 9:   
                 first = self.roll_ball(10)
 
                 # 스트라이크

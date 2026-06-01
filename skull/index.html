@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SKULL : READY TO DIE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.530/neodgm/style.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="topBar">
+        <div class="hpArea">
+          <span class="hpLabel">HP</span>
+          <div class="hearts" id="hearts"></div>
+        </div>
+        <div id="stageLabel">STAGE 1-1</div>
+        <div id="scoreLabel">SCORE: 0</div>
+      </div>
+      
+      <div id="bossBarWrap">
+        <div id="bossBarLabel">BOSS</div>
+        <div id="bossTrack"><div id="bossFill" style="width: 100%"></div></div>
+      </div>
+      
+      <div id="canvasWrap">
+        <canvas id="c" width="640" height="360"></canvas>
+        <div id="overlay">
+          <h1>SKULL IN DUNGEON</h1>
+          <p class="sub">전생했더니 지하미궁 100층에서 환생한 해골이 되었다.<br />궁금하진 않지만 일단 나아가야겠죠?</p>
+          <p class="sub" style="color: #ff5555; font-weight: bold; margin-top: 15px">[경고] 보라색 탄막과 거대 레이저는 가드/패링 불가입니다!</p>
+          <p class="sub" style="color: #27ae60; margin-top: 15px; font-size: 14px;">준비가 끝났다면 아래 버튼을 눌러주세요.</p>
+          <button class="startBtn" id="startBtn">▶ READY TO DIE</button>
+        </div>
+      </div>
+      
+      <div id="bottomBar">
+        <span id="killLabel">처치: 0</span>
+        <span id="skillLabel" style="color: #27ae60">SKILL READY</span>
+      </div>
+
+      <div id="keyGuideBar">
+        [조작] ← → 이동 | Z 점프(2단) | X 평타 (공중 ↓+X 내려찍기) | C 스킬 | V 패링/가드 | Shift 대쉬
+      </div>
+
+    </div>
+    
+    <script src="js/core.js"></script>
+    <script src="js/entities.js"></script>
+    <script src="js/stage.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

@@ -30,7 +30,7 @@ class Calculate:
                     result.append(stack.pop())
                 stack.append(token)
             else:
-                result.append(token)  # 숫자
+                result.append(token)  
 
         while stack:
             result.append(stack.pop())
@@ -60,12 +60,11 @@ class Calculate:
         return self.evaluate_postfix(postfix)
 
 
-# 테스트
 calc = Calculate()
 
-print(calc.check_brackets("{ A[ (i+1) ]=0; }"))     # OK
-print(calc.check_brackets("A( (i+1] )=0;"))          # ERROR
+print(calc.check_brackets("{ A[ (i+1) ]=0; }"))   
+print(calc.check_brackets("A( (i+1] )=0;"))         
 
-print(calc.infix_to_postfix("8 / 2 - 3 + 3 * 2"))   # 8 2 / 3 - 3 2 * +
-print(calc.evaluate_postfix("8 2 / 3 - 3 2 * +"))   # 7
-print(calc.evaluate_infix("8 / 2 - 3 + 3 * 2"))     # 7
+print(calc.infix_to_postfix("8 / 2 - 3 + 3 * 2"))  
+print(calc.evaluate_postfix("8 2 / 3 - 3 2 * +"))   
+print(calc.evaluate_infix("8 / 2 - 3 + 3 * 2"))    
