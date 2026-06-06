@@ -1,68 +1,162 @@
 * {
-  margin: 0; padding: 0; box-sizing: border-box;
-  font-family: "NeoDunggeunmo", monospace;
-  user-select: none; -webkit-user-select: none; touch-action: none;
+  box-sizing: border-box;
+  user-select: none;
 }
 body {
-  background: #050508; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; min-height: 100vh;
-  color: #e0d8c0; overflow: hidden; padding: 10px;
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: #fff;
+  /* 다크 판타지 폰트 우선 적용 — 로컬 파일 없으면 픽셀 폰트로 폴백 */
+  font-family: "SkullFont", "NeoDunggeunmo", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
 }
-#wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; max-width: 960px; }
-#topBar, #bottomBar, #bossBarWrap, #keyGuideBar {
-  width: 100%; display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 20px; background: #0d0d14; border: 3px solid #332222; font-size: 18px; box-shadow: 0 0 10px #ff000033;
-}
-#bottomBar { font-size: 16px; color: #888; }
-#keyGuideBar { font-size: 14px; color: #7f8c8d; text-align: center; justify-content: center; border-style: dashed; margin-top:4px;}
-.mBreak { display: none; }
 
-.hpArea { display: flex; align-items: center; gap: 8px; }
-.hpLabel { color: #ff2222; font-weight: bold; text-shadow: 0 0 5px #ff0000; }
-.hearts { display: flex; gap: 5px; }
-.heart { width: 20px; height: 20px; background: #ff1111; border: 2px solid #ffaaaa; box-shadow: 0 0 5px #ff0000; }
-.heart.empty { background: #1a0505; border-color: #331111; box-shadow: none; }
-#stageLabel { color: #ffaa00; font-weight: bold; font-size: 20px; text-shadow: 0 0 5px #ff8800; }
-#scoreLabel { color: #aaaaff; font-size: 18px; }
-
-#canvasWrap { position: relative; width: 100%; aspect-ratio: 16 / 9; box-shadow: 0 0 30px #000; }
-canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; border: 4px solid #221111; }
-
-#mobileControls {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;
-  justify-content: space-between; align-items: flex-end; padding: 15px; z-index: 10; pointer-events: none;
+/* 💡 화면 전체 1.5배 확대 (640 -> 960) */
+#wrapper {
+  position: relative;
+  width: 960px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
 }
-#mobileLeft, #mobileRight { display: flex; gap: 10px; pointer-events: auto; }
-#mobileRight { flex-direction: column; align-items: flex-end; }
-.mRow { display: flex; gap: 10px; }
-.mBtn {
-  width: 55px; height: 55px; background: rgba(40, 40, 60, 0.6); border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 50%; color: #fff; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+
+#topBar,
+#bottomBar {
+  width: 100%;
+  background: #111;
+  padding: 12px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  border-bottom: 2px solid #333;
 }
-.mBtn:active { background: rgba(255, 0, 70, 0.7); border-color: #ff88aa; }
-.mBtn.action { border-radius: 12px; font-size: 12px; }
-.mBtn.mainAtk { width: 65px; height: 65px; font-size: 14px; background: rgba(150, 30, 30, 0.6); }
-.mBtn.skill { background: rgba(30, 100, 150, 0.6); }
+
+#bottomBar {
+  border-bottom: none;
+  border-top: 2px solid #333;
+  min-height: 56px;
+  flex-direction: column;
+}
+
+.hpArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hpLabel {
+  color: #ff5555;
+  font-weight: bold;
+}
+#stageLabel {
+  font-weight: bold;
+  color: #ffaa00;
+}
+#scoreLabel {
+  color: #aaaaff;
+}
+
+#bossBarWrap {
+  display: none;
+  width: 100%;
+  background: #220000;
+  padding: 8px 15px;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid #550000;
+}
+#bossBarLabel {
+  color: #ff3333;
+  font-weight: bold;
+  font-size: 16px;
+  width: 220px;
+}
+#bossTrack {
+  flex-grow: 1;
+  height: 18px;
+  background: #111;
+  border: 1px solid #ff3333;
+  position: relative;
+}
+#bossFill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff0000, #ff5500);
+  transition: width 0.1s;
+}
+
+/* 💡 캔버스 영역 1.5배 확대 (오락실 스캔라인 완전 삭제) */
+#canvasWrap {
+  position: relative;
+  width: 960px;
+  height: 540px;
+  background: #000;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* 도트 픽셀 유지 */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 
 #overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  text-align: center;
 }
-#overlay h1 { font-size: 5vw; color: #ff2222; margin-bottom: 10px; text-shadow: 0 0 20px #ff0000; }
-.sub { color: #d0c0c0; font-size: 16px; text-align: center; margin: 4px 0; }
-.startBtn { margin-top: 20px; padding: 10px 30px; background: #2a0a0a; border: 3px solid #ff2222; color: #ffcccc; font-size: 20px; cursor: pointer; }
 
-#bossBarWrap { border: 3px solid #ff0000; padding: 8px 15px; display: none; box-shadow: 0 0 15px #ff0000; flex-direction: column; align-items: flex-start; }
-#bossBarLabel { font-size: 16px; color: #ff2222; margin-bottom: 5px; font-weight: bold; }
-#bossTrack { height: 16px; background: #200505; width: 100%; }
-#bossFill { height: 100%; background: #ff1111; transition: width 0.1s; box-shadow: 0 0 10px #ff0000; }
-
-@media (max-width: 960px) {
-  #mobileControls { display: flex; }
-  #keyGuideBar { font-size: 11px; padding: 8px; }
-  .mBreak { display: block; }
-  #topBar, #bottomBar { padding: 8px 12px; font-size: 14px; }
-  #stageLabel { font-size: 16px; }
-  #scoreLabel { font-size: 14px; }
-  .heart { width: 14px; height: 14px; }
+#overlay h1 {
+  color: #ff0055;
+  font-size: 64px;
+  margin: 0 0 15px 0;
+  text-shadow: 4px 4px 0 #550000;
+  letter-spacing: 2px;
 }
+#overlay .sub {
+  color: #ccc;
+  font-size: 20px;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+.startBtn {
+  margin-top: 40px;
+  padding: 16px 32px;
+  font-size: 26px;
+  /* 다크 판타지 폰트 우선 적용 — 로컬 파일 없으면 픽셀 폰트로 폴백 */
+  font-family: "SkullFont", "NeoDunggeunmo", sans-serif;
+  background: #ff0055;
+  color: #fff;
+  border: 4px solid #fff;
+  cursor: pointer;
+  box-shadow: 5px 5px 0px #550000;
+}
+.startBtn:hover {
+  background: #ff3377;
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #550000;
+}
+.startBtn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0px #550000;
+}
+
+/* keyGuideBar: bottomBar로 통합 */

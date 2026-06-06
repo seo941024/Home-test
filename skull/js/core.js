@@ -1,57 +1,89 @@
-const C = document.getElementById("c");
-const ctx = C.getContext("2d");
-ctx.imageSmoothingEnabled = false;
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const CW = canvas.width, CH = canvas.height;
+const TILE = 40;
+const GRAV = 0.4; 
 
-const CW = 640, CH = 360, GRAV = 0.55, TILE = 20;
+const Game = {
+    gs: "menu",
+    score: 0, highScore: parseInt(localStorage.getItem("skull_highscore")) || 0,
+    kills: 0, worldN: 1, levelN: 1,
+    camX: 0, camShake: 0, hitStop: 0, invT: 0, deadTimer: 120,
+    
+    isPaused: false, isMuted: false,
+    transT: 0, transState: 0, bossIntroT: 0,
+    pClass: 0,
 
-// 스탯 10배 스케일 상향 및 성장 변수
-let hitStop = 0; 
-let pBaseDmg = 10; // 기본 공격력 상향
-let pSkillMax = 600; 
-let pRangeBonus = 0; // 사거리 증가 누적
+    // 영구 성장 재화 및 스탯 (localStorage 연동)
+    darkQuartz: parseInt(localStorage.getItem("skull_quartz")) || 0,
+    permHpLvl: parseInt(localStorage.getItem("skull_permHp")) || 0,
+    permAtkLvl: parseInt(localStorage.getItem("skull_permAtk")) || 0,
+    permCritLvl: parseInt(localStorage.getItem("skull_permCrit")) || 0,
+    permSpdLvl: parseInt(localStorage.getItem("skull_permSpd")) || 0,
+    permJmpLvl: parseInt(localStorage.getItem("skull_permJmp")) || 0,
+    permDashLvl: parseInt(localStorage.getItem("skull_permDash")) || 0,
+    permCritDmgLvl: parseInt(localStorage.getItem("skull_permCritDmg")) || 0,
+    permMpLvl: parseInt(localStorage.getItem("skull_permMp")) || 0,
 
-let comboCount = 0;
-let comboTimer = 0;
+    platforms: [], doors: [],
+    enemies: [], bullets: [], eBullets: [], parts: [], lasers: [], texts: [], items: [],
+    offeredItems: [], obtainedItems: [],
+    rerollCoins: 0, pMultiplierItems: 0,
+    player: null,
+    
+    pMaxHp: 50, pBaseDmg: 30, pBaseDmgMul: 1.0, 
+    pBaseAtkSpd: 1.0, pAtkSpdMul: 1.0, 
+    pRangeBonus: 0, pBaseDef: 0, pShield: 0, 
+    pMp: 0, pMaxMp: 100, pParryMp: 3, pParryBonus: 0,
+    pSkillDmgMul: 1.0, pSkillWidth: 1.0, pExtraDmg: 0.0,
+    pHealOnHit: false, pLifestealChance: 0.05,
+    pDashCDMul: 1.0, pMoveSpdMul: 1.0, pJmpMul: 1.0, 
+    pCritChance: 0.20, pCritDmg: 1.5,
+    pReflectDmg: 0, pLowHpDmg: 1.0, pDashInv: 0,
+    pProjSlow: 1.0, pDmgReduction: 1.0,
+    pComboDur: 0, pComboDmg: 0,
+    pRevive: 0, pDropRate: 0.35, pBloodFestival: false, pFinalDmgMul: 1.0, 
+    pRegenFrames: 0, regenT: 0, pHealOnClear: 0,
+    pCursedPendant: false, curseT: 0,
+    comboCount: 0, comboTimer: 0,
+    frameCount: 0,
+    eventObjects: [],
+    cutscene: null,
+    slowMoT: 0,
+    skillFlashCol: null,
+    skillFlashT: 0,
+    // 3단계 시스템
+    traps: [],
+    bloodDecals: [],
+    justDodgeActive: false,
+    justDodgeT: 0,
+    justDodgeDmgBonus: 1.0,
+};
 
-let gs = "menu", score = 0, kills = 0, worldN = 1, levelN = 1, camX = 0, invT = 0, skillCD = 0, camShake = 0;
-let player = null, platforms = [], enemies = [], bullets = [], eBullets = [], parts = [], doors = [], lasers = [];
-let levelW = 0;
-
-let texts = []; 
-let items = [];
-let highScore = localStorage.getItem("skull_highscore") || 0;
+for (let i = 0; i < 40; i++) Game.enemies.push({ active: false });
+for (let i = 0; i < 50; i++) Game.bullets.push({ active: false });
+for (let i = 0; i < 250; i++) Game.eBullets.push({ active: false });
+for (let i = 0; i < 300; i++) Game.parts.push({ active: false });
+for (let i = 0; i < 20; i++) Game.lasers.push({ active: false });
+for (let i = 0; i < 30; i++) Game.texts.push({ active: false });
+for (let i = 0; i < 40; i++) Game.items.push({ active: false }); 
 
 const K = {};
-document.addEventListener("keydown", (e) => {
-  K[e.code] = true;
-  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
-});
-document.addEventListener("keyup", (e) => { K[e.code] = false; });
-const dn = (...c) => c.some((x) => K[x]);
+window.addEventListener("keydown", e => { K[e.code] = true; });
+window.addEventListener("keyup", e => { K[e.code] = false; });
+function dn(...c) { return c.some(k => K[k]); }
 
-// 모바일 멀티터치 제어
-function initTouchControls() {
-  const bindings = [
-    { id: "btnLeft", code: "ArrowLeft" }, { id: "btnRight", code: "ArrowRight" },
-    { id: "btnDash", code: "ShiftLeft" }, { id: "btnJump", code: "KeyZ" },
-    { id: "btnAtk", code: "KeyX" }, { id: "btnSkill", code: "KeyC" }, { id: "btnGuard", code: "KeyV" }
-  ];
-  bindings.forEach(bind => {
-    const btn = document.getElementById(bind.id);
-    if (!btn) return;
-    btn.addEventListener("touchstart", (e) => { e.preventDefault(); K[bind.code] = true; }, { passive: false });
-    btn.addEventListener("touchend", (e) => { e.preventDefault(); K[bind.code] = false; }, { passive: false });
-    btn.addEventListener("touchcancel", (e) => { e.preventDefault(); K[bind.code] = false; }, { passive: false });
-  });
+// ==========================================
+// 유틸리티 - 월드 그룹 계산 (한 곳에서 관리)
+// ==========================================
+
+// worldN → 테마 그룹(wg) 변환. render/audio/stage 등에서 공통 사용.
+function getWg() {
+    const w = Game.worldN;
+    if (w >= 3 && w <= 4) return 2;
+    if (w >= 5 && w <= 6) return 3;
+    if (w >= 7 && w <= 8) return 4;
+    if (w === 9) return 5;
+    if (w === 10) return 6;
+    return 1;
 }
-
-function overlap(a, b) { return (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y); }
-
-function resolveAABB(obj) {
-  obj.x += obj.vx;
-  for (const t of platforms) { if (overlap(obj, t)) { if (obj.vx > 0) obj.x = t.x - obj.w; else if (obj.vx < 0) obj.x = t.x + t.w; obj.vx = 0; } }
-  obj.y += obj.vy; obj.onGround = false;
-  for (const t of platforms) { if (overlap(obj, t)) { if (obj.vy > 0) { obj.y = t.y - obj.h; obj.onGround = true; } else if (obj.vy < 0) obj.y = t.y + t.h; obj.vy = 0; } }
-}
-
-function addPart(x, y, col, life) { parts.push({ x, y, col, vx: (Math.random() - 0.5) * 4.5, vy: (Math.random() - 0.5) * 4.5, life, ml: life }); }

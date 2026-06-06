@@ -2,51 +2,269 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <title>SKULL : READY TO DIE</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.530/neodgm/style.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>SKULL YUUSHA</title>
+    <style>
+      @font-face {
+        font-family: "SkullFont";
+        src: url("skull_base_font.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.530/neodgm/style.css"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="wrapper">
-      <div id="topBar">
-        <div class="hpArea">
+      <div id="topBar" style="min-height: 46px">
+        <div id="ui-hp" class="hpArea" style="display: none; width: 250px">
           <span class="hpLabel">HP</span>
-          <div class="hearts" id="hearts"></div>
+          <div
+            id="playerHpBarWrap"
+            style="
+              width: 150px;
+              height: 16px;
+              background: #200505;
+              border: 2px solid #ffaaaa;
+              position: relative;
+            "
+          >
+            <div
+              id="playerHpFill"
+              style="
+                width: 100%;
+                height: 100%;
+                background: #ff1111;
+                transition: width 0.1s;
+              "
+            ></div>
+            <div
+              id="playerShieldFill"
+              style="
+                width: 0%;
+                height: 100%;
+                background: #00ccff;
+                position: absolute;
+                top: 0;
+                left: 0;
+                transition: width 0.1s;
+                opacity: 0.8;
+                display: none;
+              "
+            ></div>
+            <span
+              id="hpText"
+              style="
+                position: absolute;
+                width: 100%;
+                text-align: center;
+                left: 0;
+                top: -2px;
+                font-size: 14px;
+                font-weight: bold;
+                color: #fff;
+                text-shadow: 1px 1px 2px #000;
+              "
+              >50 / 50</span
+            >
+          </div>
         </div>
-        <div id="stageLabel">STAGE 1-1</div>
-        <div id="scoreLabel">SCORE: 0</div>
+        <div id="stageLabel" style="display: none; flex: 1; text-align: center">
+          STAGE 1-1
+        </div>
+        <div
+          id="scoreLabel"
+          style="display: none; width: 250px; text-align: right"
+        >
+          SCORE: 0
+        </div>
       </div>
-      
+
+      <div
+        id="reviveLabel"
+        style="
+          color: #ff0088;
+          font-weight: bold;
+          font-size: 14px;
+          text-align: center;
+          display: none;
+          margin-bottom: 5px;
+          text-shadow: 1px 1px 2px #000;
+        "
+      >
+        [불사조의 깃털 n개 보유중]
+      </div>
+
       <div id="bossBarWrap">
         <div id="bossBarLabel">BOSS</div>
         <div id="bossTrack"><div id="bossFill" style="width: 100%"></div></div>
       </div>
-      
+
       <div id="canvasWrap">
         <canvas id="c" width="640" height="360"></canvas>
-        <div id="overlay">
-          <h1>SKULL IN DUNGEON</h1>
-          <p class="sub">전생했더니 지하미궁 100층에서 환생한 해골이 되었다.<br />궁금하진 않지만 일단 나아가야겠죠?</p>
-          <p class="sub" style="color: #ff5555; font-weight: bold; margin-top: 15px">[경고] 보라색 탄막과 거대 레이저는 가드/패링 불가입니다!</p>
-          <p class="sub" style="color: #27ae60; margin-top: 15px; font-size: 14px;">준비가 끝났다면 아래 버튼을 눌러주세요.</p>
-          <button class="startBtn" id="startBtn">▶ READY TO DIE</button>
+
+        <div
+          id="overlay"
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #1a0b2e 0%, #05020a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+          "
+        >
+          <h1
+            style="
+              color: #ff0055;
+              font-size: 64px;
+              margin: 0 0 20px 0;
+              text-shadow: 4px 4px 0 #550000;
+              letter-spacing: 2px;
+            "
+          >
+            SKULL YUUSHA
+          </h1>
+          <p
+            class="sub"
+            style="
+              color: #ccc;
+              font-size: 18px;
+              margin: 5px 0;
+              text-align: center;
+              line-height: 1.5;
+            "
+          >
+            저주에 의해 죽었지만 해골로 되살아난 용사. <br />마왕을 물리치고
+            저주를 풀기 위해 나아가야 한다.
+          </p>
+          <p
+            class="sub"
+            style="
+              color: #ffaa00;
+              font-size: 18px;
+              font-weight: bold;
+              margin: 25px 0 10px 0;
+              text-align: center;
+              line-height: 1.5;
+            "
+          >
+            [안내] 패링, 기본 공격 시 스킬 게이지가 충전됩니다.<br />
+            게이지를 모아 강력한 기술을 사용하세요.
+          </p>
+          <p
+            class="sub"
+            style="color: #00cc88; font-size: 14px; margin-bottom: 30px"
+          >
+            준비가 끝났다면 아래 버튼 또는 SPACE를 눌러주세요.
+          </p>
+          <button
+            class="startBtn"
+            id="startBtn"
+            style="
+              background: #ff0055;
+              color: #fff;
+              font-family: &quot;NeoDunggeunmo&quot;, sans-serif;
+              font-size: 24px;
+              padding: 15px 30px;
+              border: 3px solid #fff;
+              cursor: pointer;
+              box-shadow: 4px 4px 0 #550000;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            "
+          >
+            ▶ READY TO ADVENTURE
+          </button>
         </div>
       </div>
-      
-      <div id="bottomBar">
-        <span id="killLabel">처치: 0</span>
-        <span id="skillLabel" style="color: #27ae60">SKILL READY</span>
-      </div>
 
-      <div id="keyGuideBar">
-        [조작] ← → 이동 | Z 점프(2단) | X 평타 (공중 ↓+X 내려찍기) | C 스킬 | V 패링/가드 | Shift 대쉬
-      </div>
+      <div
+        id="bottomBar"
+        style="
+          min-height: 70px;
+          flex-direction: column;
+          gap: 6px;
+          padding: 10px 15px;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+          "
+        >
+          <span
+            id="killLabel"
+            style="display: none; width: 120px; font-size: 13px"
+            >처치: 0</span
+          >
+          <div style="flex: 1"></div>
+          <div id="ui-gauges" style="display:none; position:absolute; left:0; width:100%; height:44px; align-items:center;">
 
+            <div id="ui-stamina" style="position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px;">
+              <span style="color:#ccff33; font-weight:bold; font-size:15px; letter-spacing:1px; text-shadow:0 0 6px #ccff33;">STAMINA</span>
+              <div style="width:220px; height:14px; background:#111; border:2px solid #ccff33; position:relative; border-radius:3px; flex-shrink:0; box-shadow:0 0 4px #ccff33;">
+                <div id="staminaFill" style="width:100%; height:100%; background:#ccff33; transition:width 0.05s; border-radius:2px;"></div>
+              </div>
+              <span id="staminaLabel" style="color:#ccff33; font-size:14px; width:46px; text-align:left; font-weight:bold;">MAX</span>
+            </div>
+
+            <div style="position:absolute; right:0; display:flex; flex-direction:column; gap:5px;">
+              <div id="ui-skill" style="display:flex; align-items:center; gap:0; justify-content:flex-end;">
+                <span style="color:#00ffcc; font-weight:bold; font-size:14px; width:48px; text-align:right; margin-right:7px;">SKILL</span>
+                <div style="width:100px; height:12px; background:#111; border:2px solid #00ffcc; position:relative; border-radius:3px; flex-shrink:0;">
+                  <div id="mpFill" style="width:0%; height:100%; background:#00ffcc; transition:width 0.1s; border-radius:2px;"></div>
+                </div>
+                <span id="skillLabel" style="color:#00ffcc; font-size:13px; width:50px; text-align:right; margin-left:7px; font-weight:bold;">0%</span>
+              </div>
+              <div id="ui-dash" style="display:flex; align-items:center; gap:0; justify-content:flex-end;">
+                <span style="color:#ffdd00; font-weight:bold; font-size:14px; width:48px; text-align:right; margin-right:7px;">DASH</span>
+                <div style="width:100px; height:12px; background:#111; border:2px solid #ffdd00; position:relative; border-radius:3px; flex-shrink:0;">
+                  <div id="dashFill" style="width:100%; height:100%; background:#ffdd00; transition:width 0.08s; border-radius:2px;"></div>
+                </div>
+                <span id="dashLabel" style="color:#ffdd00; font-size:13px; width:50px; text-align:right; margin-left:7px; font-weight:bold;">READY!</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div
+          style="font-size: 13px; color: #888; text-align: center; width: 100%"
+        >
+          ← → 이동 &nbsp;|&nbsp; Z 대쉬 &nbsp;|&nbsp; X 점프 &nbsp;|&nbsp; C 평타 &nbsp;|&nbsp; ↓+C 강하 &nbsp;|&nbsp; Shift 필살기 &nbsp;|&nbsp; V 가드/패링
+        </div>
+      </div>
     </div>
-    
+
     <script src="js/core.js"></script>
-    <script src="js/entities.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/story.js"></script>
+    <script src="js/systems.js"></script>
+    <script src="js/mapgen.js"></script>
+    <script src="js/mob.js"></script>
+    <script src="js/boss.js"></script>
+    <script src="js/combat.js"></script>
     <script src="js/stage.js"></script>
+    <script src="js/render_stage.js"></script>
+    <script src="js/render_ui.js"></script>
+    <script src="js/render.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>
