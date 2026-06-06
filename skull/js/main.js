@@ -96,15 +96,16 @@ function updatePlayer() {
     const jpNow = dn("KeyX");
     // 공격 중에도 점프 가능 — 액션 게임 기본 조작감
     if (jpNow && !p.jpOld && !p.guarding && p.kbT <= 0 && !p.plunging) {
-        if (p.onGround || p.dashT > 0) { 
-            p.vy = -7.5 * Game.pJmpMul; p.jumpCount = 1; 
-            if (p.dashT > 0) { p.dashT = 0; p.vx = p.facing * 3.3 * Game.pMoveSpdMul; } 
-            playSfx('jump'); 
-            for (let i = 0; i < 4; i++) addPart(p.x + 7, p.y + 18, "#6060ff", 12); 
-        } else if (p.jumpCount < 2) { 
-            p.vy = -6.5 * Game.pJmpMul; p.jumpCount = 2; p.dashT = 0; 
+        if (p.onGround) {
+            // 땅에서만 첫 점프 — 대시 중 점프 리셋 제거 (무한 점프 버그 방지)
+            p.vy = -7.5 * Game.pJmpMul; p.jumpCount = 1;
             playSfx('jump');
-            for (let i = 0; i < 6; i++) addPart(p.x + 7, p.y + 18, "#ff60ff", 15); 
+            for (let i = 0; i < 4; i++) addPart(p.x + 7, p.y + 18, "#6060ff", 12);
+        } else if (p.jumpCount < 2) {
+            // 공중 2단 점프 — 대시 취소 없이 정직하게
+            p.vy = -6.5 * Game.pJmpMul; p.jumpCount = 2;
+            playSfx('jump');
+            for (let i = 0; i < 6; i++) addPart(p.x + 7, p.y + 18, "#ff60ff", 15);
         }
     }
     p.jpOld = jpNow;

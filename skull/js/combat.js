@@ -117,6 +117,16 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
         return;
     }
 
+    // 방패병 가드 중: 정면 공격 70% 감소 — 스턴 상태면 가드 무효
+    if (e.type === "shield" && e.isGuarding && !e.stun) {
+        // facing > 0이면 오른쪽 공격 → e.facing < 0이면 방패가 왼쪽(공격 방향) → 막음
+        const isBlocked = (facing > 0 && e.facing < 0) || (facing < 0 && e.facing > 0);
+        if (isBlocked) {
+            dmg = Math.max(1, Math.floor(dmg * 0.3)); // 70% 감소, 최소 1
+            addText(e.x + e.w/2, e.y - 10, "BLOCK", "#aaddff", 30, 11);
+        }
+    }
+
     // 엘리트/슈퍼아머 몬스터는 넉백 없이 맞음
     const hasSuperArmor = e.superArmor && !e.stun;
 

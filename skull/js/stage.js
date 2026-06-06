@@ -120,9 +120,9 @@ function genStage(w, l) {
         // mkBoss 내부에서 e.h가 결정되므로, 예상 높이를 월드별로 계산
         // mob.js의 e.h와 동일하게 계산 — 스폰 Y가 정확히 발판 위에 위치
         let bossH;
-        if (w === 5 || w === 6) bossH = 160;
-        else if (w === 10) bossH = 130;
-        else bossH = 90 + w * 3; // mob.js e.h = 90 + w*3 과 동기화
+        if (w === 5 || w === 6) bossH = 140;
+        else if (w === 10) bossH = Math.floor(CH * 0.65); // 마왕: 화면 65% 높이
+        else bossH = 131 + w * 2;
         const bossSpawnY = floorY - bossH;
         if (typeof mkBoss === 'function') mkBoss(Game.levelW / 2, bossSpawnY, w);
         document.getElementById("bossBarWrap").style.display = "flex";

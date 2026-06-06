@@ -1078,7 +1078,7 @@ function drawEntities(frameNow) {
             ctx.save();
             // ── 텔레그래프 오라: warnT 동안 공격 예고색 표시 ──
             if (e.warnT > 0 && e.warnData) {
-                ctx.save(); ctx.scale(2.5, 2.5);
+                ctx.save(); ctx.scale(1.8, 1.8);
                 const wProg = Math.min(1, 1 - e.warnT / 38);
                 let oraR = 255, oraG = 60, oraB = 0;
                 if (e.warnData.ap === 1)      { oraR=255; oraG=200; oraB=0; }
@@ -1093,7 +1093,7 @@ function drawEntities(frameNow) {
                 ctx.shadowBlur = 20 * wProg; ctx.shadowColor = `rgb(${oraR},${oraG},${oraB})`;
                 ctx.restore();
             }
-            ctx.scale(2.5, 2.5); 
+            ctx.scale(1.8, 1.8); // 히트박스와 렌더 크기 일치
             const p2 = e.phase === 2;
             
             if (p2) { 
@@ -1105,150 +1105,103 @@ function drawEntities(frameNow) {
                 ctx.filter = 'grayscale(90%) brightness(0.65) contrast(1.3) sepia(15%)';
             }
 
-            if (e.world <= 2) { 
-                // 고블린 킹 - 거대 오우거형, 뿔투구+철퇴
+            if (e.world <= 2) {
+                // 고블린 전사장 — 플레이어보다 약간 큰 중간 보스
+                // scale(1.8) 기준 내부: 폭 ±13, 머리~발 -32~+17
                 const b = eBob;
-                // 다리 (굵고 짧음)
+                // 다리
                 ctx.fillStyle = "#2a4a1a";
-                ctx.fillRect(-15, 14+b, 11, 18); ctx.fillRect(4, 14+b, 11, 18);
+                ctx.fillRect(-8, 10+b, 6, 7+Math.abs(legL)); ctx.fillRect(3, 10+b, 6, 7+Math.abs(legR));
+                // 발
                 ctx.fillStyle = "#1a3010";
-                ctx.fillRect(-16, 28+b, 12, 6); ctx.fillRect(4, 28+b, 12, 6);
-                // 몸통 (덩치 크게)
-                ctx.fillStyle = "#3a7a28";
-                ctx.fillRect(-22, -8+b, 44, 24);
-                // 가슴 갑옷판
-                ctx.fillStyle = "#4a4a55"; ctx.fillRect(-18, -6+b, 36, 18);
-                ctx.fillStyle = "#5a5a66"; ctx.fillRect(-16, -4+b, 32, 3);
-                ctx.fillStyle = "#333"; ctx.fillRect(-8, 2+b, 16, 8); // 배
-                // 어깨 스파이크
-                ctx.fillStyle = "#555";
-                for (let sp = 0; sp < 3; sp++) {
-                    ctx.beginPath(); ctx.moveTo(-22+sp*2, -8+b); ctx.lineTo(-26+sp, -18+b); ctx.lineTo(-18+sp*2, -10+b); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(22-sp*2, -8+b); ctx.lineTo(26-sp, -18+b); ctx.lineTo(18-sp*2, -10+b); ctx.fill();
-                }
+                ctx.fillRect(-9, 17+b, 7, 3); ctx.fillRect(3, 17+b, 7, 3);
+                // 몸통
+                ctx.fillStyle = "#3a7a28"; ctx.fillRect(-12, -4+b, 24, 16);
+                // 가슴 갑옷
+                ctx.fillStyle = "#4a5a44"; ctx.fillRect(-11, -3+b, 22, 12);
+                ctx.fillStyle = "#5a6a54"; ctx.fillRect(-10, -3+b, 22, 3);
                 // 팔
                 ctx.fillStyle = "#2a5a1a";
-                ctx.fillRect(-36, -6+b, 14, 20); ctx.fillRect(22, -6+b, 14, 20);
-                // 머리 (크고 둥근)
-                ctx.fillStyle = "#3a7a28";
-                ctx.beginPath(); ctx.arc(0, -22+b, 17, 0, Math.PI*2); ctx.fill();
-                ctx.fillRect(-15, -28+b, 30, 10);
-                // 눈 (빨간 or 노란)
-                ctx.fillStyle = p2 ? "#ff0000" : "#ffcc00";
-                ctx.fillRect(-11, -26+b, 7, 5); ctx.fillRect(4, -26+b, 7, 5);
-                ctx.fillStyle = "#000"; ctx.fillRect(-9, -25+b, 3, 3); ctx.fillRect(5, -25+b, 3, 3);
-                // 이빨 (아랫니)
+                ctx.fillRect(-18, -3+b, 7, 12); ctx.fillRect(12, -3+b, 7, 12);
+                // 목
+                ctx.fillStyle = "#3a7a28"; ctx.fillRect(-4, -10+b, 8, 8);
+                // 머리
+                ctx.fillStyle = "#3a7a28"; ctx.fillRect(-10, -24+b, 20, 16);
+                // 투구
+                ctx.fillStyle = "#4a4a4f"; ctx.fillRect(-11, -26+b, 22, 6);
+                // 작은 뿔
+                ctx.fillStyle = "#3a3a3f";
+                ctx.beginPath(); ctx.moveTo(-8,-26+b); ctx.lineTo(-12,-36+b); ctx.lineTo(-4,-26+b); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(8,-26+b); ctx.lineTo(12,-36+b); ctx.lineTo(4,-26+b); ctx.fill();
+                // 눈
+                ctx.fillStyle = p2 ? "#ff2200" : "#ffcc00";
+                ctx.fillRect(-8,-20+b, 5, 3); ctx.fillRect(4,-20+b, 5, 3);
+                ctx.fillStyle = "#000"; ctx.fillRect(-7,-20+b, 2, 2); ctx.fillRect(5,-20+b, 2, 2);
+                // 이빨
                 ctx.fillStyle = "#e8e0d0";
-                ctx.fillRect(-10, -10+b, 5, 5); ctx.fillRect(-3, -9+b, 4, 6); ctx.fillRect(3, -9+b, 4, 6); ctx.fillRect(7, -10+b, 5, 5);
-                // 투구 (뿔)
-                ctx.fillStyle = "#444";
-                ctx.fillRect(-18, -32+b, 36, 8);
-                ctx.fillStyle = "#555"; ctx.fillRect(-18, -28+b, 36, 4);
-                // 큰 뿔 2개
-                ctx.fillStyle = "#3a3a40";
-                ctx.beginPath(); ctx.moveTo(-18,-28+b); ctx.lineTo(-30,-55+b); ctx.lineTo(-6,-30+b); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(18,-28+b); ctx.lineTo(30,-55+b); ctx.lineTo(6,-30+b); ctx.fill();
-                // 철퇴
-                ctx.save(); ctx.translate(32, 14+b); ctx.rotate(wRot+0.3);
-                ctx.fillStyle = "#4a2a0a"; ctx.fillRect(-2, 0, 4, 30);
-                ctx.strokeStyle = "#555"; ctx.lineWidth = 2;
-                for (let ch = 0; ch < 3; ch++) { ctx.beginPath(); ctx.arc(0, 34+ch*5, 4, 0, Math.PI*2); ctx.stroke(); }
-                ctx.fillStyle = "#555";
-                ctx.beginPath(); ctx.arc(0, 48, 12, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#777";
-                for (let sp = 0; sp < 8; sp++) {
-                    const sa = sp*Math.PI/4; const sr = 12;
-                    ctx.beginPath(); ctx.moveTo(Math.cos(sa)*sr, 48+Math.sin(sa)*sr);
-                    ctx.lineTo(Math.cos(sa)*sr*1.7, 48+Math.sin(sa)*sr*1.7);
-                    ctx.lineTo(Math.cos(sa+0.3)*sr*0.9, 48+Math.sin(sa+0.3)*sr*0.9); ctx.fill();
-                }
+                ctx.fillRect(-6,-9+b, 3, 4); ctx.fillRect(-1,-8+b, 3, 4); ctx.fillRect(4,-9+b, 3, 4);
+                // 단검
+                ctx.save(); ctx.translate(16, 2+b); ctx.rotate(wRot + 0.3);
+                ctx.fillStyle = "#aab8c0"; ctx.fillRect(-1, -14, 3, 16);
+                ctx.fillStyle = "#7a5a20"; ctx.fillRect(-3, 1, 7, 4);
+                ctx.fillStyle = "#5a3a10"; ctx.fillRect(-1, 5, 3, 5);
                 ctx.restore();
             } 
-                        else if (e.world <= 4) { 
-                // 언데드 해골 마법사 (이미지2 참고)
+                        else if (e.world <= 4) {
+                // 언데드 기사 — 뼈 갑옷, 어두운 검
                 const b = eBob;
-                const t = frameNow;
-                // 로브 하단 (너덜너덜)
-                ctx.fillStyle = "#aa2200";
-                ctx.beginPath();
-                ctx.moveTo(-20, 14+b);
-                for(let i=0; i<=8; i++) {
-                    let rx = -20 + i*5;
-                    let ry = 14 + (i%2===0 ? 12 : 6);
-                    ctx.lineTo(rx, ry+b);
+                // 다리 (갑옷 정강이)
+                ctx.fillStyle = "#2a2a32";
+                ctx.fillRect(-9, 10+b, 7, 8+Math.abs(legL)); ctx.fillRect(3, 10+b, 7, 8+Math.abs(legR));
+                ctx.fillStyle = "#1a1a22";
+                ctx.fillRect(-10, 18+b, 8, 3); ctx.fillRect(3, 18+b, 8, 3);
+                // 몸통 갑옷
+                ctx.fillStyle = "#252530"; ctx.fillRect(-13, -5+b, 26, 17);
+                ctx.fillStyle = "#1a1a25"; ctx.fillRect(-12, -4+b, 24, 3);
+                ctx.strokeStyle = "#3a3a4a"; ctx.lineWidth = 1;
+                ctx.strokeRect(-12, -4+b, 24, 14);
+                ctx.beginPath(); ctx.moveTo(0,-4+b); ctx.lineTo(0,10+b); ctx.stroke();
+                // 뼈 갈비뼈 무늬
+                ctx.strokeStyle = "#3a3a3a"; ctx.lineWidth = 1;
+                for (let ri=0; ri<3; ri++) {
+                    ctx.beginPath(); ctx.moveTo(-10, -1+ri*4+b); ctx.lineTo(-14, ri*4+b); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(10, -1+ri*4+b); ctx.lineTo(14, ri*4+b); ctx.stroke();
                 }
-                ctx.lineTo(20, 14+b); ctx.fill();
-                // 로브 몸통
-                ctx.fillStyle = "#cc2800";
-                ctx.beginPath();
-                ctx.moveTo(-20, -10+b);
-                ctx.lineTo(-22, 14+b);
-                ctx.lineTo(22, 14+b);
-                ctx.lineTo(20, -10+b);
-                ctx.fill();
-                // 로브 어깨/소매
-                ctx.fillStyle = "#bb2200";
-                ctx.fillRect(-28, -8+b, 10, 20);
-                ctx.fillRect(18, -8+b, 10, 20);
-                // 로브 장식선
-                ctx.strokeStyle = "#ff6622"; ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.moveTo(-4, -10+b); ctx.lineTo(-4, 14+b); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(4, -10+b); ctx.lineTo(4, 14+b); ctx.stroke();
-                // 목/뼈
-                ctx.fillStyle = "#d8d8cc";
-                ctx.fillRect(-5, -16+b, 10, 8);
+                // 어깨 갑옷
+                ctx.fillStyle = "#2a2a35";
+                ctx.fillRect(-18, -5+b, 6, 10); ctx.fillRect(13, -5+b, 6, 10);
+                // 팔
+                ctx.fillStyle = "#222230";
+                ctx.fillRect(-17, 5+b, 5, 8); ctx.fillRect(13, 5+b, 5, 8);
+                // 목
+                ctx.fillStyle = "#c8c4b8"; ctx.fillRect(-4, -12+b, 8, 9);
                 // 해골 머리
-                ctx.fillStyle = "#e0ddd5";
-                ctx.beginPath(); ctx.arc(0, -26+b, 14, 0, Math.PI*2); ctx.fill();
-                // 광대뼈
-                ctx.fillStyle = "#c8c5bd";
-                ctx.fillRect(-14, -24+b, 5, 6);
-                ctx.fillRect(9, -24+b, 5, 6);
+                ctx.fillStyle = "#d8d4c8";
+                ctx.beginPath(); ctx.arc(0, -22+b, 11, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#c0bcb0"; ctx.fillRect(-11, -16+b, 4, 5); ctx.fillRect(7, -16+b, 4, 5);
                 // 눈구멍
-                ctx.fillStyle = p2 ? "#ff0000" : "#000";
-                ctx.shadowBlur = p2 ? 12 : 0; ctx.shadowColor = "#ff0000";
-                ctx.beginPath(); ctx.ellipse(-6, -28+b, 4, 5, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(6, -28+b, 4, 5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = p2 ? "#ff2200" : "#000";
+                ctx.shadowBlur = p2 ? 10 : 0; ctx.shadowColor = "#ff0000";
+                ctx.beginPath(); ctx.ellipse(-5, -24+b, 3, 4, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(5, -24+b, 3, 4, 0, 0, Math.PI*2); ctx.fill();
                 ctx.shadowBlur = 0;
                 // 코 구멍
-                ctx.fillStyle = "#aaa";
-                ctx.fillRect(-2, -23+b, 2, 3); ctx.fillRect(1, -23+b, 2, 3);
-                // 이빨 (아랫턱)
-                ctx.fillStyle = "#e0ddd5";
-                ctx.fillRect(-10, -16+b, 20, 4);
-                ctx.fillStyle = "#222";
-                for(let i=0; i<5; i++) ctx.fillRect(-8+i*4, -16+b, 2, 4);
-                // 후드 (로브 모자)
-                ctx.fillStyle = "#991a00";
-                ctx.beginPath();
-                ctx.moveTo(-18, -22+b);
-                ctx.quadraticCurveTo(-20, -50+b, 0, -52+b);
-                ctx.quadraticCurveTo(20, -50+b, 18, -22+b);
-                ctx.fill();
-                ctx.fillStyle = "#bb2200";
-                ctx.beginPath(); ctx.arc(0, -22+b, 18, Math.PI, 0); ctx.fill();
-                // 지팡이
-                ctx.save();
-                ctx.translate(22, -4+b);
-                ctx.rotate(wRot - 0.2);
-                // 지팡이 막대
-                ctx.fillStyle = "#4a2e0a";
-                ctx.fillRect(-2, -60, 4, 70);
-                // 지팡이 상단 해골 장식
-                ctx.fillStyle = "#d8d4c8";
-                ctx.beginPath(); ctx.arc(0, -62, 8, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#000";
-                ctx.beginPath(); ctx.ellipse(-3, -64, 2, 3, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(3, -64, 2, 3, 0, 0, Math.PI*2); ctx.fill();
-                // 지팡이 마법석
-                const gemColor = p2 ? "#ff2200" : "#dd0077";
-                ctx.fillStyle = gemColor;
-                ctx.shadowBlur = 15; ctx.shadowColor = gemColor;
-                ctx.beginPath(); ctx.arc(0, -72, 6, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 0;
-                // 가시
-                ctx.fillStyle = "#666";
-                for(let sp=0; sp<4; sp++) { ctx.fillRect(-1+sp*3, -78, 2, 6); }
+                ctx.fillStyle = "#888"; ctx.fillRect(-1,-19+b,2,3); ctx.fillRect(1,-19+b,2,3);
+                // 이빨
+                ctx.fillStyle = "#d8d4c8"; ctx.fillRect(-7,-12+b,14,3);
+                ctx.fillStyle = "#1a1a1a"; for(let i=0;i<4;i++) ctx.fillRect(-5+i*3,-12+b,1,3);
+                // 투구 (해골 헬멧)
+                ctx.fillStyle = "#1e1e28"; ctx.fillRect(-12, -28+b, 24, 8);
+                ctx.fillStyle = "#2a2a34"; ctx.fillRect(-11, -30+b, 22, 5);
+                // 투구 볏
+                ctx.fillStyle = "#550022";
+                for(let i=0;i<5;i++) ctx.fillRect(-8+i*4,-32+b,3,4);
+                // 검
+                ctx.save(); ctx.translate(15, 2+b); ctx.rotate(wRot + 0.2);
+                ctx.fillStyle = "#0d0d18"; ctx.fillRect(-2, -22, 4, 26);
+                ctx.fillStyle = "#cc0020"; ctx.fillRect(-1, -22, 2, 20);
+                ctx.fillStyle = "#333340"; ctx.fillRect(-6, 2, 12, 4);
+                ctx.fillStyle = "#222"; ctx.fillRect(-1, 6, 3, 7);
                 ctx.restore();
             } 
             else if (e.world <= 6) { 
@@ -1464,121 +1417,109 @@ function drawEntities(frameNow) {
                 ctx.restore();
             } 
             else { 
-                // 마왕 (Demon Lord) - 다크판타지 위압감 마왕
-                const b = eBob;
+                // ── 마왕 (Demon Lord) ──
+                // 배경 자체가 마왕 — 거대한 얼굴/눈이 화면 가득 채움
+                // 히트박스 영역(e.w×e.h)은 마왕의 '심장부' — 가끔 눈이 열려 공격
                 const t = frameNow;
-                const oraFlicker = (Math.sin(t * 0.002) + 1) / 2;
-                const cloak = Math.sin(t * 0.003) * 5;
+                const pulse = (Math.sin(t * 0.002) + 1) / 2;
+                const blink = Math.sin(t * 0.0008); // 눈 깜빡임
+                const eyeOpen = blink > 0.3; // 70% 열려있음
 
-                // ── 외부 오라 (검붉은 에너지장) ──
-                for (let layer = 0; layer < 4; layer++) {
-                    const oR = 60 + layer * 18 + oraFlicker * 10;
-                    const oA = (0.18 - layer * 0.04) * (0.5 + oraFlicker * 0.5);
-                    const oGrd = ctx.createRadialGradient(0, -10+b, 10, 0, -10+b, oR);
-                    oGrd.addColorStop(0, `rgba(180,0,20,${oA})`);
-                    oGrd.addColorStop(0.7, `rgba(80,0,10,${oA*0.3})`);
-                    oGrd.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.fillStyle = oGrd;
-                    ctx.beginPath(); ctx.arc(0, -10+b, oR, 0, Math.PI*2); ctx.fill();
+                // ── 배경 전체를 덮는 마왕 얼굴 ──
+                // scale(1.8) 상태에서 CW/1.8 = 355, CH/1.8 = 200 정도
+                // translate는 히트박스 중앙 기준이므로 전체 화면 덮으려면 크게 그림
+                const bx = 0, by = 0; // 히트박스 중심 기준
+
+                // 마왕 얼굴 배경 (화면 가득)
+                const faceGrd = ctx.createRadialGradient(bx, by-20, 10, bx, by-20, 200);
+                faceGrd.addColorStop(0, "rgba(30,0,5,0.95)");
+                faceGrd.addColorStop(0.5, "rgba(15,0,3,0.85)");
+                faceGrd.addColorStop(1, "rgba(0,0,0,0)");
+                ctx.fillStyle = faceGrd;
+                ctx.beginPath(); ctx.ellipse(bx, by-20, 180, 160, 0, 0, Math.PI*2); ctx.fill();
+
+                // 이마 주름 (거대한 얼굴 질감)
+                ctx.strokeStyle = `rgba(60,0,10,0.4)`; ctx.lineWidth = 1.5;
+                for (let wr=0; wr<5; wr++) {
+                    ctx.beginPath();
+                    ctx.moveTo(-80+wr*8, -60);
+                    ctx.quadraticCurveTo(-60+wr*10, -80, -40+wr*20, -65);
+                    ctx.stroke();
                 }
 
-                // ── 망토 (거대한 너덜너덜) ──
-                ctx.fillStyle = "#050005";
-                ctx.beginPath();
-                ctx.moveTo(-32, -18+b);
-                for (let i = 0; i <= 14; i++) {
-                    const rx = -32 + i * 4.6;
-                    const ry = 18 + (i % 2 === 0 ? 20 : 12) + Math.sin(t * 0.004 + i) * 4;
-                    ctx.lineTo(rx, ry + b);
-                }
-                ctx.lineTo(32, -18+b); ctx.fill();
-                // 망토 본체
-                ctx.fillStyle = "#07000a";
-                ctx.beginPath();
-                ctx.moveTo(-30, -22+b);
-                ctx.quadraticCurveTo(-36, 0+b, -32+cloak*0.5, 18+b);
-                ctx.lineTo(32-cloak*0.5, 18+b);
-                ctx.quadraticCurveTo(36, 0+b, 30, -22+b); ctx.fill();
-                // 망토 내부 문양
-                ctx.strokeStyle = `rgba(150,0,20,0.35)`; ctx.lineWidth = 1;
-                for (let m = 0; m < 4; m++) {
-                    ctx.beginPath(); ctx.moveTo(-22+m*14, -18+b); ctx.quadraticCurveTo(-16+m*14, 5+b, -22+m*14, 18+b); ctx.stroke();
-                }
+                // 눈썹 (짙고 무거운)
+                ctx.fillStyle = "#0a0005";
+                ctx.beginPath(); ctx.moveTo(-55,-35); ctx.quadraticCurveTo(-35,-48,-10,-38); ctx.lineTo(-12,-33); ctx.quadraticCurveTo(-36,-42,-52,-30); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(55,-35); ctx.quadraticCurveTo(35,-48,10,-38); ctx.lineTo(12,-33); ctx.quadraticCurveTo(36,-42,52,-30); ctx.fill();
 
-                // ── 소매/팔 ──
-                ctx.fillStyle = "#050005";
-                ctx.beginPath(); ctx.moveTo(-30,-18+b); ctx.quadraticCurveTo(-50,-5+b,-54,10+b); ctx.lineTo(-44,14+b); ctx.quadraticCurveTo(-36,0+b,-22,-10+b); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(30,-18+b); ctx.quadraticCurveTo(50,-5+b,54,10+b); ctx.lineTo(44,14+b); ctx.quadraticCurveTo(36,0+b,22,-10+b); ctx.fill();
-                // 발톱 손
-                ctx.fillStyle = "#110010";
-                ctx.fillRect(-58, 8+b, 9, 12);
-                ctx.fillRect(49, 8+b, 9, 12);
-                ctx.strokeStyle = "#330020"; ctx.lineWidth = 1;
-                for (let cl = 0; cl < 3; cl++) {
-                    ctx.beginPath(); ctx.moveTo(-56+cl*2, 20+b); ctx.lineTo(-58+cl*2, 28+b); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(51+cl*2, 20+b); ctx.lineTo(49+cl*2, 28+b); ctx.stroke();
+                // ── 왼쪽 눈 ──
+                const eyeLX = -38, eyeRX = 38, eyeY = -18;
+                const eyeH = eyeOpen ? 18 : 3;
+                // 눈 흰자 (어두운 붉은빛)
+                ctx.fillStyle = `rgba(20,0,3,0.9)`;
+                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY, 22, eyeH+2, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY, 22, eyeH+2, 0, 0, Math.PI*2); ctx.fill();
+                // 눈동자 (핏빛)
+                const eyeGlow = 0.6 + pulse * 0.4;
+                ctx.fillStyle = `rgba(220,0,20,${eyeGlow})`;
+                ctx.shadowBlur = p2 ? 30 : 18; ctx.shadowColor = "#ff0022";
+                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY, 14, eyeH, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY, 14, eyeH, 0, 0, Math.PI*2); ctx.fill();
+                // 세로 동공
+                if (eyeOpen) {
+                    ctx.fillStyle = "#000";
+                    ctx.beginPath(); ctx.ellipse(eyeLX, eyeY, 4, eyeH*0.9, 0, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(eyeRX, eyeY, 4, eyeH*0.9, 0, 0, Math.PI*2); ctx.fill();
                 }
-
-                // ── 몸통 갑옷 ──
-                ctx.fillStyle = "#080008";
-                ctx.fillRect(-20, -16+b, 40, 26);
-                // 갑옷 금장
-                ctx.strokeStyle = `rgba(160,120,0,0.6)`; ctx.lineWidth = 1.5;
-                ctx.strokeRect(-19, -15+b, 38, 24);
-                ctx.beginPath(); ctx.moveTo(0,-16+b); ctx.lineTo(0,10+b); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(-19,0+b); ctx.lineTo(19,0+b); ctx.stroke();
-                // 가슴 문양 (펜타그램 느낌)
-                ctx.strokeStyle = `rgba(180,0,0,${0.5 + oraFlicker*0.4})`; ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.arc(0, -4+b, 8, 0, Math.PI*2); ctx.stroke();
-                ctx.shadowBlur = 6; ctx.shadowColor = "#ff0000";
-                ctx.beginPath(); ctx.arc(0, -4+b, 3, 0, Math.PI*2);
-                ctx.fillStyle = `rgba(200,0,0,${0.6+oraFlicker*0.4})`; ctx.fill();
                 ctx.shadowBlur = 0;
+                // 눈꺼풀 위아래
+                ctx.fillStyle = "#0a0005";
+                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY-eyeH-1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY-eyeH-1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY+eyeH+1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY+eyeH+1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
 
-                // ── 목 ──
-                ctx.fillStyle = "#0a0008";
-                ctx.fillRect(-8, -24+b, 16, 10);
+                // 코 (큰 콧구멍)
+                ctx.fillStyle = "#050002";
+                ctx.beginPath(); ctx.ellipse(-10, 8, 6, 8, -0.2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(10, 8, 6, 8, 0.2, 0, Math.PI*2); ctx.fill();
 
-                // ── 왕관 (마왕 왕관) ──
+                // 입 (반쯤 열린, 이빨 드러남)
+                ctx.fillStyle = "#0a0005";
+                ctx.beginPath(); ctx.ellipse(0, 28, 35, 14, 0, 0, Math.PI*2); ctx.fill();
+                // 이빨
+                ctx.fillStyle = "#c8c4b0";
+                for (let ti=0; ti<7; ti++) {
+                    ctx.beginPath(); ctx.moveTo(-28+ti*9, 18); ctx.lineTo(-25+ti*9, 10); ctx.lineTo(-22+ti*9, 18); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(-28+ti*9, 38); ctx.lineTo(-25+ti*9, 46); ctx.lineTo(-22+ti*9, 38); ctx.fill();
+                }
+                // 혀
+                ctx.fillStyle = `rgba(180,0,20,0.7)`;
+                ctx.beginPath(); ctx.ellipse(0, 36, 18, 8, 0, 0, Math.PI*2); ctx.fill();
+
+                // 왕관 (히트박스 위)
                 ctx.fillStyle = "#0a0006";
-                for (let k = 0; k < 7; k++) {
-                    const kh = k % 2 === 0 ? 16 : 9;
-                    ctx.fillRect(-24 + k * 7, -56 - kh + b, 6, kh);
+                for (let k=0; k<7; k++) {
+                    const kh = k%2===0 ? 12 : 7;
+                    ctx.fillRect(-24+k*7, -78-kh, 6, kh);
                 }
-                ctx.fillRect(-26, -56+b, 52, 6);
-                // 왕관 보석들
-                const gemCols = ["#cc0040","#aa0000","#cc0040","#aa0000","#cc0040","#aa0000","#cc0040"];
-                ctx.shadowBlur = 8; ctx.shadowColor = "#ff0033";
-                for (let k = 0; k < 4; k++) {
-                    ctx.fillStyle = p2 ? "#ff4400" : gemCols[k*2];
-                    ctx.beginPath(); ctx.arc(-18 + k * 12, -57 + b, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillRect(-26, -78, 52, 6);
+                // 왕관 보석
+                ctx.shadowBlur = 10; ctx.shadowColor = "#ff0033";
+                ctx.fillStyle = p2 ? "#ff4400" : "#cc0040";
+                for (let k=0; k<4; k++) {
+                    ctx.beginPath(); ctx.arc(-18+k*12, -79, 3, 0, Math.PI*2); ctx.fill();
                 }
                 ctx.shadowBlur = 0;
 
-                // ── 후드/머리 ──
-                ctx.fillStyle = "#050008";
-                ctx.beginPath();
-                ctx.moveTo(-24, -24+b);
-                ctx.quadraticCurveTo(-28, -58+b, 0, -66+b);
-                ctx.quadraticCurveTo(28, -58+b, 24, -24+b); ctx.fill();
-                // 후드 테두리 문양
-                ctx.strokeStyle = `rgba(160,0,30,0.5)`; ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(-24, -24+b);
-                ctx.quadraticCurveTo(-28, -58+b, 0, -66+b);
-                ctx.quadraticCurveTo(28, -58+b, 24, -24+b); ctx.stroke();
-
-                // ── 눈 (세로 동공, 강렬한 붉은빛) ──
-                const eyeGlow = 0.8 + oraFlicker * 0.2;
-                ctx.fillStyle = `rgba(255, 0, 30, ${eyeGlow})`;
-                ctx.shadowBlur = p2 ? 28 : 18; ctx.shadowColor = "#ff0022";
-                ctx.beginPath(); ctx.ellipse(-9, -42+b, 5, 8, 0.15, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(9, -42+b, 5, 8, -0.15, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = "#000";
-                ctx.beginPath(); ctx.ellipse(-9, -42+b, 2, 6, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(9, -42+b, 2, 6, 0, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 0;
-            }
+                // 히트박스 중심부 — 가슴 심장 (실제 때려야 할 부위 표시)
+                const htPulse = 0.3 + pulse * 0.4;
+                ctx.fillStyle = `rgba(180,0,20,${htPulse * 0.15})`;
+                ctx.beginPath(); ctx.ellipse(0, 0, e.w*0.25, e.h*0.2, 0, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = `rgba(220,0,30,${htPulse * 0.5})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.ellipse(0, 0, e.w*0.25, e.h*0.2, 0, 0, Math.PI*2); ctx.stroke();
+            } // 마왕 블록 종료
 
             ctx.filter = 'none'; 
             ctx.restore();
@@ -1745,20 +1686,17 @@ function drawEntities(frameNow) {
                 ctx.beginPath(); ctx.moveTo(-2,12+eb); ctx.quadraticCurveTo(-3,16+eb,-1,19+eb); ctx.stroke();
             }
 
-            if (e.type === "shield") {
+            if (e.type === "shield" && !e.isTutorialDummy) {
                 if (e.isGuarding) {
-                    // 방패 (가드 중: 세로로 세워서 막는 자세)
                     ctx.fillStyle = "#8090a0"; ctx.fillRect(3, -14 + eBob, 9, 26);
                     ctx.fillStyle = "#b0bec5"; ctx.fillRect(4, -13 + eBob, 7, 24);
-                    ctx.fillStyle = "#78909c"; ctx.fillRect(5, -7 + eBob, 5, 3);   // 가로 손잡이
+                    ctx.fillStyle = "#78909c"; ctx.fillRect(5, -7 + eBob, 5, 3);
                     ctx.strokeStyle = "#607d8b"; ctx.lineWidth = 1;
                     ctx.strokeRect(4, -13 + eBob, 7, 24);
                 } else {
-                    // 방패 (내린 상태: 옆구리에 차고 있음)
                     ctx.fillStyle = "#8090a0"; ctx.fillRect(-2, 5 + eBob, 13, 5);
                     ctx.fillStyle = "#b0bec5"; ctx.fillRect(-1, 6 + eBob, 11, 3);
                 }
-                // 방패 타입 배지 (하늘색 S)
                 ctx.fillStyle = "#00aaff"; ctx.font = "bold 6px SkullFont, NeoDunggeunmo";
                 ctx.fillText("S", -8, -8 + eBob);
             } 
@@ -1829,7 +1767,9 @@ function drawEntities(frameNow) {
         ctx.restore();
 
         if (!e.isBoss) {
-            const bw = 24 * 1.5, bx = ex + e.w / 2 - bw / 2, by = e.y - 10;
+            // 더미 골렘은 체력바를 DUMMY 텍스트 아래로 올림 (내부 렌더가 scale로 커서 몸 안에 들어감)
+            const bw = 24 * 1.5, bx = ex + e.w / 2 - bw / 2;
+            const by = e.isTutorialDummy ? (e.y - 52) : (e.y - 10);
             if (bx > -10 && bx < CW) {
                 // HP 바
                 ctx.fillStyle = "#220000"; ctx.fillRect(bx, by, bw, 3);

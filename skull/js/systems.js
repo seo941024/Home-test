@@ -60,8 +60,9 @@ function _triggerGuardBreak(p) {
     Game.camShake = 25;
     addText(p.x, p.y - 30, "GUARD BREAK!", "#ff2200", 70, 18);
     if (typeof playSfx === 'function') playSfx('dmg');
-    // 가드 브레이크 직후엔 일정 시간 가드 불가
-    setTimeout(() => { if (p) p.guardBreak = false; }, 1500);
+    // 가드 브레이크 직후엔 일정 시간 가드 불가 (약 90프레임)
+    // setTimeout 대신 프레임 카운터 — 씬 전환 시 콜백 잔류 방지
+    p.guardBreakT = 90;
 }
 
 // 스태미나 소모 헬퍼 — false 반환 시 행동 불가
