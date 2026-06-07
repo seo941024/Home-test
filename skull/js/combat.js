@@ -187,9 +187,10 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
             e.splitDone = true;
             for (let si = -1; si <= 1; si += 2) {
                 const se   = getObj(Game.enemies);
-                se.w       = 18; se.h = 24;  // 일반 몬스터(26x34)의 70% — 발 꺼짐 방지
+                se.w       = 18; se.h = 38;  // w5~6 어둠기사 내부 발끝 y=19 → h=19*2=38
                 se.x       = e.x + (e.w/2 - se.w/2) + si * 20;
-                se.y       = e.y + e.h - se.h; // 부모 발판 아랫줄 기준 정렬
+                // 스폰 y: 부모 발끝 기준으로 자식 히트박스 발끝이 정확히 일치하도록
+                se.y       = e.y + e.h - se.h;
                 se.vx = si * 2.5; se.vy = -4;
                 se.hp      = Math.floor(e.maxHp * 0.3); se.maxHp = se.hp;
                 se.atk     = Math.floor(e.atk * 0.7);

@@ -216,27 +216,44 @@ const BossAI = {
         }
     },
 
-    // ── W4 언데드 스켈레톤: W3 + 전방위 확산
+    // ── W4 언데드 스켈레톤 치프틴: 공격적 근접 + 보조 확산
     4: (e, oX, spd, dmg, p2, wd) => {
         const cx = e.x + e.w / 2, cy = e.y + e.h / 2;
+        const p = Game.player;
+        const dx = p ? p.x - e.x : 0;
+
         if (wd.ap === 0) {
-            const laserY = e.y + e.h / 2 - 5;
-            const lBox = calcLaser(oX, laserY, 10, e.facing);
-            spawnLaser(lBox.x, laserY, lBox.w, 10, 18, "#cc0000", Math.floor(dmg*1.5), false);
-            Game.camShake = 8;
+            // 강력한 대검 내려치기 — 위아래 판정 크게
+            const slashX = e.facing > 0 ? e.x + e.w - 10 : e.x - 80;
+            spawnLaser(slashX, e.y - 15, 90, e.h * 1.5, 14, "#660000", Math.floor(dmg*1.2), false, false);
+            e.vx = e.facing * 6;
+            Game.camShake = 12; playSfx('boss_atk');
         } else if (wd.ap === 1) {
-            const baseAng = e.facing > 0 ? 0 : Math.PI;
-            const count = p2 ? 7 : 5;
-            for (let s = -(count-1)/2; s <= (count-1)/2; s++) {
-                const a = baseAng + s * 0.25;
-                spawnEBullet(cx, cy, Math.cos(a)*8*spd, Math.sin(a)*8*spd, 110, 5, dmg, false, false, true);
-            }
+            // 전진 슬래시 2연속
+            const doSlash = (delay) => {
+                setTimeout(() => {
+                    if (!e.dead) {
+                        const sx = e.facing > 0 ? e.x + e.w - 5 : e.x - 70;
+                        spawnLaser(sx, e.y, 75, e.h * 1.1, 8, "#880000", Math.floor(dmg*0.9), false, false);
+                        e.vx = e.facing * 8;
+                        Game.camShake = 8;
+                    }
+                }, delay);
+            };
+            doSlash(0); doSlash(350);
         } else {
-            // 전방위 확산
-            const amt = p2 ? 16 : 10;
-            for (let i = 0; i < amt; i++) {
-                const a = (i / amt) * Math.PI * 2;
-                spawnEBullet(cx, cy, Math.cos(a)*5, Math.sin(a)*5, 100, 5, dmg);
+            // 보조: 2페이즈에서만 소수 확산탄
+            if (p2) {
+                const amt = 6;
+                for (let i = 0; i < amt; i++) {
+                    const a = (i / amt) * Math.PI * 2;
+                    spawnEBullet(cx, cy, Math.cos(a)*4*spd, Math.sin(a)*4*spd, 70, 5, Math.floor(dmg*0.5));
+                }
+            } else {
+                const slashX = e.facing > 0 ? e.x + e.w - 8 : e.x - 78;
+                spawnLaser(slashX, e.y, 86, e.h * 1.2, 10, "#880000", dmg, false, false);
+                e.vx = e.facing * 5;
+                Game.camShake = 8; playSfx('boss_atk');
             }
         }
     },
@@ -563,7 +580,9 @@ function updateBoss(e) {
         if (e.mT <= 0) { 
             // 2페이즈: 이동 주기 단축 + 순간이동 더 자주
         e.mT = isP2 ? 20 : 45; 
-            if (dx * dx > 62500) currentSpd *= 2.2; 
+            if (dx * dx > 62500) currentSpd *= 2.2;
+            // w1~4: 근접형 — 플레이어에게 더 적극적으로 붙음
+            if (w <= 4 && dx * dx > 8000) currentSpd *= 1.5;
             if (!isFlying && e.onGround && dy < -60 && Math.random() < 0.7) { e.vy = -9; } 
         }
         e.vx = e.facing * currentSpd; 
@@ -584,8 +603,8 @@ function updateBoss(e) {
                 e.ap = e.patternSeq;
             }
             
-            // 선딜레이 2~3배 — 유저가 보고 패링할 수 있는 시간 확보
-            const warnLen = w <= 4 ? 90 : (w <= 7 ? 70 : 55);
+            // 선딜레이 — 근접형(w1~4)은 짧게, 원거리형은 길게
+            const warnLen = w <= 4 ? 55 : (w <= 7 ? 70 : 55);
             e.warnT = warnLen; 
             
             // warnData에 발사 시점의 플레이어 위치 스냅샷 저장

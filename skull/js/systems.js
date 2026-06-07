@@ -3,13 +3,13 @@
 // 리게인은 삭제 — 즉각 피해가 훨씬 긴장감 있음
 // ==========================================
 
-const STAMINA_MAX       = 100;
-const STAMINA_REGEN     = 0.55;   // 프레임당 자연회복 (가드 중엔 0)
-const STAMINA_DASH      = 28;
-const STAMINA_GUARD_TICK = 0.3;   // 가드 유지 중 매 프레임 소모 — 
-const STAMINA_ATK       = 10;
-const STAMINA_SKILL     = 40;
-const JUST_DODGE_WINDOW = 6;      // 대쉬 직후 이 프레임 안에 맞으면 Witch Time
+const STAMINA_MAX        = 100;
+const STAMINA_REGEN      = 0.45;  // 프레임당 자연회복 (가드 중엔 0)
+const STAMINA_DASH       = 35;    // 대시 소모 증가 (기존 28)
+const STAMINA_GUARD_TICK = 0.5;   // 가드 유지 소모 증가 (기존 0.3)
+const STAMINA_ATK        = 0;     // 평타 스태미나 소모 없음 (공속 영향 차단)
+const STAMINA_SKILL      = 45;    // 필살기 소모 증가 (기존 40)
+const JUST_DODGE_WINDOW  = 6;     // 대쉬 직후 이 프레임 안에 맞으면 Witch Time
 
 // ── 플레이어 전투 시스템 초기화 ──────────────
 function initSystems() {
@@ -69,8 +69,9 @@ function _triggerGuardBreak(p) {
 function consumeStamina(amount) {
     const p = Game.player;
     if (!p) return true;
-    // 스태미나 30% 미만이면 소모 불가
-    if ((p.stamina || 0) < amount * 0.3) return false;
+    if (amount <= 0) return true;           // 소모량 0이면 무조건 허용 (평타 등)
+    // 정확히 amount 이상일 때만 허용 — 조금이라도 부족하면 불가
+    if ((p.stamina || 0) < amount) return false;
     p.stamina = Math.max(0, (p.stamina || 0) - amount);
     return true;
 }

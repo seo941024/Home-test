@@ -24,79 +24,86 @@ const STORY = {
 
   // 오프닝: 텍스트 스토리 → 마지막 씬에서 해골 조립 애니메이션으로 전환
   opening: [
-    // 1~4번째 씬: 순수 암전 — 내레이터 목소리만 들리는 느낌
-    { bg: "black",       speaker: "",             duration: 90,  text: "" },
-    { bg: "black",       speaker: "내레이터",     duration: 160, text: "태초부터 인간과 마족 사이에는 끊이지 않는 전쟁이 있었다." },
-    { bg: "black",       speaker: "내레이터",     duration: 160, text: "마왕은 저주의 힘으로 용사들을 하나씩 쓰러뜨렸다." },
-    { bg: "black",       speaker: "내레이터",     duration: 140, text: "그리고 마침내... 가장 강하다는 용사도 그 앞에 무릎을 꿇었다." },
-    { bg: "black",       speaker: "",             duration: 80,  text: "" },
-    { bg: "black",       speaker: "내레이터",     duration: 160, text: "죽음. 그것이 끝이었어야 했다." },
-    // "...아직이다" 씬: 암전 유지 — 무언가 깨어나는 느낌
-    { bg: "black",       speaker: "??",           duration: 160, text: "...아직이다. 아직 끝나지 않았어." },
-    // 각성 대사: 노을+묘비 — 클라이맥스
-    { bg: "grave",       speaker: "SKULL YUUSHA", duration: 180, text: "뼈만 남은 몸으로도 싸울 수 있다. 저주를 풀 때까지—" },
-    { bg: "grave",       speaker: "SKULL YUUSHA", duration: 160, text: "마왕성을 향해... 나아간다." },
+    { bg: "black",       speaker: "",         duration: 90,  text: "" },
+    { bg: "village",     speaker: "내레이터", duration: 180, text: "오래전, 인간과 마족 사이에는 끊임없는 전쟁이 있었다." },
+    { bg: "village",     speaker: "내레이터", duration: 180, text: "선택받은 용사와 마왕 사이에 마지막 결전이 있던 날-" },
+    { bg: "battlefield", speaker: "내레이터", duration: 160, text: "결국 용사는 패배하고 말았고, 인간들의 도시는 화염에 휩싸였다." },
+    { bg: "black",       speaker: "",         duration: 80,  text: "" },
+    { bg: "black",       speaker: "내레이터", duration: 160, text: "그렇게 끝이 나는줄 알았지만, 주술사의 저주에 의해 용사는 죽지 못했다." },
+    { bg: "black",       speaker: "내레이터", duration: 180, text: "살도, 피도, 심장도 없이. 오직 마왕을 죽이겠다는 의지만이 남았다." },
+    { bg: "night_grave", speaker: "??",       duration: 180, text: "........" },
+    { bg: "grave",       speaker: "용사", duration: 200, text: "이 손에 살이 없어도. 이 가슴에 심장이 없어도—" },
+    { bg: "grave",       speaker: "용사", duration: 180, text: "마왕을 죽이고 세상을 되찾아 보이겠어." },
   ],
 
   // 보스별 등장 대사 [worldN] = [{speaker, text, duration}]
+  // 보스별 등장 대사 [worldN] = [{speaker, text, duration}]
   boss: {
     1:  [
-      { speaker: "고블린 킹",     duration: 130, text: "크하하! 뼈다귀 주제에 감히 내 영역을 침범해?!" },
-      { speaker: "SKULL YUUSHA", duration: 130, text: "비켜라. 너는 내 길목일 뿐이다." },
+      { speaker: "고블린 킹",     duration: 140, text: "이 영역에서 살아 돌아간 자는 없다. 뼈가 됐든 뭐가 됐든." },
+      { speaker: "해골용사",      duration: 140, text: "안심해. 난 이미 뼈만 남았으니까." },
     ],
     2:  [
-      { speaker: "언데드 고블린 킹", duration: 130, text: "...나는 죽었다. 그래도 싸운다. 너처럼." },
-      { speaker: "SKULL YUUSHA",    duration: 130, text: "편히 쉬어라. 이번엔 진짜로 끝내주마." },
+      { speaker: "언데드 고블린 킹", duration: 150, text: "...나도 너처럼 죽어서 일어났다. 그래서 더 두렵다." },
+      { speaker: "해골용사",      duration: 150, text: "죽음에 먹힌 자와 죽음을 딛고 일어선 자. 그 차이를 보여주지." },
     ],
     3:  [
-      { speaker: "스켈레톤 치프틴", duration: 130, text: "뼈의 전사여, 어찌 동족을 거스르느냐?" },
-      { speaker: "SKULL YUUSHA",   duration: 130, text: "나는 살아있는 자들의 편이다." },
+      { speaker: "스켈레톤 치프틴", duration: 150, text: "동족이여, 왜 산 자들의 편에 서느냐. 우리는 버림받았다." },
+      { speaker: "해골용사",      duration: 150, text: "저주가 아니라 의지로 일어났어. 그게 다른 점이야." },
     ],
     4:  [
-      { speaker: "언데드 스켈레톤", duration: 130, text: "…죽음도 우릴 멈추지 못한다." },
-      { speaker: "SKULL YUUSHA",   duration: 130, text: "그래도 길을 열어라." },
+      { speaker: "언데드 스켈레톤", duration: 150, text: "...우리는 마왕의 것이다. 돌아설 수 없다." },
+      { speaker: "해골용사",      duration: 140, text: "그렇다면 그 사슬, 내 검으로 끊어줄게." },
     ],
     5:  [
-      { speaker: "거대 괴수 더스크", duration: 140, text: "GRAAAH—!!" },
-      { speaker: "내레이터",         duration: 110, text: "대지가 울렸다. 마왕의 수호수가 깨어났다." },
+      { speaker: "내레이터",        duration: 140, text: "형체도 이성도 없는 것이 눈앞을 막아섰다." },
+      { speaker: "거대 괴수 리치", duration: 130, text: "GROOAAARGH—!!" },
+      { speaker: "내레이터",        duration: 130, text: "마왕의 분노가 짐승의 형태를 빌려 세상을 짓눌렀다." },
     ],
     6:  [
-      { speaker: "리치 킹",         duration: 140, text: "빛도, 어둠도 닿지 않는 자. 네가 감히—" },
-      { speaker: "SKULL YUUSHA",    duration: 130, text: "죽은 자가 죽은 자를 두려워하겠나." },
+      { speaker: "언데드 리치",      duration: 160, text: "삶도 죽음도 초월한 자. 나는 수천 년을 기다렸다." },
+      { speaker: "언데드 리치",      duration: 150, text: "네 안의 불꽃이 꺼지기 전에 내가 먼저 삼키겠다." },
+      { speaker: "해골용사",      duration: 150, text: "수천 년의 기다림도, 오늘로 끝이야." },
     ],
     7:  [
-      { speaker: "마족 제1친위대장", duration: 140, text: "하! 해골 따위가 왕성에? 마왕님이 웃으실 것 같군." },
-      { speaker: "SKULL YUUSHA",    duration: 130, text: "웃음이 나올 때 웃어라. 곧 멈출 테니." },
+      { speaker: "마족 제1친위대장", duration: 150, text: "뼈다귀 하나가 여기까지 오다니. 마왕님도 흥미로워하시겠군." },
+      { speaker: "마족 제1친위대장", duration: 140, text: "하지만 구경은 내가 끝낸다." },
+      { speaker: "해골용사",      duration: 140, text: "구경꾼은 원래 말이 많은 법이지. 덤벼." },
     ],
     8:  [
-      { speaker: "마족 제2친위대장", duration: 140, text: "이 대검이 너의 뼈를 가루로 만들어주마." },
-      { speaker: "SKULL YUUSHA",    duration: 130, text: "해봐라." },
+      { speaker: "마족 제2친위대장", duration: 150, text: "이 검에 베이면 영혼조차 남지 않는다. 뼈도 예외는 없어." },
+      { speaker: "해골용사",      duration: 150, text: "영혼이 남지 않는다면, 이 분노만으로 널 베어주지." },
     ],
     9:  [
-      { speaker: "마족 제3친위대장", duration: 140, text: "...여기까지 오다니. 하지만 마왕님 앞은 통과 불가다." },
-      { speaker: "SKULL YUUSHA",    duration: 130, text: "마왕 앞에 서는 건 나다. 비켜라." },
+      { speaker: "마족 제3친위대장", duration: 160, text: "...인정한다. 여기까지 온 자는 네가 처음이다." },
+      { speaker: "마족 제3친위대장", duration: 150, text: "하지만 이 문은 내 목숨과 함께 닫혀있다." },
+      { speaker: "해골용사",      duration: 150, text: "너의 긍지도, 목숨도, 이 문과 함께 부숴버리겠어." },
     ],
     10: [
-      { speaker: "마왕",            duration: 160, text: "...놀랍군. 내 저주를 받고도 여기까지 왔다." },
-      { speaker: "마왕",            duration: 160, text: "뼈가 되어서도 포기하지 않다니. 그 집념... 경의를 표한다." },
-      { speaker: "SKULL YUUSHA",    duration: 160, text: "경의는 필요 없다. 저주를 거둬라." },
-      { speaker: "마왕",            duration: 160, text: "후후... 그것만은 안 되지. 어서 와라, 해골 용사여." },
+      { speaker: "해골용사",      duration: 160, text: "마왕!!!!!! " },
+      { speaker: "마왕",            duration: 170, text: "...누가 겁도없이 짐에게 도전하는가?" },
+      { speaker: "마왕",            duration: 180, text: "살도 피도 없이, 오직 뼈로만 이 길을 걸어왔다니." },
+      { speaker: "마왕",            duration: 170, text: "....건방지군" },
+      { speaker: "해골용사",            duration: 180, text: "... 뼈만 남은 나일지라도 너를 죽이고 평화를 되찾겠어." },
+      { speaker: "마왕",            duration: 170, text: "네가 다시 인간으로 돌아갈 수 있을 거라 생각하나?" },
+      { speaker: "해골용사",      duration: 150, text: "상관없어. 처음부터 각오한 길이니까." },
     ],
   },
 
   ending: [
-    { bg: "black",   speaker: "",             duration: 90,  text: "" },
-    { bg: "throne",  speaker: "내레이터",     duration: 160, text: "마왕이 쓰러졌다. 마왕성에 침묵이 흘렀다." },
-    { bg: "throne",  speaker: "마왕",         duration: 160, text: "...대단하다. 이 저주는... 풀린다. 하지만—" },
-    { bg: "throne",  speaker: "마왕",         duration: 160, text: "한 번 죽은 자가 되돌아올 수 있을지는... 모르겠군." },
-    { bg: "skull",   speaker: "SKULL YUUSHA", duration: 160, text: "..." },
-    { bg: "black",   speaker: "",             duration: 120, text: "" },
-    { bg: "village", speaker: "내레이터",     duration: 180, text: "저주가 걷히고, 해골 용사의 모습은 서서히 사라졌다." },
-    { bg: "village", speaker: "내레이터",     duration: 180, text: "사람들은 이름 모를 용사를 기억하지 못했지만—" },
-    { bg: "village", speaker: "내레이터",     duration: 180, text: "평화는 돌아왔다. 그것으로 충분했다." },
-    { bg: "black",   speaker: "",             duration: 120, text: "" },
-    { bg: "title",   speaker: "",             duration: 240, text: "SKULL YUUSHA" },
-    { bg: "black",   speaker: "",             duration: 90,  text: "" },
+    { bg: "black",   speaker: "",         duration: 90,  text: "" },
+    { bg: "throne",  speaker: "내레이터", duration: 180, text: "마왕이 무너졌다. 마왕성 전체가 무거운 침묵에 잠겼다." },
+    { bg: "throne",  speaker: "마왕",     duration: 180, text: "...인간 따위에게 패배하다니... 용사 ...." },
+    { bg: "throne",  speaker: "마왕",     duration: 190, text: "하지만 — 해골 뿐인 네가 다시 돌아갈 곳은 아무 곳도 없다..." },
+    { bg: "skull",   speaker: "해골용사", duration: 160, text: "....." },
+    { bg: "skull",   speaker: "해골용사", duration: 200, text: "처음부터 나 자신을 위해 싸운 게 아니었으니까 상관없어." },
+    { bg: "black",   speaker: "",         duration: 120, text: "" },
+    { bg: "village", speaker: "내레이터", duration: 200, text: "저주가 걷혔다. 어두웠던 하늘에 다시 빛이 돌아왔다." },
+    { bg: "village", speaker: "내레이터", duration: 200, text: "사람들은 세상을 짓누르던 무언가가 사라졌음을 느꼈지만, 누가 그들을 구했는지는 알지 못했다." },
+    { bg: "village", speaker: "내레이터", duration: 200, text: "다만 — 따뜻한 바람이 불었다. 어딘가 아주 익숙한 방향으로." },
+    { bg: "black",   speaker: "",         duration: 130, text: "" },
+    { bg: "title",   speaker: "",         duration: 240, text: "해골용사" },
+    { bg: "black",   speaker: "",         duration: 90,  text: "" },
   ],
 };
 
@@ -123,6 +130,8 @@ function startCutscene(type, worldN) {
         fadeAlpha: 1,
         lines,
     };
+    // 오프닝 컷신 시작 시 프롤로그 BGM
+    if (type === "opening" && typeof playBGM === 'function') playBGM('prologue');
     Game.gs = "cutscene";
 }
 
@@ -139,6 +148,9 @@ function _cutsceneEnd(type) {
         Game.hitStop  = 0;
         Game.transT   = 0;
     } else if (type === "ending") {
+        // 엔딩 컷신 종료 → 엔딩 BGM → 로비
+        if (typeof stopBGM === 'function') stopBGM();
+        if (typeof playBGM === 'function') playBGM('ending');
         Game.gs = "menu";
         if (typeof restoreLobbyUI === 'function') restoreLobbyUI();
     }
@@ -379,6 +391,73 @@ function _drawCutsceneBg(bg, frameNow) {
         // 지면
         ctx.fillStyle = "#080310";
         ctx.fillRect(0, CH - 25, CW, 25);
+        return;
+    }
+
+    if (bg === "battlefield") {
+        // 전쟁터 — 잿빛 하늘, 불타는 땅, 쓰러진 용사들
+        const bfT = frameNow;
+        // 하늘: 연기 섞인 잿빛
+        const bfSky = ctx.createLinearGradient(0, 0, 0, CH);
+        bfSky.addColorStop(0,   "#1a1008");
+        bfSky.addColorStop(0.4, "#2a1a0a");
+        bfSky.addColorStop(0.7, "#3a1a08");
+        bfSky.addColorStop(1,   "#150a04");
+        ctx.fillStyle = bfSky; ctx.fillRect(0, 0, CW, CH);
+
+        // 불빛 글로우 (지평선)
+        const bfGlo = ctx.createRadialGradient(CW*0.5, CH*0.75, 5, CW*0.5, CH*0.75, CW*0.6);
+        bfGlo.addColorStop(0, "rgba(220,80,10,0.5)");
+        bfGlo.addColorStop(0.5, "rgba(140,40,5,0.2)");
+        bfGlo.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = bfGlo; ctx.fillRect(0, 0, CW, CH);
+
+        // 연기 파티클
+        for (let i = 0; i < 12; i++) {
+            const sx = ((i * 173 + bfT * 0.012 * (i%2===0?1:-0.5)) % (CW+120)) - 60;
+            const sy = CH*0.3 + (i % 4) * 30 - Math.sin(bfT*0.001+i)*15;
+            const sr = 30 + (i%3)*20;
+            const sa = 0.06 + Math.sin(bfT*0.0008+i)*0.02;
+            const sg = ctx.createRadialGradient(sx,sy,0,sx,sy,sr);
+            sg.addColorStop(0, `rgba(60,50,40,${sa+0.04})`);
+            sg.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = sg;
+            ctx.beginPath(); ctx.ellipse(sx,sy,sr*1.8,sr*0.7,0,0,Math.PI*2); ctx.fill();
+        }
+
+        // 원경 나무/성벽 실루엣 (잿빛)
+        ctx.fillStyle = "#0a0804";
+        // 성벽/건물 실루엣 — 삼각형 없이 직선 블록만 사용
+        ctx.fillStyle = "#0a0804";
+        for (let i = 0; i < 10; i++) {
+            const tx = i * 140 - 30;
+            const th = 55 + (i % 3) * 25;
+            const tw = 28 + (i % 2) * 12;
+            // 건물 본체
+            ctx.fillRect(tx, CH - 90 - th, tw, th);
+            // 흉벽 (성벽 위 요철) — 직사각형만 사용
+            for (let m = 0; m < 3; m++) {
+                ctx.fillRect(tx + m * (tw/3), CH - 90 - th - 8, tw/3 - 2, 8);
+            }
+        }
+
+        // 지면 (불탄 땅)
+        const bfGnd = ctx.createLinearGradient(0,CH-60,0,CH);
+        bfGnd.addColorStop(0,"#2a1505"); bfGnd.addColorStop(1,"#0f0803");
+        ctx.fillStyle = bfGnd; ctx.fillRect(0,CH-60,CW,60);
+
+        // 불꽃 2~3군데
+        for (let fi=0; fi<3; fi++) {
+            const fx = 120 + fi*230;
+            const fh = 18 + Math.sin(bfT*0.005+fi)*6;
+            const flk = 0.4+Math.sin(bfT*0.007+fi*2)*0.2;
+            const fg = ctx.createRadialGradient(fx,CH-60,0,fx,CH-60,fh*2);
+            fg.addColorStop(0,`rgba(255,160,20,${flk})`);
+            fg.addColorStop(0.4,`rgba(200,60,0,${flk*0.6})`);
+            fg.addColorStop(1,"rgba(0,0,0,0)");
+            ctx.fillStyle = fg;
+            ctx.beginPath(); ctx.ellipse(fx,CH-60,fh*0.6,fh,0,0,Math.PI*2); ctx.fill();
+        }
         return;
     }
 
@@ -668,6 +747,7 @@ function updateOpeningAnim() {
             const spaceNow = dn("Space", "Enter", "KeyZ", "KeyX");
             if (spaceNow && !a._spaceOld) {
                 Game.openingAnim = null;
+                if (typeof stopBGM === 'function') stopBGM();
                 Game.gs = "class_select";
                 return;
             }

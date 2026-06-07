@@ -97,7 +97,33 @@ function mkEnemy(x, y, w) {
     if (type === "phantom")  { e.phantomT = 0; e.visible = true; e.invisDur = 90; e.visDur = 120; }
     // 엘리트는 슈퍼아머 — 평타에 흔들리지 않고 공격 이어감
     if (isElite) e.superArmor = true;
+
+    // 스폰 즉시 가장 가까운 발판 위로 정렬
+    _snapToNearestPlatform(e);
     return e;
+}
+
+// 가장 가까운 발판 위로 즉시 이동 — 공중 스폰 낙사 방지
+function _snapToNearestPlatform(e) {
+    if (!Game.platforms || Game.platforms.length === 0) return;
+    // 발판 상면(pt.y)이 e.y+e.h보다 아래 200px 이내인 발판 중
+    // 몬스터가 올라설 수 있는(x범위 겹치는) 것 찾기
+    const foot = e.y + e.h; // 현재 발 위치
+    let best = null, bestDist = 9999;
+    for (const pt of Game.platforms) {
+        // 발판 x범위와 몬스터 x범위가 겹치는지
+        if (e.x + e.w < pt.x + 4 || e.x > pt.x + pt.w - 4) continue;
+        // 발판 상면이 몬스터 발 아래쪽에 있어야 함 (이미 발판 아래에 스폰된 경우 제외)
+        const surfaceY = pt.y;
+        if (surfaceY < e.y - 5) continue; // 머리 위 발판은 무시
+        const dist = Math.abs(surfaceY - foot);
+        if (dist < bestDist) { bestDist = dist; best = pt; }
+    }
+    if (best) {
+        e.y = best.y - e.h;
+        e.vy = 0;
+        e.onGround = true;
+    }
 }
 
 function mkBoss(x, y, w) {
@@ -150,7 +176,18 @@ function updateEnemies() {
     Game.enemies.forEach(e => {
         if (!e.active) return;
         
-        if (e.y > CH + 50 && !e.dead) { e.hp = 0; e.dead = true; } 
+        if (e.y > CH + 50 && !e.dead) {
+            // 낙사 시 즉시 제거 대신 가장 가까운 발판으로 순간이동
+            // (보스 제외 — 보스는 일부러 낙사 처리)
+            if (!e.isBoss) {
+                _snapToNearestPlatform(e);
+                e.vx = 0; e.vy = 0; e.kbT = 0;
+                e._cliffDir = 0; // 낭떠러지 방향 플래그 리셋
+                if (e.y > CH + 50) { e.hp = 0; e.dead = true; } // 발판도 없으면 제거
+            } else {
+                e.hp = 0; e.dead = true;
+            }
+        } 
         
         if (e.dead) {
             Game.score += e.isBoss ? 500 : (e.isElite ? 150 : 50); Game.kills++; 
@@ -200,6 +237,16 @@ function updateEnemies() {
         if (typeof updatePoise === 'function') updatePoise(e);
 
         if (e.isBoss) { if (typeof updateBoss === 'function') updateBoss(e); return; }
+
+        // 미믹 스폰 딜레이 — 1초간 무적+이동불가 (플레이어 회피 시간 보장)
+        if (e._spawnDelay > 0) {
+            e._spawnDelay--;
+            e.vx = 0; e.sT = 80; e.warnT = 0; e.atkAnim = 0;
+            e.vy = Math.min(e.vy + 0.4, 9);
+            e.x += e.vx; e.y += e.vy;
+            if (typeof resolveAABB === 'function') resolveAABB(e);
+            return;
+        }
 
         // 더미 골렘: 중력+충돌만 적용, AI/이동/공격 전부 건너뜀
         // 일반 몬스터 함수엔 전혀 영향 없음 — 플래그 없으면 그냥 통과
@@ -251,7 +298,12 @@ function updateEnemies() {
                         let eSpd = e.isElite ? 0.30 : 0.20;
                         let maxSpd = e.isElite ? 2.2 : 1.7;
                         e.facing = dx > 0 ? 1 : -1; e.vx += (dx > 0 ? 1 : -1) * eSpd; e.vx = Math.max(-maxSpd, Math.min(maxSpd, e.vx)); 
-                    } else { e.pT--; if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; } e.vx = e.pDir * (e.isElite ? 1.5 : 1.0); }
+                    } else {
+                        e.pT--;
+                        if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; }
+                        if (e._cliffDir && e.pDir === e._cliffDir) e.pDir *= -1;
+                        e.vx = e.pDir * (e.isElite ? 1.5 : 1.0);
+                    }
                 }
             } 
             else if (e.type === "shield") {
@@ -279,10 +331,13 @@ function updateEnemies() {
                 } else if (e.atkAnim > 0) {
                     e.atkAnim--; e.vx = 0;
                 } else {
-                    if (distSq < 80000) { 
+                    if (distSq < 80000) {
                         e.facing = dx > 0 ? 1 : -1;
-                        if (distSq < 14400) e.vx += (dx > 0 ? -1 : 1) * 0.15; else e.vx *= 0.9; 
-                        e.vx = Math.max(-1.4, Math.min(1.4, e.vx)); e.sT--;
+                        if (distSq < 14400) e.vx += (dx > 0 ? -1 : 1) * 0.15; else e.vx *= 0.9;
+                        e.vx = Math.max(-1.4, Math.min(1.4, e.vx));
+                        // _cliffDir 방향으로 이동하면 즉시 차단
+                        if (e._cliffDir && Math.sign(e.vx) === e._cliffDir) e.vx = 0;
+                        e.sT--;
                         if (e.sT <= 0) {
                             e.sT = e.sI;
                             // 원거리도 선딜 충분히 — 보고 피하거나 패링 유도
@@ -293,7 +348,14 @@ function updateEnemies() {
                                 facing: e.facing
                             };
                         }
-                    } else { e.pT--; if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; } e.vx = e.pDir * (e.isElite ? 1.2 : 0.8); }
+                    } else {
+                        e.pT--;
+                        if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; }
+                        if (e._cliffDir && e.pDir === e._cliffDir) e.pDir *= -1;
+                        e.vx = e.pDir * (e.isElite ? 1.2 : 0.8);
+                        // cliffDir 방향 최종 차단
+                        if (e._cliffDir && Math.sign(e.vx) === e._cliffDir) e.vx = 0;
+                    }
                 }
             }
 
@@ -369,45 +431,55 @@ function updateEnemies() {
             }
 
             // ── 낭떠러지 감지 ────────────────────────────────
-            // 매 프레임 체크: 진행 방향 앞 발판이 없으면 멈춤
-            // 플로팅 발판에서만 점프 허용 (바닥 구덩이는 점프 금지)
-            if (e.onGround && e.atkAnim <= 0 && e.kbT <= 0) {
-                const floorY = CH - 40; // stage.js의 바닥 발판 Y값
-                const isOnFloor = e.y + e.h >= floorY - 2; // 바닥 발판 위에 있는지
-                const checkX = e.facing > 0 ? e.x + e.w + 8 : e.x - 8;
-                const checkY = e.y + e.h + 8;
-                let frontSafe = false;
-                for (const t of Game.platforms) {
-                    if (checkX >= t.x && checkX <= t.x + t.w &&
-                        checkY >= t.y && checkY <= t.y + t.h + 12) {
-                        frontSafe = true; break;
+            if (e.onGround && e.kbT <= 0) {
+                const floorY = CH - 40;
+                const isOnFloor = e.y + e.h >= floorY - 4;
+                // 실제 이동 방향으로 체크 (facing이 아닌 vx 방향)
+                const moveDir = e.vx !== 0 ? Math.sign(e.vx) : e.facing;
+
+                // 이동 방향 앞 발판 존재 여부 — 넓은 범위(4~28px)로 체크
+                function hasPlatformAhead(dir) {
+                    const foot = e.y + e.h;
+                    for (let dist = 4; dist <= 28; dist += 4) {
+                        const cx = dir > 0 ? e.x + e.w + dist : e.x - dist;
+                        for (const t of Game.platforms) {
+                            if (cx >= t.x && cx < t.x + t.w &&
+                                foot >= t.y - 4 && foot <= t.y + t.h + 16) {
+                                return true;
+                            }
+                        }
                     }
+                    return false;
                 }
 
-                if (!frontSafe) {
+                const frontSafe = hasPlatformAhead(moveDir);
+
+                if (!frontSafe && e.vx !== 0) {
+                    e._cliffDir = moveDir;
+                    e.vx = 0;
+
                     if (isOnFloor) {
-                        // 바닥 구덩이: 절대 점프 금지, 그냥 멈추고 방향 전환
-                        e.vx = 0;
-                        e.pDir *= -1;
-                        e.pT = 40 + Math.random() * 40;
-                    } else if (e.type === "melee" && (Game.frameCount + (e.id || 0)) % 30 === 0) {
-                        // 플로팅 발판 끝: 타겟 방향이면 도약, 아니면 방향 전환
-                        const towardPlayer = (e.facing > 0) === (Game.player.x > e.x);
-                        if (towardPlayer) {
-                            e.vy = -7.5;
-                            e.vx = e.facing * 3.0;
-                            e.onGround = false;
+                        // 바닥 낭떠러지: 반대 방향으로 후퇴
+                        e.pDir = -moveDir;
+                        e.pT   = 40 + Math.random() * 40;
+                    } else if (e.type === "melee") {
+                        // 플로팅 발판 끝: 플레이어 향하면 도약
+                        const towardPlayer = Game.player && (moveDir > 0) === (Game.player.x > e.x);
+                        if (towardPlayer && (Game.frameCount + (e.id || 0)) % 20 === 0) {
+                            e.vy = -7.5; e.vx = moveDir * 3.0; e.onGround = false;
+                            e._cliffDir = 0;
                         } else {
-                            e.vx = 0;
-                            e.pDir *= -1;
+                            e.pDir = -moveDir; e.pT = 30 + Math.random() * 30;
                         }
-                    } else if (e.type !== "melee") {
-                        // 원거리 몹 절벽 앞: vx=0 완전 정지 — 낙사 자살 방지
-                        e.vx = 0;
-                        e.pDir = 0;      // 이동 의지 초기화
-                        e.pT = 60;       // 충분히 멈춘 뒤 반대 방향 재탐색
-                        e.pDir = (Game.player && Game.player.x < e.x) ? -1 : 1; // 플레이어 방향으로만 이동
+                    } else {
+                        // 원거리: 제자리에서 공격 — 절대 낭떠러지 방향으로 이동 안 함
+                        e.pDir = -moveDir;
+                        e.pT   = 80 + Math.random() * 40;
+                        e._cliffDir = moveDir; // 강하게 고정
+                        if (Game.player) e.facing = Game.player.x > e.x ? 1 : -1;
                     }
+                } else if (frontSafe) {
+                    e._cliffDir = 0;
                 }
             }
         }

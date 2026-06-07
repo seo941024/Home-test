@@ -22,24 +22,23 @@ const CHUNK_TEMPLATES = {
         ],
         traps: [],
         enemySlots: [
-            { x: ox + 80,  y: floorY - 130 },
-            { x: ox + 230, y: floorY - 190 },
-            { x: ox + 320, y: floorY - 30  },
+            { x: ox + 80,  y: floorY - 30 },
+            { x: ox + 230, y: floorY - 30 },
+            { x: ox + 320, y: floorY - 30 },
         ]
     }),
 
-    // [2] 구덩이 구간 - 낙사 위험
+    // [2] 구덩이 구간 - 낙사 위험 (징검다리로 건널 수 있게)
     pit: (ox, w) => ({
         platforms: [
-            { x: ox,          y: floorY, w: 120, h: 40 },
-            { x: ox + 240,    y: floorY, w: 160, h: 40 },
-            // 징검다리 발판
-            { x: ox + 140, y: floorY - 80, w: 60, h: TILE, float: true, drop: false },
+            { x: ox,       y: floorY, w: 130, h: 40 },           // 좌측 발판 조금 늘림
+            { x: ox + 270, y: floorY, w: 130, h: 40 },           // 우측 발판
+            // 징검다리 2개 — 중간에 발판이 충분해서 몬스터 스폰 가능
+            { x: ox + 130, y: floorY - 70, w: 70, h: TILE, float: true, drop: false },
+            { x: ox + 210, y: floorY - 70, w: 60, h: TILE, float: true, drop: false },
         ],
         traps: [],
-        enemySlots: [
-            { x: ox + 280, y: floorY - 30 },
-        ]
+        enemySlots: []  // pit 슬롯은 안전 스폰 시스템에서 처리
     }),
 
     // [3] 좁은 통로 - 압박 전투
@@ -51,8 +50,8 @@ const CHUNK_TEMPLATES = {
         ],
         traps: [],
         enemySlots: [
-            { x: ox + 90,  y: floorY - 110 },
-            { x: ox + 250, y: floorY - 30  },
+            { x: ox + 90,  y: floorY - 30 },   // 바닥 - 공중 스폰 방지
+            { x: ox + 250, y: floorY - 30 },
         ]
     }),
 
@@ -68,8 +67,8 @@ const CHUNK_TEMPLATES = {
         ],
         traps: [],
         enemySlots: [
-            { x: ox + 120, y: floorY - 90 },
-            { x: ox + 310, y: floorY - 210 },
+            { x: ox + 120, y: floorY - 30 },
+            { x: ox + 310, y: floorY - 30 },
         ]
     }),
 
@@ -96,7 +95,7 @@ const CHUNK_TEMPLATES = {
         ],
         traps: [
             { type: "swamp", x: ox + 40, y: floorY - 12, w: CHUNK_W - 80, h: 12,
-              dmg: 2 + w, tickRate: 45, timer: 0 }
+              dmg: 1, tickRate: 20, timer: 0 }  // 독: 약한 연속 틱 — 즉시 인지하고 벗어나도록
         ],
         enemySlots: [
             { x: ox + 100, y: floorY - 30 },
@@ -215,18 +214,37 @@ function buildChunkMap(worldN, levelN) {
             }
         }
 
-        // 적 배치 (수집된 슬롯 + 여분)
-        const baseCount = 3 + worldN * 2 + levelN;
-        const positions = [...enemyPositions];
-        while (positions.length < baseCount) {
-            positions.push({
-                x: 300 + Math.random() * (levelW - 500),
-                y: floorY - 30
-            });
+        // ── 발판 위 안전 스폰 시스템 ──
+        // 해당 x 위치에 실제로 바닥 발판이 있는지 검사
+        function hasPlatformAt(x) {
+            // 발판 중심이 x에서 TILE/2 이내에 있으면 유효
+            return Game.platforms.some(pt =>
+                pt.y === floorY &&
+                pt.h >= 20 &&
+                x >= pt.x &&       // 발판 x 범위 안
+                x < pt.x + pt.w    // (경계 조건 완화 — _snapToNearestPlatform이 보정)
+            );
         }
-        positions.forEach(pos => {
-            if (typeof mkEnemy === 'function') mkEnemy(pos.x, pos.y, worldN);
-        });
+
+        // 안전한 발판 x 좌표 목록 — 실제로 발판이 있는 위치만
+        const validSpawnX = [];
+        // 전체 맵을 TILE 간격으로 스캔해서 안전한 위치 수집
+        for (let sx = 250; sx < levelW - 100; sx += TILE) {
+            if (hasPlatformAt(sx)) validSpawnX.push(sx);
+        }
+
+        // 적 배치 — validSpawnX에서 직접 선택 (오프셋 없이 검증된 위치만)
+        const baseCount = 3 + worldN * 2 + levelN;
+        if (validSpawnX.length > 0) {
+            // validSpawnX를 셔플해서 겹치지 않게 배치
+            const shuffled = [...validSpawnX].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < baseCount; i++) {
+                const sx = shuffled[i % shuffled.length];
+                // 같은 위치에 겹치면 약간 오프셋 (단, hasPlatformAt 재검증)
+                const finalX = sx + (i >= shuffled.length ? (i - shuffled.length + 1) * 8 : 0);
+                if (typeof mkEnemy === 'function') mkEnemy(finalX, floorY - 30, worldN);
+            }
+        }
     }
 
     // 벽 (좌우 경계)
@@ -254,17 +272,20 @@ function updateTraps() {
             t.active = cyclePos < t.onTime;
 
             if (t.active && Game.invT === 0) {
-                const tx = t.x - Game.camX;
                 if (overlap(p, { x: t.x, y: t.y, w: t.w, h: t.h })) {
                     if (typeof takeDmg === 'function') takeDmg(t.dmg, null, false);
+                    // 가시 피격 후 무적시간 = 일반 피격과 동일 (연속 피격 방지)
+                    Game.invT = Math.max(Game.invT, 85);
                 }
             }
         } else if (t.type === "swamp") {
-            // 독 늪: 서있으면 주기적 DoT
+            // 독 늪: 서있으면 빠른 틱 DoT — 데미지 약하고 무적 짧아서 즉시 인지 가능
             if (t.timer % t.tickRate === 0) {
                 if (overlap(p, { x: t.x, y: t.y, w: t.w, h: t.h }) && p.onGround) {
                     if (typeof takeDmg === 'function') takeDmg(t.dmg, null, false);
-                    addText(p.x, p.y - 20, "POISON!", "#44ff44", 30, 12);
+                    // 독 전용 짧은 무적 — 넉백/경직 없이 연속 틱만
+                    Game.invT = Math.min(Game.invT, 8);
+                    addText(p.x, p.y - 20, "POISON!", "#44ff44", 20, 10);
                 }
             }
         }
@@ -275,11 +296,17 @@ function updateTraps() {
 function triggerMimic(ev) {
     ev.triggered = true;
     ev.type = "mimic_active";
-    // 미믹 → 즉시 엘리트 적 스폰
     if (typeof mkEnemy === 'function') {
         const e = mkEnemy(ev.x, ev.y - 24, Game.worldN);
-        // 강제로 엘리트 설정
-        if (e) { e.isElite = true; e.hp *= 2; e.maxHp = e.hp; }
+        if (e) {
+            e.isElite = true; e.hp *= 2; e.maxHp = e.hp;
+            // 스폰 직후 1초(60프레임) 동안 공격/피격 없음 — 플레이어가 피할 시간
+            e.sT  = 80;       // 공격 쿨다운 초기 딜레이
+            e.kbT = 0;
+            e.warnT = 0;
+            e.atkAnim = 0;
+            e._spawnDelay = 60; // 커스텀 플래그 — 60프레임 후 활성
+        }
     }
     addText(ev.x, ev.y - 20, "MIMIC!!", "#ff4400", 80, 18);
     Game.camShake = 15;

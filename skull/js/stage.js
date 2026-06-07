@@ -149,6 +149,11 @@ function genStage(w, l) {
     Game.camX = 0;
 
     if (typeof updateHUD === 'function') updateHUD();
+
+    // NPC 스폰 — 특정 월드/레벨에 이야기를 가진 NPC 배치
+    if (!isBoss && typeof spawnNPC === 'function') {
+        spawnNPC(w, l);
+    }
 }
 
 function nextStage() {

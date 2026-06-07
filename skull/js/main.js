@@ -61,13 +61,21 @@ function updatePlayer() {
     p.guarding = guardNow;
 
     if (dn("KeyZ") && p.dashCD <= 0 && !p.guarding && p.kbT <= 0 && p.atkT === 0) {
-        const hasStamina = typeof consumeStamina !== 'function' || consumeStamina(typeof STAMINA_DASH !== 'undefined' ? STAMINA_DASH : 28);
-        // 스태미나 부족이면 Fat Roll (짧은 무적 대쉬)
-        p.dashT = (!hasStamina || p.fatRoll) ? 8 : 15 + Game.pDashInv;
+        const dashCost = typeof STAMINA_DASH !== 'undefined' ? STAMINA_DASH : 35;
+        const hasStamina = typeof consumeStamina !== 'function' || consumeStamina(dashCost);
+        if (!hasStamina) {
+            // 스태미나 부족 — 대시 완전 불가, 문구 쿨타임 60프레임(1초)
+            if (!p._staminaWarnT || p._staminaWarnT <= 0) {
+                addText(p.x, p.y - 20, "STAMINA!", "#ff6600", 50, 11);
+                p._staminaWarnT = 60;
+            }
+        } else {
+        p.dashT = 15 + Game.pDashInv;
         p.dashCD = Math.floor(75 * Game.pDashCDMul);
         p.vy = 0; p.plunging = false; playSfx('dash');
         // 저스트 회피 윈도우 열기
         p.justDodgeT = typeof JUST_DODGE_WINDOW !== 'undefined' ? JUST_DODGE_WINDOW : 6;
+        } // hasStamina 블록 종료
         p.justDodgeReady = true;
     }
     
@@ -89,6 +97,7 @@ function updatePlayer() {
         if (mx !== 0) p.facing = mx; p.vx = mx * 2.4 * Game.pMoveSpdMul; 
     }
     if (p.dashCD > 0) p.dashCD--;
+    if (p._staminaWarnT > 0) p._staminaWarnT--;
 
     if (p.onGround) {
         p.airDashUsed = false; // 착지하면 공중 대쉬 충전
@@ -198,9 +207,13 @@ function updatePlayer() {
                 plungeHitAny = true;
             }
         });
-        // MP 회복은 실제로 적에게 닿았을 때만 — 허공 강하는 게이지 안 참
+        // 강하 착지가 적에게 닿았을 때: MP 회복 + 콤보 카운터 증가
         if (plungeHitAny) {
             Game.pMp = Math.min(Game.pMaxMp, Game.pMp + 5);
+            // 강하도 콤보에 기여 — 1타로 계산 (콤보 타이머 리셋)
+            Game.comboCount = (Game.comboCount || 0) + 1;
+            Game.comboTimer = 150 + (Game.pComboDur || 0);
+            if (Game.runStats) Game.runStats.maxCombo = Math.max(Game.runStats.maxCombo || 0, Game.comboCount);
         }
 
         if (Game.pClass === 1) {
@@ -246,7 +259,7 @@ function updatePlayerCombat() {
 
     if (dn("KeyC") && !dn("ArrowDown") && p.atkT === 0 && !p.guarding && p.kbT <= 0 && p.dashT <= 0 && !p.plunging) {
         // 스태미나 부족하면 공격 자체를 막음 — 무한 콤보 방지
-        if (typeof consumeStamina === 'function' && !consumeStamina((typeof STAMINA_ATK !== 'undefined') ? STAMINA_ATK : 10)) return;
+        // 평타 스태미나 소모 없음 — 공속 빠를수록 의미없어지는 문제 해결
         playSfx('atk');
         let maxCombo = (Game.pClass === 1) ? 5 : 3;
         p.combo = (p.combo % maxCombo) + 1; 
@@ -397,12 +410,23 @@ function updateProjectiles() {
 
     Game.eBullets.forEach((b) => { 
         if (!b.active) return;
-        b.x += b.vx * Game.pProjSlow; b.y += b.vy * Game.pProjSlow; 
-        if (b.grav) b.vy += 0.4 * Game.pProjSlow; else b.vy += 0.12 * Game.pProjSlow; 
-        b.life--; 
-        if (b.life <= 0 || b.y > CH + 30) { b.active = false; return; }
-        
-        for (const t of Game.platforms) { if (overlap({ x: b.x - b.r, y: b.y - b.r, w: b.r * 2, h: b.r * 2 }, t)) { b.active = false; return; } }
+        b.x += b.vx * Game.pProjSlow; b.y += b.vy * Game.pProjSlow;
+        // grav=true면 중력 적용, false면 직선 비행 (vy 변화 없음)
+        if (b.grav) b.vy += 0.4 * Game.pProjSlow;
+        b.life--;
+        const _floorY = CH - 40;
+        if (b.life <= 0 || b.y > _floorY + 50 || b.x < -50 || b.x > (Game.levelW || 3200) + 50) { b.active = false; return; }
+
+        // 발판 충돌 — 발판 상면 위로 올라오는 경우도 처리
+        for (const t of Game.platforms) {
+            if (overlap({ x: b.x - b.r, y: b.y - b.r, w: b.r * 2, h: b.r * 2 }, t)) {
+                b.active = false; return;
+            }
+            // 발판을 통과해버린 경우 — y가 발판 아래에 있으면 제거
+            if (b.y > t.y + t.h && b.x >= t.x && b.x <= t.x + t.w) {
+                b.active = false; return;
+            }
+        }
         // 투사체 r이 8~10으로 커졌으므로 히트박스도 r 기반 동적 계산
         const hitR2 = (b.r || 8) * 0.85;
         const pCx = Game.player.x + Game.player.w / 2;
@@ -539,23 +563,33 @@ function updateItemsAndMisc() {
                 // 💥 기존 버그: 여기서 ev.used = true를 일괄 처리해서 화톳불이 고장났었음. (삭제 완료)
 
                 if (ev.type === "curse_altar") {
-                    ev.used = true; // 제단 사용 완료 처리
+                    ev.used = true;
                     const dmgAmt = Math.floor(p.hp * 0.25);
                     p.hp = Math.max(1, p.hp - dmgAmt);
                     const roll = Math.random();
-                    
+
+                    // 증가 전 실제 ATK 계산
+                    const atkBefore = Math.floor(Game.pBaseDmg * (Game.pBaseDmgMul||1) * (Game.pFinalDmgMul||1));
+
                     if (roll < 0.33) {
-                        Game.pFinalDmgMul += 0.5;
-                        Game.pBaseDmg += 10; // 💡 눈에 보이도록 기본 공격력(ATK)도 확 올려줌!
-                        addText(ev.x, ev.y - 20, "저주: 공격력/최종 데미지 폭증!", "#ff0055", 140, 13);
+                        Game.pBaseDmg   += 15;           // 기본 공격력 직접 증가
+                        Game.pFinalDmgMul += 0.5;         // 최종 배율도 추가
+                        const atkAfter = Math.floor(Game.pBaseDmg * (Game.pBaseDmgMul||1) * (Game.pFinalDmgMul||1));
+                        addText(ev.x, ev.y - 40, `저주: ATK ${atkBefore} → ${atkAfter}`, "#ff0055", 160, 14);
+                        addText(ev.x, ev.y - 20, "공격력 폭증 + 최종데미지 +50%!", "#ff4488", 120, 11);
                     } else if (roll < 0.66) {
                         Game.pSkillDmgMul += 0.5;
-                        addText(ev.x, ev.y - 20, "저주: 필살기 위력 +50%!", "#ff0055", 120, 13);
+                        addText(ev.x, ev.y - 40, "저주: 필살기 위력 +50%!", "#ff0055", 160, 14);
+                        addText(ev.x, ev.y - 20, `현재 ATK: ${atkBefore}`, "#ff4488", 100, 11);
                     } else {
                         Game.pCritChance = Math.min(0.95, Game.pCritChance + 0.25);
-                        Game.pCritDmg += 1.0;
-                        addText(ev.x, ev.y - 20, "저주: 치명타 +25% / 데미지 +100%!", "#ff0055", 140, 13);
+                        Game.pCritDmg   += 1.0;
+                        const critPct = Math.round(Game.pCritChance * 100);
+                        addText(ev.x, ev.y - 40, `저주: 치명타 ${critPct}% / 데미지 ×${Game.pCritDmg.toFixed(1)}`, "#ff0055", 160, 13);
+                        addText(ev.x, ev.y - 20, "크리 확률+25% / 크리 배율+100%!", "#ff4488", 120, 11);
                     }
+                    // HUD 즉시 갱신 — ATK 수치가 UI에 바로 반영
+                    if (typeof updateHUD === 'function') updateHUD();
                     playSfx('skill'); Game.camShake = 20;
                     for (let pi = 0; pi < 30; pi++) addPart(ev.x + ev.w/2, ev.y + ev.h/2, "#ff0055", 30, 4);
                     
@@ -661,6 +695,7 @@ function update() {
     if(typeof updateEnemies === 'function') updateEnemies();
     updateProjectiles();
     if (typeof updateTraps === 'function') updateTraps();
+    if (typeof updateNPCs === 'function') updateNPCs();
     updateItemsAndMisc();
 
     Game.camX += (Game.player.x - CW / 3 - Game.camX) * 0.1; 
@@ -1104,8 +1139,9 @@ function showOv(t, s1, s2, btn) {
 
 // 💡 [패치] 로비 화면(메뉴) 복구 전용 함수 - innerHTML 사용으로 태그 깨짐 방지
 function restoreLobbyUI() {
-    // 로비 복귀 시 모든 BGM 완전 정지
     if (typeof stopBGM === 'function') stopBGM();
+    // 로비 복귀 시 로비 BGM 재생
+    setTimeout(() => { if (typeof playBGM === 'function') playBGM('lobby'); }, 200);
     const overlay = document.getElementById("overlay");
     if (overlay) {
         overlay.style.display = "flex";

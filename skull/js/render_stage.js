@@ -346,23 +346,84 @@ function drawBackground(frameNow) {
             ctx.stroke();
         }
     } 
-    else if (wg === 5) { 
-        ctx.lineWidth = 3;
-        let wrap = CW + 150;
-        for (let i = 0; i < 18; i++) {
-            ctx.strokeStyle = (i % 2 === 0) ? "#3d1010" : "#5c1a0a"; // 검붉은 갈색
-            ctx.shadowColor = "rgba(80, 15, 5, 0.4)"; 
-            ctx.shadowBlur = 5;
-            ctx.beginPath();
-            for (let y = 0; y <= CH; y += 30) {
-                let bx = ((i * 140) % Game.levelW) * 0.4 - Game.camX * 0.4;
-                let mod = ((bx % wrap) + wrap) % wrap - 50;
-                let wave = Math.sin((y + frameNow * 0.05 + i * 100) * 0.03) * 20;
-                if (y === 0) ctx.moveTo(mod + wave, y);
-                else ctx.lineTo(mod + wave, y);
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0; 
+    else if (wg === 5) {
+        const t5 = frameNow;
+        // ── 피바다 하늘: 짙은 선홍빛 ──
+        const bloodSky = ctx.createLinearGradient(0, 0, 0, CH);
+        bloodSky.addColorStop(0,   "#1a0000");
+        bloodSky.addColorStop(0.3, "#3a0005");
+        bloodSky.addColorStop(0.6, "#5a0008");
+        bloodSky.addColorStop(1,   "#1a0003");
+        ctx.fillStyle = bloodSky;
+        ctx.fillRect(0, 0, CW, CH);
+
+        // 핏빛 원경 광원 (지평선 쪽)
+        const horizGrd = ctx.createRadialGradient(CW*0.5, CH*0.85, 20, CW*0.5, CH*0.85, CW*0.7);
+        horizGrd.addColorStop(0,   "rgba(200,0,20,0.45)");
+        horizGrd.addColorStop(0.4, "rgba(120,0,10,0.2)");
+        horizGrd.addColorStop(1,   "rgba(0,0,0,0)");
+        ctx.fillStyle = horizGrd;
+        ctx.fillRect(0, 0, CW, CH);
+
+        // 피 웅덩이 잔물결 (지면 근처)
+        ctx.save();
+        for (let i = 0; i < 6; i++) {
+            const px = ((i * 180 + Game.camX * 0.3) % (CW + 200)) - 80;
+            const py = CH - 55 + (i % 2) * 12;
+            const pr = 35 + (i % 3) * 18;
+            const pa = 0.15 + Math.sin(t5 * 0.001 + i) * 0.06;
+            const poolGrd = ctx.createRadialGradient(px, py, 0, px, py, pr);
+            poolGrd.addColorStop(0,   `rgba(180,0,15,${pa+0.1})`);
+            poolGrd.addColorStop(0.5, `rgba(120,0,10,${pa})`);
+            poolGrd.addColorStop(1,   "rgba(0,0,0,0)");
+            ctx.fillStyle = poolGrd;
+            ctx.beginPath(); ctx.ellipse(px, py, pr*2, pr*0.4, 0, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+
+        // 핏방울 낙하
+        ctx.save();
+        ctx.strokeStyle = "rgba(180,0,20,0.55)"; ctx.lineWidth = 1.2;
+        for (let i = 0; i < 60; i++) {
+            const bx = ((i * 137 + Game.camX * 0.1) % (CW + 40)) - 20;
+            const by = ((i * 97 + t5 * (2 + i % 3) * 0.08) % (CH + 20));
+            const bl = 5 + (i % 5) * 2;
+            ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx - 0.5, by + bl); ctx.stroke();
+        }
+        ctx.restore();
+
+        // 원경 마왕성 실루엣 (핏빛에 잠긴)
+        const cOff5 = Game.camX * 0.05;
+        ctx.fillStyle = "rgba(10,0,2,0.92)";
+        ctx.beginPath();
+        ctx.moveTo(CW*0.1 - cOff5, CH);
+        ctx.lineTo(CW*0.1 - cOff5, CH-180);
+        ctx.lineTo(CW*0.18 - cOff5, CH-220);
+        ctx.lineTo(CW*0.22 - cOff5, CH-180);
+        ctx.lineTo(CW*0.5 - cOff5, CH-180);
+        ctx.lineTo(CW*0.5 - cOff5, CH-300);
+        ctx.lineTo(CW*0.55 - cOff5, CH-360);
+        ctx.lineTo(CW*0.6 - cOff5, CH-300);
+        ctx.lineTo(CW*0.9 - cOff5, CH-300);
+        ctx.lineTo(CW*0.9 - cOff5, CH);
+        ctx.fill();
+        // 마왕성 창문 핏빛
+        const wins = [[0.15,0.55],[0.48,0.35],[0.52,0.45],[0.58,0.38]];
+        wins.forEach(([wx,wy]) => {
+            const wFlk = (Math.sin(t5*0.0007 + wx*10) + 1) / 2;
+            ctx.fillStyle = `rgba(200,0,20,${0.3 + wFlk*0.4})`;
+            const wrx = wx * CW - cOff5, wry = wy * CH;
+            ctx.fillRect(wrx-3, wry-5, 6, 9);
+        });
+
+        // 전경 안개 (피 섞인 붉은 안개)
+        for (let f = 0; f < 6; f++) {
+            const fx = ((f * 190 + t5 * 0.018 * (f%2===0?1:-0.6)) % (CW+300)) - 120;
+            const fogGrd = ctx.createRadialGradient(fx, CH-30, 0, fx, CH-30, 100);
+            fogGrd.addColorStop(0,   "rgba(150,0,15,0.18)");
+            fogGrd.addColorStop(1,   "rgba(0,0,0,0)");
+            ctx.fillStyle = fogGrd;
+            ctx.beginPath(); ctx.ellipse(fx, CH-30, 140, 35, 0, 0, Math.PI*2); ctx.fill();
         }
     }
     else if (wg === 6) {
@@ -785,6 +846,9 @@ function drawEnvironment(tColors, frameNow) {
             }
         });
     }
+
+    // NPC 렌더
+    if (typeof renderNPCs === 'function') renderNPCs(frameNow);
 }
 
 function drawEntities(frameNow) {
@@ -1417,108 +1481,116 @@ function drawEntities(frameNow) {
                 ctx.restore();
             } 
             else { 
-                // ── 마왕 (Demon Lord) ──
-                // 배경 자체가 마왕 — 거대한 얼굴/눈이 화면 가득 채움
-                // 히트박스 영역(e.w×e.h)은 마왕의 '심장부' — 가끔 눈이 열려 공격
+                // ── 마왕 (Demon Lord) — 다각형 마법 핵 + 쇠사슬 플레일 ──
                 const t = frameNow;
-                const pulse = (Math.sin(t * 0.002) + 1) / 2;
-                const blink = Math.sin(t * 0.0008); // 눈 깜빡임
-                const eyeOpen = blink > 0.3; // 70% 열려있음
+                const pulse   = (Math.sin(t * 0.002) + 1) / 2;
+                const rot     = t * 0.0008;          // 천천히 회전하는 외피
+                const chainSw = Math.sin(t * 0.003); // 쇠사슬 흔들림
+                const corePulse = 0.7 + pulse * 0.3;
 
-                // ── 배경 전체를 덮는 마왕 얼굴 ──
-                // scale(1.8) 상태에서 CW/1.8 = 355, CH/1.8 = 200 정도
-                // translate는 히트박스 중앙 기준이므로 전체 화면 덮으려면 크게 그림
-                const bx = 0, by = 0; // 히트박스 중심 기준
-
-                // 마왕 얼굴 배경 (화면 가득)
-                const faceGrd = ctx.createRadialGradient(bx, by-20, 10, bx, by-20, 200);
-                faceGrd.addColorStop(0, "rgba(30,0,5,0.95)");
-                faceGrd.addColorStop(0.5, "rgba(15,0,3,0.85)");
-                faceGrd.addColorStop(1, "rgba(0,0,0,0)");
-                ctx.fillStyle = faceGrd;
-                ctx.beginPath(); ctx.ellipse(bx, by-20, 180, 160, 0, 0, Math.PI*2); ctx.fill();
-
-                // 이마 주름 (거대한 얼굴 질감)
-                ctx.strokeStyle = `rgba(60,0,10,0.4)`; ctx.lineWidth = 1.5;
-                for (let wr=0; wr<5; wr++) {
+                // ── 쇠사슬 4방향 + 별표 플레일 ──
+                const chains = [
+                    { angle: -0.6 + rot,  len: 55, swing: chainSw * 0.4 },
+                    { angle: 0.6 + rot,   len: 55, swing: chainSw * -0.3 },
+                    { angle: Math.PI + rot * 0.7, len: 48, swing: chainSw * 0.5 },
+                    { angle: Math.PI * 0.5 + rot * 0.5, len: 42, swing: chainSw * -0.4 },
+                ];
+                chains.forEach(ch => {
+                    const ang = ch.angle + ch.swing;
+                    const ex2 = Math.cos(ang) * ch.len;
+                    const ey2 = Math.sin(ang) * ch.len;
+                    // 쇠사슬 링크
+                    ctx.strokeStyle = "#8a7a5a"; ctx.lineWidth = 2;
+                    const links = 5;
+                    for (let li = 1; li <= links; li++) {
+                        const lx = ex2 * li / links, ly = ey2 * li / links;
+                        const lx2 = ex2 * (li-0.5) / links, ly2 = ey2 * (li-0.5) / links;
+                        ctx.strokeStyle = li % 2 === 0 ? "#8a7a5a" : "#b0a06a";
+                        ctx.beginPath();
+                        ctx.ellipse(lx2, ly2, 3, 1.5, ang + Math.PI/2, 0, Math.PI*2);
+                        ctx.stroke();
+                    }
+                    // 별표 가시 플레일
+                    ctx.save(); ctx.translate(ex2, ey2);
+                    ctx.rotate(ang + t * 0.005);
+                    const spikes = 6;
+                    ctx.fillStyle = p2 ? "#cc2200" : "#1a1a2a";
+                    ctx.strokeStyle = "#8a7a5a"; ctx.lineWidth = 1;
                     ctx.beginPath();
-                    ctx.moveTo(-80+wr*8, -60);
-                    ctx.quadraticCurveTo(-60+wr*10, -80, -40+wr*20, -65);
-                    ctx.stroke();
-                }
+                    for (let s = 0; s < spikes; s++) {
+                        const sa = (s / spikes) * Math.PI * 2;
+                        const sr = s % 2 === 0 ? 14 : 6;
+                        s === 0 ? ctx.moveTo(Math.cos(sa)*sr, Math.sin(sa)*sr)
+                                : ctx.lineTo(Math.cos(sa)*sr, Math.sin(sa)*sr);
+                    }
+                    ctx.closePath(); ctx.fill(); ctx.stroke();
+                    // 플레일 코어 (파란 보석)
+                    ctx.fillStyle = p2 ? "#ff4400" : "#2244cc";
+                    ctx.shadowBlur = 8; ctx.shadowColor = p2 ? "#ff2200" : "#0033ff";
+                    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                });
 
-                // 눈썹 (짙고 무거운)
-                ctx.fillStyle = "#0a0005";
-                ctx.beginPath(); ctx.moveTo(-55,-35); ctx.quadraticCurveTo(-35,-48,-10,-38); ctx.lineTo(-12,-33); ctx.quadraticCurveTo(-36,-42,-52,-30); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(55,-35); ctx.quadraticCurveTo(35,-48,10,-38); ctx.lineTo(12,-33); ctx.quadraticCurveTo(36,-42,52,-30); ctx.fill();
-
-                // ── 왼쪽 눈 ──
-                const eyeLX = -38, eyeRX = 38, eyeY = -18;
-                const eyeH = eyeOpen ? 18 : 3;
-                // 눈 흰자 (어두운 붉은빛)
-                ctx.fillStyle = `rgba(20,0,3,0.9)`;
-                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY, 22, eyeH+2, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY, 22, eyeH+2, 0, 0, Math.PI*2); ctx.fill();
-                // 눈동자 (핏빛)
-                const eyeGlow = 0.6 + pulse * 0.4;
-                ctx.fillStyle = `rgba(220,0,20,${eyeGlow})`;
-                ctx.shadowBlur = p2 ? 30 : 18; ctx.shadowColor = "#ff0022";
-                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY, 14, eyeH, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY, 14, eyeH, 0, 0, Math.PI*2); ctx.fill();
-                // 세로 동공
-                if (eyeOpen) {
-                    ctx.fillStyle = "#000";
-                    ctx.beginPath(); ctx.ellipse(eyeLX, eyeY, 4, eyeH*0.9, 0, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.ellipse(eyeRX, eyeY, 4, eyeH*0.9, 0, 0, Math.PI*2); ctx.fill();
+                // ── 황금 외피 다각형 (12각형) ──
+                ctx.save(); ctx.rotate(rot * 0.4);
+                const outerR = 32;
+                const sides  = 12;
+                ctx.fillStyle = p2 ? "#3a1000" : "#7a6020";
+                ctx.strokeStyle = p2 ? "#cc4400" : "#c8a030";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let s = 0; s < sides; s++) {
+                    const sa = (s / sides) * Math.PI * 2;
+                    const sr = outerR + (s % 3 === 0 ? 6 : 0); // 돌출 패널
+                    s === 0 ? ctx.moveTo(Math.cos(sa)*sr, Math.sin(sa)*sr)
+                            : ctx.lineTo(Math.cos(sa)*sr, Math.sin(sa)*sr);
                 }
+                ctx.closePath(); ctx.fill(); ctx.stroke();
+                // 외피 패널 라인
+                ctx.strokeStyle = p2 ? "#aa3300" : "#a08028"; ctx.lineWidth = 1;
+                for (let s = 0; s < sides; s += 2) {
+                    const sa = (s / sides) * Math.PI * 2;
+                    ctx.beginPath(); ctx.moveTo(0,0);
+                    ctx.lineTo(Math.cos(sa)*outerR, Math.sin(sa)*outerR); ctx.stroke();
+                }
+                ctx.restore();
+
+                // ── 내부 파란 마법 코어 ──
+                ctx.save(); ctx.rotate(-rot * 0.8);
+                const innerR = 20;
+                const innerSides = 6;
+                const coreGrd = ctx.createRadialGradient(0,0,2,0,0,innerR);
+                coreGrd.addColorStop(0,   p2 ? "#ff4400" : "#66aaff");
+                coreGrd.addColorStop(0.5, p2 ? "#cc2200" : "#2255cc");
+                coreGrd.addColorStop(1,   p2 ? "#440000" : "#001133");
+                ctx.fillStyle = coreGrd;
+                ctx.shadowBlur = 18 * corePulse; ctx.shadowColor = p2 ? "#ff2200" : "#0044ff";
+                ctx.beginPath();
+                for (let s = 0; s < innerSides; s++) {
+                    const sa = (s / innerSides) * Math.PI * 2;
+                    s === 0 ? ctx.moveTo(Math.cos(sa)*innerR, Math.sin(sa)*innerR)
+                            : ctx.lineTo(Math.cos(sa)*innerR, Math.sin(sa)*innerR);
+                }
+                ctx.closePath(); ctx.fill();
                 ctx.shadowBlur = 0;
-                // 눈꺼풀 위아래
-                ctx.fillStyle = "#0a0005";
-                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY-eyeH-1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY-eyeH-1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(eyeLX, eyeY+eyeH+1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(eyeRX, eyeY+eyeH+1, 23, 5, 0, 0, Math.PI*2); ctx.fill();
-
-                // 코 (큰 콧구멍)
-                ctx.fillStyle = "#050002";
-                ctx.beginPath(); ctx.ellipse(-10, 8, 6, 8, -0.2, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(10, 8, 6, 8, 0.2, 0, Math.PI*2); ctx.fill();
-
-                // 입 (반쯤 열린, 이빨 드러남)
-                ctx.fillStyle = "#0a0005";
-                ctx.beginPath(); ctx.ellipse(0, 28, 35, 14, 0, 0, Math.PI*2); ctx.fill();
-                // 이빨
-                ctx.fillStyle = "#c8c4b0";
-                for (let ti=0; ti<7; ti++) {
-                    ctx.beginPath(); ctx.moveTo(-28+ti*9, 18); ctx.lineTo(-25+ti*9, 10); ctx.lineTo(-22+ti*9, 18); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(-28+ti*9, 38); ctx.lineTo(-25+ti*9, 46); ctx.lineTo(-22+ti*9, 38); ctx.fill();
-                }
-                // 혀
-                ctx.fillStyle = `rgba(180,0,20,0.7)`;
-                ctx.beginPath(); ctx.ellipse(0, 36, 18, 8, 0, 0, Math.PI*2); ctx.fill();
-
-                // 왕관 (히트박스 위)
-                ctx.fillStyle = "#0a0006";
-                for (let k=0; k<7; k++) {
-                    const kh = k%2===0 ? 12 : 7;
-                    ctx.fillRect(-24+k*7, -78-kh, 6, kh);
-                }
-                ctx.fillRect(-26, -78, 52, 6);
-                // 왕관 보석
-                ctx.shadowBlur = 10; ctx.shadowColor = "#ff0033";
-                ctx.fillStyle = p2 ? "#ff4400" : "#cc0040";
-                for (let k=0; k<4; k++) {
-                    ctx.beginPath(); ctx.arc(-18+k*12, -79, 3, 0, Math.PI*2); ctx.fill();
-                }
+                // 코어 중앙 눈 문양
+                ctx.strokeStyle = p2 ? "#ff6600" : "#88ccff"; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(0,0, 8, 0, Math.PI*2); ctx.stroke();
+                ctx.fillStyle = p2 ? "#ff2200" : "#2244cc";
+                ctx.shadowBlur = 12 * corePulse; ctx.shadowColor = ctx.fillStyle;
+                ctx.beginPath(); ctx.arc(0,0, 5*corePulse, 0, Math.PI*2); ctx.fill();
                 ctx.shadowBlur = 0;
+                ctx.restore();
 
-                // 히트박스 중심부 — 가슴 심장 (실제 때려야 할 부위 표시)
-                const htPulse = 0.3 + pulse * 0.4;
-                ctx.fillStyle = `rgba(180,0,20,${htPulse * 0.15})`;
-                ctx.beginPath(); ctx.ellipse(0, 0, e.w*0.25, e.h*0.2, 0, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = `rgba(220,0,30,${htPulse * 0.5})`;
-                ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.ellipse(0, 0, e.w*0.25, e.h*0.2, 0, 0, Math.PI*2); ctx.stroke();
+                // ── 꼭대기 뿔 장식 (작은 악마 뿔) ──
+                ctx.fillStyle = p2 ? "#cc2200" : "#1a0010";
+                ctx.beginPath(); ctx.moveTo(-8, -30); ctx.lineTo(-12, -46); ctx.lineTo(-4, -30); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(8, -30); ctx.lineTo(12, -46); ctx.lineTo(4, -30); ctx.fill();
+                // 뿔 붉은 깃발
+                ctx.fillStyle = "#cc0020";
+                ctx.beginPath(); ctx.moveTo(-10, -42); ctx.lineTo(-4, -39); ctx.lineTo(-10, -36); ctx.fill();
+
             } // 마왕 블록 종료
 
             ctx.filter = 'none'; 
