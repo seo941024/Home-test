@@ -119,10 +119,13 @@ function genStage(w, l) {
         // 보스 크기에 따라 스폰 Y를 동적으로 계산 — floorY - 90 고정으로 땅 꺼짐 버그 수정
         // mkBoss 내부에서 e.h가 결정되므로, 예상 높이를 월드별로 계산
         // mob.js의 e.h와 동일하게 계산 — 스폰 Y가 정확히 발판 위에 위치
+        // mob.js e.h 와 정확히 동기화
         let bossH;
-        if (w === 5 || w === 6) bossH = 140;
-        else if (w === 10) bossH = Math.floor(CH * 0.65); // 마왕: 화면 65% 높이
-        else bossH = 131 + w * 2;
+        if (w === 5 || w === 6)    bossH = 130;
+        else if (w === 10)         bossH = Math.floor(CH * 0.65);
+        else if (w <= 2)           bossH = 72;
+        else if (w <= 4)           bossH = 76;
+        else                       bossH = 100;
         const bossSpawnY = floorY - bossH;
         if (typeof mkBoss === 'function') mkBoss(Game.levelW / 2, bossSpawnY, w);
         document.getElementById("bossBarWrap").style.display = "flex";

@@ -1094,6 +1094,9 @@ function drawEntities(frameNow) {
                 ctx.restore();
             }
             ctx.scale(1.8, 1.8); // 히트박스와 렌더 크기 일치
+            // 보스 다리 애니메이션 변수 — 잡몹 블록보다 먼저 선언
+            const legL = e.fr === 0 ? 0 : -2;
+            const legR = e.fr === 0 ? -2 : 0;
             const p2 = e.phase === 2;
             
             if (p2) { 
@@ -1146,8 +1149,7 @@ function drawEntities(frameNow) {
                 ctx.fillStyle = "#7a5a20"; ctx.fillRect(-3, 1, 7, 4);
                 ctx.fillStyle = "#5a3a10"; ctx.fillRect(-1, 5, 3, 5);
                 ctx.restore();
-            } 
-                        else if (e.world <= 4) {
+            } else if (e.world <= 4) {
                 // 언데드 기사 — 뼈 갑옷, 어두운 검
                 const b = eBob;
                 // 다리 (갑옷 정강이)
@@ -1203,8 +1205,7 @@ function drawEntities(frameNow) {
                 ctx.fillStyle = "#333340"; ctx.fillRect(-6, 2, 12, 4);
                 ctx.fillStyle = "#222"; ctx.fillRect(-1, 6, 3, 7);
                 ctx.restore();
-            } 
-            else if (e.world <= 6) { 
+            } else if (e.world <= 6) { 
                 // 거대 봉인석 - 석판+사슬+보라 핵 (이미지3 참고)
                 const t = frameNow;
                 const floatY = Math.sin(t / 600) * 8;
@@ -1278,8 +1279,7 @@ function drawEntities(frameNow) {
                 ctx.beginPath(); ctx.ellipse(0, 0, 2, 14, rot*2, 0, Math.PI*2); ctx.fill();
                 
                 ctx.restore();
-            } 
-            else if (e.world <= 9) { 
+            } else if (e.world <= 9) { 
                 // 마족 친위대장 - 검은 갑옷 기사 (이미지4 참고)
                 const t = frameNow;
                 const isW7 = e.world === 7;

@@ -72,7 +72,11 @@ function updatePlayer() {
     }
     
     if (p.dashT > 0) {
-        p.dashT--; p.vx = p.facing * 5.3 * Game.pMoveSpdMul; p.vy = 0; addPart(p.x + 7, p.y + 9, "#ffffff", 10, 3); 
+        p.dashT--; p.vx = p.facing * 5.3 * Game.pMoveSpdMul; p.vy = 0; addPart(p.x + 7, p.y + 9, "#ffffff", 10, 3);
+        // 대시 종료 프레임에 착지 무적 부여 — dashT가 0이 되는 순간 invT 세팅
+        if (p.dashT === 0 && Game.invT === 0) {
+            Game.invT = 20; // 대시 후 약 0.33초 무적 — 착지 직후 즉시 피격 방지
+        }
     } else if (p.kbT > 0) {
         p.kbT--; p.vx *= 0.9;
     } else {

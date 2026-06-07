@@ -79,10 +79,10 @@ const CHUNK_TEMPLATES = {
             { x: ox, y: floorY, w: CHUNK_W, h: 40 },
         ],
         traps: [
-            // 가시 데미지: 5+w*2 → w3=11, w4=13 (기존 w3=17, w4=20에서 완화)
-            { type: "spike", x: ox + 80,  y: floorY - 16, w: 40, h: 16, dmg: 5 + w * 2, active: true, timer: 0, period: 90, onTime: 40 },
-            { type: "spike", x: ox + 200, y: floorY - 16, w: 40, h: 16, dmg: 5 + w * 2, active: true, timer: 30, period: 90, onTime: 40 },
-            { type: "spike", x: ox + 300, y: floorY - 16, w: 40, h: 16, dmg: 5 + w * 2, active: true, timer: 60, period: 90, onTime: 40 },
+            // 가시 데미지: 3+w*1 → w1=4, w3=6, w5=8, w7=10 (몬스터 딜의 60% 수준)
+            { type: "spike", x: ox + 80,  y: floorY - 16, w: 40, h: 16, dmg: 3 + w * 1, active: true, timer: 0, period: 90, onTime: 40 },
+            { type: "spike", x: ox + 200, y: floorY - 16, w: 40, h: 16, dmg: 3 + w * 1, active: true, timer: 30, period: 90, onTime: 40 },
+            { type: "spike", x: ox + 300, y: floorY - 16, w: 40, h: 16, dmg: 3 + w * 1, active: true, timer: 60, period: 90, onTime: 40 },
         ],
         enemySlots: [
             { x: ox + 350, y: floorY - 30 }
