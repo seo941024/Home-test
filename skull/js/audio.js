@@ -118,6 +118,12 @@ function playSfx(type) {
         sweep('sawtooth', 2200, 400, 0.4, 0.3, 300);
         osc('sine', 1100, 0.15, 0.25);
     }
+    else if (type === 'gun_shot') {
+        // 날카로운 총성: crack + body + 잔향
+        noise(1.0, 0.03, 'highpass', 4000);
+        noise(0.5, 0.07, 'bandpass', 1400);
+        sweep('sawtooth', 220, 30, 0.55, 0.14, 500);
+    }
     else if (type === 'boss_atk') {
         sweep('sawtooth', 90, 18, 0.9, 0.5, 500);
         osc('square', 55, 0.5, 0.4);
@@ -188,6 +194,25 @@ function playSfx(type) {
         });
         sweep('sawtooth', 60, 15, 0.6, 0.5, 500);
     }
+    else if (type === 'typing') {
+        // 레트로 타이핑 클릭음 — 짧고 딱딱하게
+        const now = audioCtx.currentTime;
+        const freq = 700 + Math.random() * 400;
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = 'square';
+        o.frequency.setValueAtTime(freq, now);
+        o.frequency.exponentialRampToValueAtTime(freq * 0.45, now + 0.03);
+        g.gain.setValueAtTime(0.15, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+        o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 0.035);
+        if (noiseBuffer) {
+            const src = audioCtx.createBufferSource(); src.buffer = noiseBuffer;
+            const filt = audioCtx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 3800; filt.Q.value = 2;
+            const gn = audioCtx.createGain();
+            gn.gain.setValueAtTime(0.07, now); gn.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+            src.connect(filt); filt.connect(gn); gn.connect(audioCtx.destination); src.start(now);
+        }
+    }
+
     else if (type === 'dash') {
         noise(0.5, 0.1, 'highpass', 3000);
         sweep('square', 800, 120, 0.2, 0.1);
@@ -218,75 +243,118 @@ function playBGM(scene = 'play') {
     currentBgmScene = sceneId;
     isBgmPlaying = true;
 
-    // ── 로비 BGM ─────────────────────────────
+    // ── 로비 BGM: 바람소리 + 웅장한 저음 분위기 ──────────
     if (scene === 'lobby') {
-        const lobbyNotes = [220, 196, 174, 196, 220, 246, 220, 196];
-        let ls = 0;
-        bgmInterval = setInterval(() => {
-            if (!isBgmPlaying || Game.isMuted) { ls++; return; }
-            const now = audioCtx.currentTime;
-            const freq = lobbyNotes[ls % lobbyNotes.length];
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            const d = audioCtx.createWaveShaper();
-            o.type = 'triangle'; o.frequency.value = freq;
-            d.curve = _makeDistortion(60);
-            g.gain.setValueAtTime(0.18, now);
-            g.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-            o.connect(d); d.connect(g); g.connect(audioCtx.destination);
-            o.start(now); o.stop(now + 0.45);
-            const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
-            o2.type = 'sine'; o2.frequency.value = freq * 0.5;
-            g2.gain.setValueAtTime(0.12, now); g2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-            o2.connect(g2); g2.connect(audioCtx.destination); o2.start(now); o2.stop(now + 0.5);
-            ls++;
-        }, 320);
-        bgmInterval2 = setInterval(() => {
+        // 바람 소리 — 노이즈 기반 필터링
+        function _windLayer() {
             if (!isBgmPlaying || Game.isMuted) return;
+            if (!noiseBuffer) return;
             const now = audioCtx.currentTime;
-            const bFreqs = [110, 98, 87, 98];
-            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-            o.type = 'sine'; o.frequency.value = bFreqs[Math.floor(ls / 8) % 4];
-            g.gain.setValueAtTime(0.22, now); g.gain.exponentialRampToValueAtTime(0.001, now + 2.4);
-            o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 2.4);
-        }, 2560);
+            const src = audioCtx.createBufferSource();
+            src.buffer = noiseBuffer;
+            src.loop = true;
+            const filt = audioCtx.createBiquadFilter();
+            filt.type = 'bandpass';
+            filt.frequency.value = 400 + Math.random() * 200;
+            filt.Q.value = 0.4;
+            const gWind = audioCtx.createGain();
+            gWind.gain.setValueAtTime(0, now);
+            gWind.gain.linearRampToValueAtTime(0.10, now + 3.0);
+            gWind.gain.linearRampToValueAtTime(0.06, now + 7.0);
+            gWind.gain.linearRampToValueAtTime(0, now + 9.0);
+            src.connect(filt); filt.connect(gWind); gWind.connect(audioCtx.destination);
+            src.start(now); src.stop(now + 9.0);
+        }
+        bgmInterval2 = setInterval(_windLayer, 8000);
+        _windLayer();
+
+        // 웅장한 저음 화음 — 완전5도 드론
+        // C2=65, G2=98, E2=82 (플랫 없음, 자연 단음계)
+        const droneSeq = [
+            [65, 98],   // C-G
+            [65, 98],
+            [55, 82],   // A-E
+            [58, 87],   // A#-F (반음 한 번만)
+            [65, 98],
+            [65, 98],
+            [61, 92],   // B-F# (자연스러운 긴장감)
+            [65, 98],
+        ];
+        let di = 0;
+        bgmInterval = setInterval(() => {
+            if (!isBgmPlaying || Game.isMuted) { di++; return; }
+            const now = audioCtx.currentTime;
+            const pair = droneSeq[di % droneSeq.length];
+            pair.forEach((freq, pi) => {
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.type = pi === 0 ? 'sine' : 'triangle';
+                o.frequency.setValueAtTime(freq, now);
+                const vol = pi === 0 ? 0.22 : 0.12;
+                g.gain.setValueAtTime(0, now);
+                g.gain.linearRampToValueAtTime(vol, now + 0.6);
+                g.gain.setValueAtTime(vol, now + 2.8);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 3.8);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(now); o.stop(now + 3.8);
+            });
+            di++;
+        }, 3800);
         return;
     }
 
-    // ── 프롤로그 BGM ─────────────────────────
+    // ── 프롤로그 BGM: 무겁고 장중, 플랫 최소화 ────────────
     if (scene === 'prologue') {
-        const pNotes = [110, 0, 0, 0, 98, 0, 0, 0, 87, 0, 0, 0, 82, 0, 82, 0,
-                        77, 0, 0, 0, 69, 0, 0, 0, 65, 0, 0, 0, 65, 0, 0, 0];
+        // A 자연 단음계: A2=110, B2=123, C3=131, D3=147, E3=165, F3=175, G3=196
+        // 플랫은 G#(208) 한 번만 허용 — 클라이맥스용
+        const melody = [
+            110, 0, 0, 123,  // A — B
+            131, 0, 147, 0,  // C — D
+            165, 0, 0, 0,    // E (지속)
+            147, 0, 131, 0,  // D — C
+            123, 0, 0, 110,  // B — A
+            110, 0, 0, 0,    // A (지속)
+            196, 0, 175, 0,  // G — F
+            165, 0, 0, 0,    // E (해결)
+        ];
         let ps = 0;
         bgmInterval = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) { ps++; return; }
             const now = audioCtx.currentTime;
-            const freq = pNotes[ps % pNotes.length];
+            const freq = melody[ps % melody.length];
             if (freq > 0) {
+                // 메인 멜로디 — 무거운 사각파
                 const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                const dw = audioCtx.createWaveShaper(); dw.curve = _makeDistortion(80);
-                o.type = 'sawtooth'; o.frequency.value = freq;
+                o.type = 'square'; o.frequency.value = freq;
                 g.gain.setValueAtTime(0, now);
-                g.gain.linearRampToValueAtTime(0.22, now + 0.12);
-                g.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
-                o.connect(dw); dw.connect(g); g.connect(audioCtx.destination);
-                o.start(now); o.stop(now + 1.4);
+                g.gain.linearRampToValueAtTime(0.14, now + 0.08);
+                g.gain.setValueAtTime(0.14, now + 0.35);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(now); o.stop(now + 1.1);
+                // 하모니 (5도 아래)
                 const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
-                o2.type = 'triangle'; o2.frequency.value = freq * 1.5;
-                g2.gain.setValueAtTime(0.06, now + 0.1); g2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-                o2.connect(g2); g2.connect(audioCtx.destination); o2.start(now + 0.1); o2.stop(now + 1.2);
+                o2.type = 'sine'; o2.frequency.value = freq * 0.667;
+                g2.gain.setValueAtTime(0.10, now + 0.05);
+                g2.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+                o2.connect(g2); g2.connect(audioCtx.destination);
+                o2.start(now + 0.05); o2.stop(now + 1.3);
             }
             ps++;
-        }, 380);
+        }, 500);
+        // 저음 페달 — A1=55 고정 (안정감)
         bgmInterval2 = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) return;
             const now = audioCtx.currentTime;
-            const drones = [55, 49, 43, 41];
+            const pedalFreq = ps < 24 ? 55 : (ps < 48 ? 49 : 55); // A1 → E1 → A1
             const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-            o.type = 'sine'; o.frequency.value = drones[Math.floor(ps / 8) % 4];
-            g.gain.setValueAtTime(0.28, now); g.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
-            o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 3.5);
-        }, 3040);
+            o.type = 'sine'; o.frequency.value = pedalFreq;
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(0.30, now + 0.5);
+            g.gain.setValueAtTime(0.30, now + 3.5);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 4.5);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(now); o.stop(now + 4.5);
+        }, 4000);
         return;
     }
 

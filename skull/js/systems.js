@@ -9,15 +9,12 @@ const STAMINA_DASH       = 35;    // 대시 소모 증가 (기존 28)
 const STAMINA_GUARD_TICK = 0.5;   // 가드 유지 소모 증가 (기존 0.3)
 const STAMINA_ATK        = 0;     // 평타 스태미나 소모 없음 (공속 영향 차단)
 const STAMINA_SKILL      = 45;    // 필살기 소모 증가 (기존 40)
-const JUST_DODGE_WINDOW  = 6;     // 대쉬 직후 이 프레임 안에 맞으면 Witch Time
 
 // ── 플레이어 전투 시스템 초기화 ──────────────
 function initSystems() {
     const p = Game.player;
     if (!p) return;
     p.stamina        = STAMINA_MAX;
-    p.justDodgeT     = 0;
-    p.justDodgeReady = false;
     p.guardBreak     = false;
     p.guardBreakT    = 0;
     // grayHp 흔적 완전 제거
@@ -40,11 +37,6 @@ function updateStamina() {
 
     p.fatRoll = p.stamina < 15;
 
-    if (p.justDodgeT > 0) {
-        p.justDodgeT--;
-        p.justDodgeReady = p.justDodgeT > 0;
-    }
-
     // 가드 브레이크 경직 카운트다운
     if (p.guardBreakT > 0) p.guardBreakT--;
 }
@@ -58,7 +50,7 @@ function _triggerGuardBreak(p) {
     p.vy          = -5;
     p.vx          = -p.facing * 6;
     Game.camShake = 25;
-    addText(p.x, p.y - 30, "GUARD BREAK!", "#ff2200", 70, 18);
+    addText(p.x, p.y - 30, "가드 파괴!", "#ff2200", 70, 18);
     if (typeof playSfx === 'function') playSfx('dmg');
     // 가드 브레이크 직후엔 일정 시간 가드 불가 (약 90프레임)
     // setTimeout 대신 프레임 카운터 — 씬 전환 시 콜백 잔류 방지
@@ -109,9 +101,9 @@ function applyPoiseHit(e, poiseHit) {
         e.kbT     = e.stunT;
 
         if (e.isBoss) {
-            addText(e.x + e.w / 2, e.y - 30, "GROGGY!!", "#ffee00", 90, 22);
+            addText(e.x + e.w / 2, e.y - 30, "그로기!!", "#ffee00", 90, 22);
         } else {
-            addText(e.x + e.w / 2, e.y - 20, "STUN!", "#ffee00", 60, 16);
+            addText(e.x + e.w / 2, e.y - 20, "기절!", "#ffee00", 60, 16);
         }
 
         Game.camShake = 12;
@@ -130,8 +122,9 @@ function updatePoise(e) {
 function canExecute(e) {
     if (!e.stun) return false;
     if (!Game.player) return false;
+    if (e.isTutorialDummy) return false; // 골렘은 처형 불가
     const inRange = Math.abs(Game.player.x - e.x) < 70 && Math.abs(Game.player.y - e.y) < 70;
-    return inRange; // 보스도 그로기 중엔 처형 가능
+    return inRange;
 }
 
 // 처형 실행 — 처형 모션 전체 무적 보장
@@ -144,7 +137,7 @@ function executeEnemy(e) {
         dmg = Math.floor(e.maxHp * 0.12);
         e.stun  = false; // 그로기 해제 후 재전투
         e.stunT = 0;
-        addText(e.x + e.w / 2, e.y - 40, "STAGGER HIT!!", "#ff6600", 90, 24);
+        addText(e.x + e.w / 2, e.y - 40, "체간 붕괴!!", "#ff6600", 90, 24);
     } else {
         // 일반 처형: 즉사
         dmg    = e.hp;
@@ -160,7 +153,7 @@ function executeEnemy(e) {
     // 처형 모션 동안 무적 — 얻어맞으면서 처형하는 꼴 방지
     Game.invT = 45;
 
-    addText(e.x + e.w / 2, e.y - 30, "FATAL STRIKE!!", "#ff0000", 80, 22);
+    addText(e.x + e.w / 2, e.y - 30, "치명적 일격!!", "#ff0000", 80, 22);
     for (let i = 0; i < 40; i++) {
         addPart(e.x + e.w / 2, e.y + e.h / 2, i < 25 ? "#ff0000" : "#ffaa00", 35, 5);
     }
@@ -173,26 +166,9 @@ function executeEnemy(e) {
 
 // ── Witch Time (저스트 회피) ──────────────────
 function triggerJustDodge() {
-    const p = Game.player;
-    if (!p) return;
-    Game.justDodgeActive    = true;
-    Game.justDodgeT         = 90;
-    Game.slowMoT            = 90;
-    Game.justDodgeDmgBonus  = 2.0;
-    addText(p.x, p.y - 30, "WITCH TIME!!", "#ffee00", 70, 18);
-    Game.camShake = 10;
-    if (typeof playSfx === 'function') playSfx('parry');
+    // Witch Time 영구 제거 — 아무것도 하지 않음
 }
 
-function updateJustDodge() {
-    if (Game.justDodgeT > 0) {
-        Game.justDodgeT--;
-        if (Game.justDodgeT <= 0) {
-            Game.justDodgeActive   = false;
-            Game.justDodgeDmgBonus = 1.0;
-        }
-    }
-}
 
 // ── 혈흔 데칼 ────────────────────────────────
 function initBloodDecals() {
@@ -245,13 +221,23 @@ function useBonfire(ev) {
     p.hp = Game.pMaxHp;
     p.stamina = STAMINA_MAX;
     Game.pMp = Game.pMaxMp;
-    addText(ev.x, ev.y - 30, "REST...", "#ffaa44", 100, 16);
-    addText(ev.x, ev.y - 50, "적들이 부활한다!", "#ff4400", 80, 13);
-    const w = Game.worldN, floorY = CH - 40, ec = 5 + w * 3 + Game.levelN * 2;
-    for (let i = 0; i < ec; i++) {
-        if (typeof mkEnemy === 'function') mkEnemy(300 + Math.random() * (Game.levelW - 500), floorY - 30, w);
-    }
     playSfx('item');
     Game.camShake = 15;
     for (let i = 0; i < 30; i++) addPart(ev.x + 12, ev.y, "#ffaa44", 30, 4);
+
+    // 5초간 휴식 메시지 표시 (플레이어 이동 불가)
+    Game._bonfireRestT = 300; // 5초 = 300프레임
+    addText(ev.x, ev.y - 30, "휴식중...", "#ffaa44", 200, 16);
+
+    // 5초 후 적 부활 + 1초 무적
+    setTimeout(() => {
+        if (!Game.player) return;
+        addText(ev.x, ev.y - 50, "적들이 부활한다!", "#ff4400", 120, 13);
+        const w = Game.worldN, floorY = CH - 40, ec = 5 + w * 3 + (Game.levelN || 1) * 2;
+        for (let i = 0; i < ec; i++) {
+            if (typeof mkEnemy === 'function') mkEnemy(300 + Math.random() * ((Game.levelW || 1600) - 500), floorY - 30, w);
+        }
+        Game.invT = Math.max(Game.invT || 0, 60); // 1초 무적
+        Game._bonfireRestT = 0;
+    }, 5000);
 }

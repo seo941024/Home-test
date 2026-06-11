@@ -22,88 +22,122 @@
 
 const STORY = {
 
-  // 오프닝: 텍스트 스토리 → 마지막 씬에서 해골 조립 애니메이션으로 전환
+  // 오프닝: scene1~6.png 이미지 기반
   opening: [
-    { bg: "black",       speaker: "",         duration: 90,  text: "" },
-    { bg: "village",     speaker: "내레이터", duration: 180, text: "오래전, 인간과 마족 사이에는 끊임없는 전쟁이 있었다." },
-    { bg: "village",     speaker: "내레이터", duration: 180, text: "선택받은 용사와 마왕 사이에 마지막 결전이 있던 날-" },
-    { bg: "battlefield", speaker: "내레이터", duration: 160, text: "결국 용사는 패배하고 말았고, 인간들의 도시는 화염에 휩싸였다." },
-    { bg: "black",       speaker: "",         duration: 80,  text: "" },
-    { bg: "black",       speaker: "내레이터", duration: 160, text: "그렇게 끝이 나는줄 알았지만, 주술사의 저주에 의해 용사는 죽지 못했다." },
-    { bg: "black",       speaker: "내레이터", duration: 180, text: "살도, 피도, 심장도 없이. 오직 마왕을 죽이겠다는 의지만이 남았다." },
-    { bg: "night_grave", speaker: "??",       duration: 180, text: "........" },
-    { bg: "grave",       speaker: "용사", duration: 200, text: "이 손에 살이 없어도. 이 가슴에 심장이 없어도—" },
-    { bg: "grave",       speaker: "용사", duration: 180, text: "마왕을 죽이고 세상을 되찾아 보이겠어." },
-  ],
+    { img: "opening/scene1.png", speaker: "내레이터", duration: 450,
+      text: "태초부터, 인간과 마족 사이에는 끊임없는 전쟁이 있었다." },
 
-  // 보스별 등장 대사 [worldN] = [{speaker, text, duration}]
+    { img: "opening/scene2.png", speaker: "내레이터", duration: 500,
+      text: "수많은 전쟁, 승리와 패배가 있었으며, 마침내 마왕에 도달한 자가 있었으니-" },
+
+    { img: "opening/scene2.png", speaker: "내레이터", duration: 500,
+      text: "그렇게 두 종족간의 결착을 내는 승부가 시작되었다." },
+
+    { img: "opening/scene3.png", speaker: "마왕", duration: 450,
+      text: "하하하... 인간 따위가 짐에게 도전하다니. 실로 어리석구나." },
+
+    { img: "", speaker: "내레이터", duration: 450,
+      text: "이렇게 밤낮없는 싸움이 시작되었다." },
+
+    { img: "", speaker: "내레이터", duration: 450,
+      text: "수십시간이 지나, 마침내 쓰러지는 이가 나왔으니-" },
+
+    { img: "opening/scene4.png", speaker: "내레이터", duration: 470,
+      text: "인류의 희망이 패배했고, 세상은 혼돈에 휩싸였다." },
+
+    { img: "", speaker: "내레이터", duration: 370,
+      text: "......." },
+
+    { img: "", speaker: "내레이터", duration: 500,
+      text: ".......시간이 지난 후, 수많은 시체와 해골더미 중 무언가가 움직이기 시작했다." },
+
+    { img: "", speaker: "????", duration: 470,
+      text: ".......나.. 죽은 것 아니였어....?....." },
+
+    { img: "opening/scene5.png", speaker: "해골", duration: 470,
+      text: ".......그렇군..... 죽지 못하는 저..주..... 인건가.... " },
+
+    { img: "opening/scene6.png", speaker: "용사", duration: 700,
+      text: ".... 이 뼈만 남은 몸이라도..... 마왕을 죽이고 세상을 되찾아 보이겠어." },
+
+      { img: "", speaker: "", duration: 400,
+      text: "" },
+],
   // 보스별 등장 대사 [worldN] = [{speaker, text, duration}]
   boss: {
     1:  [
-      { speaker: "고블린 킹",     duration: 140, text: "이 영역에서 살아 돌아간 자는 없다. 뼈가 됐든 뭐가 됐든." },
-      { speaker: "해골용사",      duration: 140, text: "안심해. 난 이미 뼈만 남았으니까." },
+      { speaker: "고블린 킹",  duration: 140, text: "끼에에엑! 겍겍겍! 침입자로군! 죽이고 죽인다! 캬아아악!" },
+      { speaker: "해골용사",   duration: 140, text: "지능 낮은 고블린이군. 단숨에 해치우고 가자." },
     ],
     2:  [
-      { speaker: "언데드 고블린 킹", duration: 150, text: "...나도 너처럼 죽어서 일어났다. 그래서 더 두렵다." },
-      { speaker: "해골용사",      duration: 150, text: "죽음에 먹힌 자와 죽음을 딛고 일어선 자. 그 차이를 보여주지." },
+      { speaker: "언데드 고블린 킹", duration: 150, text: "끼에에엑! 겍겍겍! 머릿속이 타오른다! 다시... 다시 찢어주마!" },
+      { speaker: "해골용사",         duration: 150, text: ".... 죽음에 먹혀버린건가? 고통에서 해방시켜주자." },
     ],
     3:  [
-      { speaker: "스켈레톤 치프틴", duration: 150, text: "동족이여, 왜 산 자들의 편에 서느냐. 우리는 버림받았다." },
-      { speaker: "해골용사",      duration: 150, text: "저주가 아니라 의지로 일어났어. 그게 다른 점이야." },
+      { speaker: "스켈레톤 치프틴", duration: 150, text: "동족이여, 왜 산 자들의 편에 서느냐." },
+      { speaker: "해골용사",        duration: 150, text: "마족 따위랑 같은 취급하지마!" },
     ],
-    4:  [
-      { speaker: "언데드 스켈레톤", duration: 150, text: "...우리는 마왕의 것이다. 돌아설 수 없다." },
-      { speaker: "해골용사",      duration: 140, text: "그렇다면 그 사슬, 내 검으로 끊어줄게." },
+    4: [
+    { speaker: "언데드 스켈레톤 치프틴", duration: 160, text: "이 굴레는 마왕의 의지 그 자체. 우리에게 죽음마저 허락되지 않는군." },
+    { speaker: "해골용사",               duration: 150, text: "이 녀석도... 죽어서조차 고통받는군..." },
     ],
     5:  [
       { speaker: "내레이터",        duration: 140, text: "형체도 이성도 없는 것이 눈앞을 막아섰다." },
-      { speaker: "거대 괴수 리치", duration: 130, text: "GROOAAARGH—!!" },
-      { speaker: "내레이터",        duration: 130, text: "마왕의 분노가 짐승의 형태를 빌려 세상을 짓눌렀다." },
+      { speaker: "거대 괴수 더스크",  duration: 130, text: "GROOAAARGH—!!" },
+      { speaker: "내레이터",        duration: 130, text: "분노가 짐승의 형태를 빌려 세상을 짓눌렀다." },
     ],
-    6:  [
-      { speaker: "언데드 리치",      duration: 160, text: "삶도 죽음도 초월한 자. 나는 수천 년을 기다렸다." },
-      { speaker: "언데드 리치",      duration: 150, text: "네 안의 불꽃이 꺼지기 전에 내가 먼저 삼키겠다." },
-      { speaker: "해골용사",      duration: 150, text: "수천 년의 기다림도, 오늘로 끝이야." },
-    ],
-    7:  [
-      { speaker: "마족 제1친위대장", duration: 150, text: "뼈다귀 하나가 여기까지 오다니. 마왕님도 흥미로워하시겠군." },
-      { speaker: "마족 제1친위대장", duration: 140, text: "하지만 구경은 내가 끝낸다." },
-      { speaker: "해골용사",      duration: 140, text: "구경꾼은 원래 말이 많은 법이지. 덤벼." },
-    ],
-    8:  [
-      { speaker: "마족 제2친위대장", duration: 150, text: "이 검에 베이면 영혼조차 남지 않는다. 뼈도 예외는 없어." },
-      { speaker: "해골용사",      duration: 150, text: "영혼이 남지 않는다면, 이 분노만으로 널 베어주지." },
-    ],
-    9:  [
-      { speaker: "마족 제3친위대장", duration: 160, text: "...인정한다. 여기까지 온 자는 네가 처음이다." },
-      { speaker: "마족 제3친위대장", duration: 150, text: "하지만 이 문은 내 목숨과 함께 닫혀있다." },
-      { speaker: "해골용사",      duration: 150, text: "너의 긍지도, 목숨도, 이 문과 함께 부숴버리겠어." },
-    ],
+    6: [
+    { speaker: "내레이터",       duration: 150, text: "흩어졌던 뼈들이 뒤틀린 마력으로 억지로 결합한다." },
+    { speaker: "내레이터",       duration: 140, text: "놈의 안광이 다시 붉게 타오르기 시작했다." },
+    { speaker: "파괴된 더스크", duration: 130, text: "G-G-G-ORRAAAAAAAA...!!" },
+    { speaker: "용사",       duration: 150, text: "쳇- " },
+],
+    7: [
+    { speaker: "마족 제1친위대장", duration: 150, text: "일낱 뼈다귀가 여기까지 오다니. 마왕님의 지루함을 달랠 구경거리로군." },
+    { speaker: "마족 제1친위대장", duration: 140, text: "하지만 아쉽게도, 그 광대는 내 선에서 정리된다." },
+    { speaker: "해골용사",         duration: 140, text: "... 친위대장인가 점점 다가오는군." },
+],
+    8: [
+    { speaker: "마족 제2친위대장", duration: 150, text: "이 마검에 베이면 영혼조차 풍화된다. 네 텅 빈 해골 따위가 버틸 수 있겠나?" },
+    { speaker: "해골용사",         duration: 150, text: "내 영혼이 지워져도, 육신에 각인된 이 분노가 널 기어이 베어낼 거다." },
+],
+    9: [
+    { speaker: "마족 제3친위대장", duration: 160, text: "...경의를 표하마. 마왕성에 발을 들인 불청객 중, 네가 가장 위대했다." },
+    { speaker: "마족 제3친위대장", duration: 150, text: "그러나 이 문은 마왕성의 경계이자, 내 목숨으로 채워진 빗장이다." },
+    { speaker: "해골용사",         duration: 150, text: "... 곧이다.. 잔챙이는 비켜!!" },
+],
     10: [
-      { speaker: "해골용사",      duration: 160, text: "마왕!!!!!! " },
-      { speaker: "마왕",            duration: 170, text: "...누가 겁도없이 짐에게 도전하는가?" },
-      { speaker: "마왕",            duration: 180, text: "살도 피도 없이, 오직 뼈로만 이 길을 걸어왔다니." },
-      { speaker: "마왕",            duration: 170, text: "....건방지군" },
-      { speaker: "해골용사",            duration: 180, text: "... 뼈만 남은 나일지라도 너를 죽이고 평화를 되찾겠어." },
-      { speaker: "마왕",            duration: 170, text: "네가 다시 인간으로 돌아갈 수 있을 거라 생각하나?" },
-      { speaker: "해골용사",      duration: 150, text: "상관없어. 처음부터 각오한 길이니까." },
+      { speaker: "해골용사",  duration: 160, text: "마왕!!!!!!" },
+      { speaker: "마왕",      duration: 170, text: "...누가 겁도없이 짐에게 도전하는가?" },
+      { speaker: "마왕",      duration: 180, text: "오호? 자네는 나에게 이미 패배한 용사아닌가. 꼴이 우습군" },
+      { speaker: "해골용사",  duration: 170, text: "못 본사이에 말이 많아졌구나?" },
+      { speaker: "해골용사",  duration: 180, text: "세계의 혼돈을 가져오는 마왕이여! 이제 한 줌의 재가 되어라." },
+      { speaker: "마왕",      duration: 190, text: "하하..! 가소롭구나, 나에게 승리한들 너와 세계가 돌아오리라 믿는가?" },
+      { speaker: "해골용사",  duration: 150, text: "그런건 중요하지 않아. 너를 부수고, 평화를 찾아온다." },
+      { speaker: "마왕",  duration: 160, text: "덤벼라, 필멸자여!!!!!" },
     ],
   },
 
   ending: [
-    { bg: "black",   speaker: "",         duration: 90,  text: "" },
-    { bg: "throne",  speaker: "내레이터", duration: 180, text: "마왕이 무너졌다. 마왕성 전체가 무거운 침묵에 잠겼다." },
-    { bg: "throne",  speaker: "마왕",     duration: 180, text: "...인간 따위에게 패배하다니... 용사 ...." },
-    { bg: "throne",  speaker: "마왕",     duration: 190, text: "하지만 — 해골 뿐인 네가 다시 돌아갈 곳은 아무 곳도 없다..." },
-    { bg: "skull",   speaker: "해골용사", duration: 160, text: "....." },
-    { bg: "skull",   speaker: "해골용사", duration: 200, text: "처음부터 나 자신을 위해 싸운 게 아니었으니까 상관없어." },
-    { bg: "black",   speaker: "",         duration: 120, text: "" },
-    { bg: "village", speaker: "내레이터", duration: 200, text: "저주가 걷혔다. 어두웠던 하늘에 다시 빛이 돌아왔다." },
-    { bg: "village", speaker: "내레이터", duration: 200, text: "사람들은 세상을 짓누르던 무언가가 사라졌음을 느꼈지만, 누가 그들을 구했는지는 알지 못했다." },
-    { bg: "village", speaker: "내레이터", duration: 200, text: "다만 — 따뜻한 바람이 불었다. 어딘가 아주 익숙한 방향으로." },
-    { bg: "black",   speaker: "",         duration: 130, text: "" },
-    { bg: "title",   speaker: "",         duration: 240, text: "해골용사" },
-    { bg: "black",   speaker: "",         duration: 90,  text: "" },
+    { img: "ending/ending1.png", speaker: "내레이터", duration: 300,
+      text: "마침내 — 용사의 검이 마왕을 베었다." },
+    { img: "ending/ending2.png", speaker: "마왕",     duration: 340,
+      text: "...인간 따위에게...!!!! 짐이.... 짐이 패배하다니...!!!!!" },
+    { img: "ending/ending3.png", speaker: "해골용사", duration: 340,
+      text: "..... 끝난건가 ........ 아무것도 남지 않았군......" },
+    { img: "ending/ending4.png", speaker: "해골용사", duration: 360,
+      text: "...... 살아있는 사람은 없는건가..?...." },
+    { img: "", speaker: "내레이터", duration: 380,
+      text: "... 그렇게 몇날며칠, 수개월을 돌아 다녔지만, 폐허가 된 곳 뿐이었다-" },
+    { img: "", speaker: "????", duration: 300,
+      text: ".......!!!!!" },
+    { img: "ending/ending5.png", speaker: "해골용사", duration: 360,
+      text: "...이 곳은 ....... " },
+    { img: "ending/ending6.png", speaker: "내레이터", duration: 380,
+      text: "따스한 햇살이 내리쬐는 꽃밭. 멀리 호수가 반짝였다. 그는 그 자리에 가만히 앉았다." },
+    { img: "ending/ending7.png", speaker: "내레이터", duration: 380,
+      text: "기분 좋은 바람이 불고, 향긋한 꽃내음이 풍겼다. 그는 하늘을 올려다 보았다." },
+    { img: null, speaker: "", duration: 480, text: "", isTheEnd: true },
   ],
 };
 
@@ -138,9 +172,9 @@ function startCutscene(type, worldN) {
 function _cutsceneEnd(type) {
     Game.cutscene = null;
     if (type === "opening") {
-        // 텍스트 스토리 끝 → 해골 조립 애니메이션
-        Game.openingAnim = { t: 0, phase: 0, eyeOn: false };
-        Game.gs = "opening_anim";
+        // 오프닝 컷씬 완료 → 클래스 선택
+        if (typeof stopBGM === 'function') stopBGM();
+        Game.gs = "class_select";
     } else if (type === "boss") {
         // 컷신 끝나고 플레이로 — 카메라/상태 초기화
         Game.gs = "play";
@@ -148,9 +182,8 @@ function _cutsceneEnd(type) {
         Game.hitStop  = 0;
         Game.transT   = 0;
     } else if (type === "ending") {
-        // 엔딩 컷신 종료 → 엔딩 BGM → 로비
         if (typeof stopBGM === 'function') stopBGM();
-        if (typeof playBGM === 'function') playBGM('ending');
+        if (typeof playBGM === 'function') playBGM('lobby');
         Game.gs = "menu";
         if (typeof restoreLobbyUI === 'function') restoreLobbyUI();
     }
@@ -166,15 +199,72 @@ function updateCutscene() {
     const cur = cs.lines[cs.step];
     if (!cur) { _cutsceneEnd(cs.type); return; }
 
-    // SPACE / ENTER / Z 로 스킵
+    // 타이핑 속도: 보스 컷신=2프레임/글자, 오프닝/엔딩=5프레임/글자
+    const isBossScene = (cs.type === 'boss');
+    const typeSpeed   = isBossScene ? 2 : 5;
+
+    if (cur.text) {
+        cs.typeIdx = cs.typeIdx || 0;
+        cs.typeT   = (cs.typeT   || 0) + 1;
+
+        if (cs.typeIdx < cur.text.length) {
+            if (cs.typeT >= typeSpeed) {
+                cs.typeT = 0;
+                cs.typeIdx++;
+                // 타이핑 SFX — 공백/줄바꿈은 소리 없음
+                const ch = cur.text[cs.typeIdx - 1];
+                if (ch && ch !== ' ' && ch !== '\n' && typeof playSfx === 'function') {
+                    if (typeof Game !== 'undefined' && !Game.isMuted) {
+                        playSfx('typing');
+                    }
+                }
+            }
+        }
+    } else {
+        cs.typeIdx = 0;
+    }
+
+    // SPACE / ENTER / Z로 스킵 — 타이핑 중이면 전체 표시, 완료면 다음으로
     const skip = dn("Space", "Enter", "KeyZ", "KeyX");
-    if ((cs.t >= cur.duration || skip) && cs.t > 10) {
+    // ESC: 컷씬 전체 즉시 종료
+    if (dn("Escape") && !cs._escOld) {
+        _cutsceneEnd(cs.type);
+        cs._escOld = true;
+        return;
+    }
+    cs._escOld = dn("Escape");
+    if (skip && !cs._skipOld && cs.t > 10) {
+        if (cur.text && cs.typeIdx < cur.text.length) {
+            // 타이핑 미완성: 전체 즉시 표시
+            cs.typeIdx = cur.text.length;
+        } else if (cs.t >= 15) {
+            // 타이핑 완성: 다음 줄로
+            cs.step++;
+            cs.t = 0;
+            cs.typeIdx = 0;
+            cs.typeT   = 0;
+            if (cs.step >= cs.lines.length) {
+                _cutsceneEnd(cs.type);
+            }
+        }
+    }
+    // 시간 초과 자동 진행 (타이핑 완료 후 남은 시간 대기)
+    const typingDone = !cur.text || cs.typeIdx >= cur.text.length;
+    // duration = max(지정값, 타이핑완료시간 + 읽기여유 60프레임)
+    const typeSpeed2 = isBossScene ? 2 : 5;
+    const minDuration = cur.text ? (cur.text.length * typeSpeed2 + 80) : cur.duration;
+    const effectiveDuration = Math.max(cur.duration, minDuration);
+    cs._effectiveDur = effectiveDuration; // renderCutscene에서 페이드 계산용
+    if (typingDone && cs.t >= effectiveDuration) {
         cs.step++;
         cs.t = 0;
+        cs.typeIdx = 0;
+        cs.typeT   = 0;
         if (cs.step >= cs.lines.length) {
             _cutsceneEnd(cs.type);
         }
     }
+    cs._skipOld = skip;
 }
 
 // ── 컷신 렌더 (매 프레임 호출) ────────────────────────────
@@ -186,51 +276,131 @@ function renderCutscene(frameNow) {
     const cur = cs.lines[cs.step];
     if (!cur) return;
 
-    // 배경
-    _drawCutsceneBg(cur.bg, frameNow);
+    // 배경 — 검정
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, CW, CH);
 
-    // 페이드 처리
-    const fadeDur = 18;
+    // THE END 씬
+    if (cur.isTheEnd) {
+        const prog = Math.min(1, cs.t / 80);
+        ctx.save();
+        ctx.globalAlpha = prog;
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 28px SkullFont, NeoDunggeunmo";
+        ctx.shadowBlur = 14; ctx.shadowColor = "#aaaaff";
+        ctx.fillText("— THE END —", CW/2, CH/2 - 18);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#666";
+        ctx.font = "12px SkullFont, NeoDunggeunmo";
+        ctx.fillText("[ 로비로 돌아가려면 SPACE를 눌러주세요 ]", CW/2, CH/2 + 20);
+        ctx.restore();
+        ctx.textAlign = "left";
+        return;
+    }
+
+    // 페이드 알파 계산
+    const fadeDur = 40; // 페이드 속도 2배 느리게
     let alpha = 1;
     if (cs.t < fadeDur) alpha = cs.t / fadeDur;
-    else if (cs.t > cur.duration - fadeDur) alpha = Math.max(0, (cur.duration - cs.t) / fadeDur);
+    else if (cs.t > (cs._effectiveDur||cur.duration) - fadeDur)
+        alpha = Math.max(0, ((cs._effectiveDur||cur.duration) - cs.t) / fadeDur);
 
-    // 대사 박스
+    // 이미지 렌더
+    if (cur.img) {
+        cs._imgCache = cs._imgCache || {};
+        if (!cs._imgCache[cur.img]) {
+            const img = new Image();
+            img.src = cur.img;
+            cs._imgCache[cur.img] = img;
+        }
+        const img = cs._imgCache[cur.img];
+        if (img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            // 레터박스: 비율 유지하며 꽉 채움
+            const iw = img.naturalWidth, ih = img.naturalHeight;
+            const scale = Math.max(CW / iw, CH / ih);
+            const dw = iw * scale, dh = ih * scale;
+            const dx = (CW - dw) / 2, dy = (CH - dh) / 2;
+            ctx.drawImage(img, dx, dy, dw, dh);
+            // 하단 그라데이션 오버레이 (텍스트 가독성)
+            const grad = ctx.createLinearGradient(0, CH * 0.55, 0, CH);
+            grad.addColorStop(0, "rgba(0,0,0,0)");
+            grad.addColorStop(1, "rgba(0,0,0,0.82)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, CW, CH);
+            ctx.restore();
+        } else {
+            ctx.fillStyle = "#0a0a12";
+            ctx.fillRect(0, 0, CW, CH);
+        }
+    }
+
+    // 텍스트 박스
     if (cur.text) {
-        // 반투명 하단 박스 — 캔버스 하단 잘림 방지: CH가 360px 기준이므로 여유 확보
-        const boxH = 100;
-        const boxY = CH - boxH - 4; // 하단에서 4px 여백
-        ctx.fillStyle = `rgba(0,0,0,${0.8 * alpha})`;
-        ctx.fillRect(0, boxY, CW, boxH + 4);
-        ctx.strokeStyle = `rgba(180,30,30,${0.65 * alpha})`;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(6, boxY + 4, CW - 12, boxH - 4);
-
-        // 화자 이름
+        const boxY = CH - 95;
+        // 화자
         if (cur.speaker) {
-            ctx.fillStyle = `rgba(255,180,30,${alpha})`;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = "#ffcc44";
             ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
-            ctx.textAlign = "left";
-            ctx.fillText(cur.speaker, 16, boxY + 22);
+            ctx.fillText(cur.speaker, 18, boxY - 6);
+            ctx.restore();
         }
 
-        // 대사 텍스트 (줄바꿈 지원)
-        ctx.fillStyle = `rgba(240,230,220,${alpha})`;
-        ctx.font = "14px SkullFont, NeoDunggeunmo";
+        // 타이핑 텍스트
+        const displayText = cur.text.slice(0, cs.typeIdx || 0);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "rgba(240,230,220,1)";
+        ctx.font = "13px SkullFont, NeoDunggeunmo";
         ctx.textAlign = "left";
-        _wrapCutsceneText(cur.text, 16, boxY + 42, CW - 32, 22, alpha);
+        // 줄바꿈
+        const maxW = CW - 36;
+        let line = "", ly = boxY + 16;
+        for (let ch2 of displayText) {
+            const test = line + ch2;
+            if (ctx.measureText(test).width > maxW && line.length > 0) {
+                ctx.fillText(line, 18, ly);
+                line = ch2; ly += 18;
+            } else { line = test; }
+        }
+        if (line) ctx.fillText(line, 18, ly);
+        // 커서
+        if ((cs.typeIdx||0) < cur.text.length) {
+            if (Math.floor(frameNow / 200) % 2 === 0) {
+                ctx.fillStyle = "rgba(255,220,100,0.9)";
+                ctx.fillText("▌", 18 + ctx.measureText(line).width, ly);
+            }
+        }
+        ctx.restore();
     }
 
-    // 스킵 안내 (박스 안 오른쪽 하단)
+    // ESC/SPACE 안내
     if (cs.t > 40) {
-        const boxY2 = CH - 108;
-        const blinkAlpha = ((Math.sin(frameNow * 0.006) + 1) / 2) * 0.5 * alpha;
-        ctx.fillStyle = `rgba(150,150,150,${blinkAlpha})`;
-        ctx.font = "11px SkullFont, NeoDunggeunmo";
+        const glow = (Math.sin(frameNow * 0.008) + 1) / 2;
+        const skipAlpha = 0.35 + glow * 0.55;
+        ctx.save();
+        ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+
+        // ESC — 우측 상단 형광
         ctx.textAlign = "right";
-        ctx.fillText("[SPACE] 다음", CW - 14, boxY2 + 92);
-        ctx.textAlign = "left";
+        ctx.fillStyle = `rgba(${Math.floor(120+glow*100)},${Math.floor(200+glow*55)},255,${skipAlpha})`;
+        ctx.shadowBlur = glow * 10;
+        ctx.shadowColor = `rgba(100,180,255,${glow*0.8})`;
+        ctx.fillText("[ESC] 스킵", CW - 12, 22);
+        ctx.shadowBlur = 0;
+
+        // SPACE — 중앙 최하단 회색
+        ctx.textAlign = "center";
+        ctx.fillStyle = `rgba(160,160,160,${0.4 + glow * 0.3})`;
+        ctx.fillText("[SPACE] 다음", CW / 2, CH - 10);
+
+        ctx.restore();
     }
+    ctx.textAlign = "left";
 }
 
 function _wrapCutsceneText(text, x, y, maxW, lineH, alpha) {
@@ -767,187 +937,57 @@ function updateOpeningAnim() {
 }
 
 function renderOpeningAnim(frameNow) {
+    // 해골 조립 애니메이션 삭제 — scene_main.png 페이드인으로 대체
     const a = Game.openingAnim;
     if (!a) return;
-    const t = a.t;
 
-    // 배경
     ctx.fillStyle = "#000"; ctx.fillRect(0, 0, CW, CH);
 
-    // 별 (흩뿌려진 뼈 파티클 → 중심으로 모임)
-    const cx = CW / 2, cy = CH / 2 - 10;
-
-    // Phase 0 (0~60): 어둠 속 정적
-    // Phase 1 (60~160): 뼈 파편들이 흩어져 있다가 중심으로 모임
-    // Phase 2 (160~260): 해골 형태로 조립 (뼈 조각들 제자리)
-    // Phase 3 (260~340): 눈이 천천히 켜짐
-    // Phase 4 (340~420): 붉은 눈 빛남 + 타이틀 텍스트
-
-    const phase = t < 60 ? 0 : t < 160 ? 1 : t < 260 ? 2 : t < 340 ? 3 : 4;
-    a.phase = phase;
-
-    if (phase === 0) {
-        // 순수 암전 + 미세한 먼지 파티클
-        for (let i = 0; i < 12; i++) {
-            const px = ((i * 173 + t * 0.5) % CW);
-            const py = ((i * 97 + t * 0.3) % CH);
-            ctx.fillStyle = `rgba(80,60,60,${0.05 + (i%3)*0.02})`;
-            ctx.fillRect(px, py, 1, 1);
-        }
-        return;
+    // scene_main 이미지 페이드인
+    if (!Game._mainSceneImg) {
+        Game._mainSceneImg = new Image();
+        Game._mainSceneImg.src = "scene_main.png";
     }
+    const img = Game._mainSceneImg;
+    const fadeIn = Math.min(1, a.t / 60);
 
-    if (phase >= 1 && phase < 2) {
-        // 뼈 파편들이 사방에서 중심으로 날아옴
-        const prog = (t - 60) / 100; // 0→1
-        const eased = 1 - Math.pow(1 - prog, 3); // ease-out cubic
-        const bones = [
-            { sx:-200, sy:-150 }, { sx:200, sy:-130 }, { sx:-160, sy:100 },
-            { sx:180, sy: 120 }, { sx:0, sy:-220 }, { sx:0, sy:180 },
-            { sx:-220, sy:0 }, { sx:220, sy:0 }, { sx:-100, sy:-200 },
-            { sx:100, sy:200 },
-        ];
-        bones.forEach((b, i) => {
-            const bx = cx + b.sx * (1 - eased);
-            const by = cy + b.sy * (1 - eased);
-            const rot = b.sx * 0.05 * (1 - eased);
-            ctx.save();
-            ctx.translate(bx, by); ctx.rotate(rot);
-            ctx.fillStyle = `rgba(200,190,170,${0.3 + eased * 0.5})`;
-            ctx.fillRect(-4, -12, 8, 24);
-            ctx.fillRect(-8, -14, 16, 5);
-            ctx.fillRect(-8, 9, 16, 5);
-            ctx.restore();
-        });
-        return;
-    }
-
-    // phase 2+: 두개골만 렌더 — 얼굴 뼈에 집중해 임팩트 강화
-    const asmProg = phase === 2 ? Math.min(1, (t - 160) / 80) : 1;
-    const skullScale = 1.5 + asmProg * 0.5; // 조립되며 커지는 효과
-
-    ctx.save();
-    ctx.globalAlpha = asmProg;
-    ctx.translate(cx, cy);
-    ctx.scale(skullScale, skullScale);
-
-    // 두개골 본체
-    ctx.fillStyle = "#e0ddd5";
-    ctx.beginPath(); ctx.arc(0, -10, 28, 0, Math.PI * 2); ctx.fill();
-
-    // 광대뼈 돌출
-    ctx.fillStyle = "#c8c5bd";
-    ctx.fillRect(-30, -6, 7, 9);
-    ctx.fillRect(23, -6, 7, 9);
-
-    // 이마 능선
-    ctx.fillStyle = "#d5d2c8";
-    ctx.fillRect(-24, -28, 48, 7);
-
-    // 관자놀이 홈
-    ctx.fillStyle = "#ccc8bc";
-    ctx.fillRect(-28, -22, 5, 12);
-    ctx.fillRect(23, -22, 5, 12);
-
-    // 코뼈 구멍
-    ctx.fillStyle = "#1a1a1a";
-    ctx.beginPath();
-    ctx.moveTo(-4, -2); ctx.lineTo(0, -8); ctx.lineTo(4, -2);
-    ctx.closePath(); ctx.fill();
-
-    // 아래턱
-    ctx.fillStyle = "#d8d5ca";
-    ctx.beginPath();
-    ctx.arc(0, 8, 18, 0, Math.PI); ctx.fill();
-    ctx.fillRect(-18, 4, 36, 8);
-
-    // 이빨 (위아래)
-    ctx.fillStyle = "#eeeae0";
-    ctx.fillRect(-16, 7, 32, 5);
-    ctx.fillStyle = "#1a1818";
-    for (let ti = 0; ti < 5; ti++) {
-        ctx.fillRect(-14 + ti * 7, 7, 4, 5);  // 이빨 사이 틈
-    }
-    ctx.fillStyle = "#eeeae0";
-    ctx.fillRect(-14, 12, 28, 4);
-
-    // 눈 구멍 (phase 3 이전)
-    if (phase < 3) {
-        ctx.fillStyle = "#0a0808";
-        ctx.beginPath(); ctx.ellipse(-11, -16, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(11, -16, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
-        // 눈구멍 속 어둠 강조
-        ctx.fillStyle = "#000";
-        ctx.beginPath(); ctx.ellipse(-11, -16, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(11, -16, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
-    }
-
-    ctx.restore();
-
-    // Phase 3: 눈이 켜짐 — 새 좌표계(cx,cy 기준 scale 적용)
-    if (phase >= 3) {
-        const eyeProg  = phase === 3 ? Math.min(1, (t - 260) / 60) : 1;
-        const eyeA     = eyeProg * (0.7 + Math.sin(frameNow * 0.004) * 0.3);
-        const skScale2 = 1.5 + 0.5; // 완성된 크기
-
+    if (img.complete && img.naturalWidth > 0) {
         ctx.save();
-        ctx.translate(cx, cy);
-        ctx.scale(skScale2, skScale2);
+        ctx.globalAlpha = fadeIn;
+        const scale = Math.max(CW / img.naturalWidth, CH / img.naturalHeight);
+        const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+        ctx.drawImage(img, (CW-dw)/2, (CH-dh)/2, dw, dh);
+        ctx.restore();
+    }
 
-        // 눈구멍 검정
-        ctx.fillStyle = "#000";
-        ctx.beginPath(); ctx.ellipse(-11, -16, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(11, -16, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
-
-        // 붉은 눈동자 + 글로우
-        ctx.fillStyle = `rgba(255, 0, 0, ${eyeA})`;
-        ctx.shadowBlur = 20 * eyeProg; ctx.shadowColor = "#ff0000";
-        ctx.beginPath(); ctx.ellipse(-11, -16, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(11, -16, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
-
-        // 눈에서 뻗어나오는 빛줄기
-        if (eyeProg > 0.5) {
-            const rayA = (eyeProg - 0.5) * 2 * 0.3;
-            ctx.strokeStyle = `rgba(255,0,0,${rayA})`;
-            ctx.lineWidth = 0.8;
-            for (let ri = 0; ri < 6; ri++) {
-                const ang = ri * Math.PI / 3;
-                ctx.beginPath();
-                ctx.moveTo(-11 + Math.cos(ang) * 6, -16 + Math.sin(ang) * 7);
-                ctx.lineTo(-11 + Math.cos(ang) * 18, -16 + Math.sin(ang) * 20);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(11 + Math.cos(ang) * 6, -16 + Math.sin(ang) * 7);
-                ctx.lineTo(11 + Math.cos(ang) * 18, -16 + Math.sin(ang) * 20);
-                ctx.stroke();
-            }
-        }
+    // 해골용사 타이틀 — 이미지 위 보라빛 글로우 (a.t > 40부터 페이드인)
+    if (a.t > 40) {
+        const titleAlpha = Math.min(1, (a.t - 40) / 50);
+        const pulse = 0.8 + Math.sin(frameNow * 0.007) * 0.2;
+        ctx.save();
+        ctx.globalAlpha = titleAlpha;
+        ctx.textAlign = "center";
+        ctx.font = "bold 48px SkullFont, NeoDunggeunmo";
+        ctx.fillStyle = "#d4bfff";
+        ctx.shadowBlur = 20 * pulse; ctx.shadowColor = "#9966ff";
+        ctx.fillText("해골용사", CW/2, CH * 0.72);
         ctx.shadowBlur = 0;
         ctx.restore();
     }
 
-    // Phase 4: 타이틀 텍스트 + 대기 상태 PRESS SPACE 깜빡임
-    if (phase >= 4 || (a && a.waitPhase)) {
-        const txtProg = (a && a.waitPhase) ? 1.0 : Math.min(1, (t - 340) / 60);
-        ctx.fillStyle = `rgba(255,0,60,${txtProg * 0.9})`;
-        ctx.font = "bold 38px SkullFont, NeoDunggeunmo";
-        ctx.textAlign = "center";
-        ctx.shadowBlur = 18; ctx.shadowColor = "#ff0033";
-        ctx.fillText("SKULL YUUSHA", cx, cy + 115);
-        ctx.shadowBlur = 0;
-        // 대기 상태에서는 깜빡이는 PRESS SPACE
-        if (a && a.waitPhase) {
-            const blink = Math.floor(frameNow / 480) % 2 === 0;
-            ctx.fillStyle = blink ? "rgba(255,220,80,0.95)" : "rgba(180,160,100,0.3)";
-            ctx.font = "bold 15px SkullFont, NeoDunggeunmo";
-            ctx.shadowBlur = blink ? 10 : 0; ctx.shadowColor = "#ffcc44";
-            ctx.fillText("PRESS  SPACE  TO  START", cx, cy + 142);
+    // PRESS SPACE — 노란 깜빡임 (waitPhase 진입 후)
+    if (a.waitPhase && a.waitT > 30) {
+        const blink = Math.floor(frameNow / 380) % 2 === 0;
+        if (blink) {
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#ffcc00";
+            ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+            ctx.shadowBlur = 8; ctx.shadowColor = "#ffcc00";
+            ctx.fillText("PRESS  SPACE", CW/2, CH * 0.72 + 32);
             ctx.shadowBlur = 0;
-        } else {
-            ctx.fillStyle = `rgba(180,160,140,${txtProg * 0.4})`;
-            ctx.font = "13px SkullFont, NeoDunggeunmo";
-            ctx.fillText("[ SPACE ] 계속", cx, cy + 138);
+            ctx.restore();
         }
-        ctx.textAlign = "left";
     }
+    ctx.textAlign = "left";
 }

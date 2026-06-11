@@ -62,7 +62,7 @@ function _getBossP2Combo(w) {
         7:  [0, 2, 1],      // 2단레이저 → 전방위+레이저 → 충격파
         8:  [0, 1, 2, 0],   // 포격 → 광역 → 화살비 → 포격
         9:  [1, 2, 0],      // 영혼탄 → 소용돌이 → 낙뢰
-        10: [1, 0, 2, 1],   // 전방위 → 십자 → 폭탄 → 전방위
+        10: [0, 1, 2, 0, 2], // 낙뢰 → 지옥의 문 → 강림 → 낙뢰 → 강림
     };
     return [...(combos[w] || [0, 1])]; // 복사본 반환
 }
@@ -145,46 +145,47 @@ const AgileBossAI = {
 const BossAI = {
 
     // ── W1 고블린 킹: 철퇴 휘두르기 / 점프 폭발 / 2페이즈: 연속 투사체
-    1: (e, oX, spd, dmg, p2, wd) => {
-        const cx = e.x + e.w / 2, cy = e.y + e.h / 2;
+   1: (e, oX, spd, dmg, p2, wd) => {
         if (wd.ap === 0) {
-            // 근거리 부채꼴 투사체 (실제 facing 방향)
-            const count = p2 ? 5 : 3;
-            const baseAng = e.facing > 0 ? 0 : Math.PI;
-            for (let s = -(count-1)/2; s <= (count-1)/2; s++) {
-                const a = baseAng + s * 0.25;
-                spawnEBullet(cx, cy, Math.cos(a)*7*spd, Math.sin(a)*7*spd, 90, 5, dmg);
-            }
+            // 전방 근접 철퇴 휘두르기
+            const slashX = e.facing > 0 ? e.x + e.w - 10 : e.x - 70;
+            spawnLaser(slashX, e.y - 15, 80, e.h * 1.5, 15, "#ff5500", Math.floor(dmg * 1.2), false, false);
+            e.vx = e.facing * 7; // 앞으로 훅 돌진
+            Game.camShake = 10; playSfx('boss_atk');
         } else {
-            // 수평 레이저 - facing 방향으로
-            const lBox = calcLaser(oX, e.y + e.h/2 - 8, 16, e.facing);
-            spawnLaser(lBox.x, e.y + e.h/2 - 8, lBox.w, 16, 20, "#aa5500", Math.floor(dmg*1.3), false);
-            Game.camShake = 6;
+            // 제자리 점프 후 좁은 범위 강한 충격파 (근접 판정)
+            e.vy = -12;
+            e.vx = e.facing * 4;
+            setTimeout(() => {
+                if (!e.dead) {
+                    spawnLaser(e.x - 30, e.y + e.h - 20, e.w + 60, 40, 20, "#cc3300", Math.floor(dmg * 1.5), false, false);
+                    Game.camShake = 15; playSfx('boss_atk');
+                }
+            }, 300); // 떨어질 때쯤 타격
         }
     },
 
-    // ── W2 언데드 고블린 킹: W1과 동일 + 추가 산탄
+    // ── W2 언데드 고블린 킹: 더 빠르고 연속적인 근접 공격 ──
     2: (e, oX, spd, dmg, p2, wd) => {
-        const cx = e.x + e.w / 2, cy = e.y + e.h / 2;
         if (wd.ap === 0) {
-            const count = p2 ? 6 : 4;
-            const baseAng = e.facing > 0 ? 0 : Math.PI;
-            for (let s = -(count-1)/2; s <= (count-1)/2; s++) {
-                const a = baseAng + s * 0.22;
-                spawnEBullet(cx, cy, Math.cos(a)*8*spd, Math.sin(a)*8*spd, 90, 5, dmg);
-            }
-        } else if (wd.ap === 1) {
-            // 플레이어 방향 추적 레이저
-            const lBox = calcLaser(oX, e.y + e.h/2 - 8, 16, e.facing);
-            spawnLaser(lBox.x, e.y + e.h/2 - 8, lBox.w, 16, 20, "#cc6600", Math.floor(dmg*1.3), false);
-            Game.camShake = 6;
+            // 빠른 2연속 근접 베기
+            const doSlash = (delay) => {
+                setTimeout(() => {
+                    if (!e.dead) {
+                        const slashX = e.facing > 0 ? e.x + e.w - 5 : e.x - 75;
+                        spawnLaser(slashX, e.y - 10, 80, e.h * 1.2, 10, "#ff2200", dmg, false, false);
+                        e.vx = e.facing * 9; Game.camShake = 8;
+                    }
+                }, delay);
+            };
+            doSlash(0); 
+            if (p2) doSlash(300); // 2페이즈면 2연격
         } else {
-            // 전방위 산탄
-            const amt = 12;
-            for (let i = 0; i < amt; i++) {
-                const a = (i / amt) * Math.PI * 2;
-                spawnEBullet(cx, cy, Math.cos(a)*4, Math.sin(a)*4, 80, 4, Math.floor(dmg*0.7));
-            }
+            // 분노의 전방 찌르기 (짧은 사거리)
+            const slashX = e.facing > 0 ? e.x + e.w : e.x - 90;
+            spawnLaser(slashX, e.y + 10, 90, 30, 18, "#aa1100", Math.floor(dmg * 1.4), false, false);
+            e.vx = e.facing * 12; // 빠르게 쇄도
+            Game.camShake = 12;
         }
     },
 
@@ -410,44 +411,69 @@ const BossAI = {
         }
     },
 
-    // ── W10 마왕: 3가지 패턴 순환, 2페이즈에서 강화
+    // ── W10 마왕: 3가지 서명 패턴, 2페이즈에서 확장
     10: (e, oX, spd, dmg, p2, wd) => {
         const cx = e.x + e.w / 2, cy = e.y + e.h / 2;
+        const pX = wd.targetX || (Game.player.x + Game.player.w / 2);
+        const pY = wd.targetY || (Game.player.y + Game.player.h / 2);
+
         if (wd.ap === 0) {
-            // 플레이어 현재 위치 십자 레이저
-            const pX = wd.targetX || Game.player.x;
-            const pY = wd.targetY || Game.player.y;
-            // 수직 낙뢰
-            spawnLaser(pX - 15, 0, 30, CH, 40, "#ff0000", Math.floor(dmg*2.5), false, true);
-            // 수평 스윕
-            const lBox = calcLaser(oX, pY - 10, 20, e.facing);
-            spawnLaser(lBox.x, pY - 10, lBox.w, 20, 40, "#880000", Math.floor(dmg*2.0), false);
-            Game.camShake = 20;
+            // ── 왕관의 뇌격: 5줄기 낙뢰가 플레이어 주변에 내리꽂힘
+            const strikes = p2 ? 7 : 5;
+            const spread = p2 ? 110 : 80;
+            for (let i = 0; i < strikes; i++) {
+                const ox = (i - Math.floor(strikes / 2)) * spread / (strikes - 1);
+                const lx = pX + ox - 14;
+                spawnLaser(lx, 0, 28, CH, 45, i === Math.floor(strikes/2) ? "#ff2200" : "#cc0044",
+                    Math.floor(dmg * (i === Math.floor(strikes/2) ? 2.8 : 2.0)), false, true);
+            }
+            // P2: 동시에 플레이어 높이 수평 레이저
+            if (p2) {
+                const lBox = calcLaser(oX, pY - 10, 20, e.facing);
+                spawnLaser(lBox.x, pY - 10, lBox.w, 20, 35, "#880000", Math.floor(dmg * 1.8), false);
+            }
+            addText(cx, cy - 50, "왕관의 뇌격", "#ff2200", 40, 14);
+            Game.camShake = 22;
+
         } else if (wd.ap === 1) {
-            // 전방위 대량 탄막 (지옥의 문)
-            const amt = p2 ? 60 : 36;
+            // ── 지옥의 문: 2파 탄막 — 1파 방사형, 2파 사이사이 채움
+            const amt = p2 ? 24 : 18;
+            // 1파
             for (let i = 0; i < amt; i++) {
                 const a = (i / amt) * Math.PI * 2;
-                const s2 = p2 ? 7 : 5;
-                spawnEBullet(cx, cy, Math.cos(a)*s2*spd, Math.sin(a)*s2*spd, 220, 7, dmg);
+                spawnEBullet(cx, cy, Math.cos(a) * 5.5 * spd, Math.sin(a) * 5.5 * spd, 200, 7, dmg);
             }
-            addText(cx, cy - 40, "GATES OF HELL", "#ff0000", 35, 16);
-            Game.camShake = 25;
+            // 2파 (사이사이, 약간 빠름)
+            const amt2 = p2 ? amt : Math.floor(amt / 2);
+            for (let i = 0; i < amt2; i++) {
+                const a = ((i + 0.5) / amt) * Math.PI * 2;
+                const delay = p2 ? 18 : 22;
+                // 지연 발사를 위해 느린 탄으로 시뮬레이션
+                spawnEBullet(cx, cy, Math.cos(a) * 3.2 * spd, Math.sin(a) * 3.2 * spd, 240, 6, Math.floor(dmg * 0.8));
+            }
+            addText(cx, cy - 50, "지옥의 문", "#ff0000", 45, 16);
+            Game.camShake = 28;
+
         } else {
-            // 추적 + 낙하 폭탄 동시 (2페이즈에서만 추가 레이저)
-            const amt = p2 ? 10 : 6;
+            // ── 어둠의 강림: 플레이어 추적 운석 + 바닥 어둠 확산
+            const amt = p2 ? 8 : 5;
             for (let i = 0; i < amt; i++) {
-                const tx = Game.player.x + (Math.random() - 0.5) * 500;
-                spawnEBullet(tx, 0, (Math.random()-0.5)*3, 10*spd, 260, 8, dmg, false, true, true, true);
+                // 운석은 플레이어 위치를 기준으로 균등 분산
+                const spread = 300;
+                const tx = pX + (i - Math.floor(amt / 2)) * (spread / Math.max(amt - 1, 1));
+                spawnEBullet(tx, -30, (Math.random() - 0.5) * 1.5, 9 * spd,
+                    280, 10, Math.floor(dmg * 1.4), false, true, true, true);
             }
+            // P2: 마왕 위치에서 방사형 탄 추가
             if (p2) {
-                // 추가: 양쪽 수평 레이저
-                const lBoxL = calcLaser(cx, cy - 8, 16, -1);
-                const lBoxR = calcLaser(cx, cy - 8, 16,  1);
-                spawnLaser(lBoxL.x, cy - 8, lBoxL.w, 16, 30, "#ff0055", Math.floor(dmg*1.5), false);
-                spawnLaser(cx, cy - 8, lBoxR.w, 16, 30, "#ff0055", Math.floor(dmg*1.5), false);
+                const radAmt = 8;
+                for (let i = 0; i < radAmt; i++) {
+                    const a = (i / radAmt) * Math.PI * 2;
+                    spawnEBullet(cx, cy, Math.cos(a) * 4 * spd, Math.sin(a) * 4 * spd, 200, 7, dmg);
+                }
             }
-            Game.camShake = 15;
+            addText(cx, cy - 50, "어둠의 강림", "#880044", 38, 14);
+            Game.camShake = 18;
         }
     }
 };
@@ -478,6 +504,16 @@ function updateBoss(e) {
     const p = Game.player;
     if (!p || p.dead) return;
 
+    // 그로기(스턴) 중: 이동/공격 정지, 빨간 깜빡임
+    if (e.stun) {
+        e.vx = 0;
+        e.vy = Math.min(e.vy + GRAV, 10);
+        e.y += e.vy;
+        if (typeof resolveAABB === 'function') resolveAABB(e);
+        if (Game.frameCount % 6 < 3) e.flash = 3;
+        return;
+    }
+
     const isP2 = e.hp < e.maxHp * 0.5; 
     e.phase = isP2 ? 2 : 1; 
     
@@ -487,15 +523,30 @@ function updateBoss(e) {
     // ── 페이즈2 돌입 연출 (HP 50% 최초 돌파 시 1회) ──
     if (isP2 && !e.p2Triggered) {
         e.p2Triggered = true;
-        e.kbT = 50; // 잠깐 멈춤
-        Game.camShake = 30;
-        Game.hitStop = 8;
-        addText(e.x + e.w/2, e.y - 30, "PHASE 2 !", "#ff0000", 80, 22);
-        for (let i = 0; i < 40; i++) addPart(e.x + e.w/2, e.y + e.h/2, "#ff0000", 35, 5);
-        // 연계 콤보 큐 세팅 (월드별 고유 연계 패턴)
+        const kbDur = w === 10 ? 70 : 50;
+        e.kbT = kbDur;
+        Game.camShake = w === 10 ? 45 : 30;
+        Game.hitStop = w === 10 ? 14 : 8;
+        const p2Label = w === 10 ? "각성" : "PHASE 2 !";
+        const p2Color = w === 10 ? "#ff2200" : "#ff0000";
+        addText(e.x + e.w/2, e.y - 30, p2Label, p2Color, 80, w === 10 ? 28 : 22);
+        const partAmt = w === 10 ? 80 : 40;
+        for (let i = 0; i < partAmt; i++) addPart(e.x + e.w/2, e.y + e.h/2, p2Color, 45, 6);
         e.comboQueue = _getBossP2Combo(w);
         e.comboDelay = 0;
         if (typeof playSfx === 'function') playSfx('phase2');
+    }
+
+    // ── 광란 상태 돌입 (HP 20% 최초 돌파 시 1회) ──
+    const isEnrageNow = e.hp < e.maxHp * 0.2;
+    if (isEnrageNow && !e.enrageTriggered) {
+        e.enrageTriggered = true;
+        e.kbT = 30;
+        Game.camShake = 35;
+        Game.hitStop = 10;
+        addText(e.x + e.w/2, e.y - 50, w === 10 ? "광란" : "ENRAGE!", "#ff6600", 70, 20);
+        for (let i = 0; i < 50; i++) addPart(e.x + e.w/2, e.y + e.h/2, "#ff4400", 50, 7);
+        if (typeof playSfx === 'function') playSfx('boss_atk');
     }
 
     // ── 연계 콤보 큐 처리 ──
@@ -568,18 +619,18 @@ function updateBoss(e) {
                 addText(p.x, p.y, "PULLED!", "#cc00ff", 30, 20); 
             }
             
-            // 소형 민첩 보스는 AgileBossAI로 분기
-            if (AgileBossAI && AgileBossAI[w]) {
-                AgileBossAI[w](e, originX, spdM, bDmg, isP2, wd);
-            } else if (BossAI[w]) {
+            // 메인 BossAI 우선 — AgileBossAI는 BossAI 없을 때만 폴백
+            if (BossAI[w]) {
                 BossAI[w](e, originX, spdM, bDmg, isP2, wd);
+            } else if (AgileBossAI && AgileBossAI[w]) {
+                AgileBossAI[w](e, originX, spdM, bDmg, isP2, wd);
             }
         }
     } else {
         e.mT -= (w === 10 ? 1.5 : 1); 
         if (e.mT <= 0) { 
             // 2페이즈: 이동 주기 단축 + 순간이동 더 자주
-        e.mT = isP2 ? 20 : 45; 
+        e.mT = isP2 ? 30 : 65; // 공속 감소 
             if (dx * dx > 62500) currentSpd *= 2.2;
             // w1~4: 근접형 — 플레이어에게 더 적극적으로 붙음
             if (w <= 4 && dx * dx > 8000) currentSpd *= 1.5;
@@ -588,25 +639,31 @@ function updateBoss(e) {
         e.vx = e.facing * currentSpd; 
         e.sT--;
         
-        if (e.sT <= 0) { 
-            // 패턴 인터벌: 후반 월드일수록 빠름, 페이즈2는 더 공격적
+        if (e.sT <= 0) {
+            // 패턴 인터벌: 후반 월드일수록 빠름, 광란 상태에서 더 빠름
+            const isEnrage = e.hp < e.maxHp * 0.2;
             let baseInterval = w <= 4 ? 100 : 70;
-            e.sI = Math.max(35, baseInterval - w * 4);
-            e.sT = e.sI * (isP2 ? 0.55 : 1.0) * (e.isRevived ? 0.7 : 1.0); 
-            
-            // 패턴 순환 - 단순 랜덤 대신 순서대로 돌면서 가끔 랜덤
+            e.sI = Math.max(50, baseInterval - w * 3);
+            const p2Mul = isP2 ? (w >= 8 ? 0.62 : 0.70) : 1.0;
+            const engageMul = isEnrage ? 0.75 : 1.0;
+            e.sT = Math.floor(e.sI * p2Mul * engageMul * (e.isRevived ? 0.8 : 1.0));
+
+            // 패턴 순환 — 의도적 순서로 순환 (무작위 제거)
+            // P2에서는 2연속 패턴 콤보 (짝수 순번에서 이전 패턴 재사용)
             const maxAp = w >= 7 ? 3 : (w >= 3 ? 3 : 2);
-            if (isP2 && Math.random() < 0.4) {
-                e.ap = Math.floor(Math.random() * maxAp);
+            if (isP2 && w >= 6 && (e.patternSeq % 2 === 1)) {
+                // P2 짝수 순번: 이전 패턴을 강화 버전으로 반복 (콤보 느낌)
+                // ap 유지 → 같은 패턴이 바로 또 나옴
             } else {
                 e.patternSeq = (e.patternSeq + 1) % maxAp;
                 e.ap = e.patternSeq;
             }
-            
-            // 선딜레이 — 근접형(w1~4)은 짧게, 원거리형은 길게
-            const warnLen = w <= 4 ? 55 : (w <= 7 ? 70 : 55);
-            e.warnT = warnLen; 
-            
+
+            // 선딜레이 — 패턴 유형에 따라 차별화
+            // 근접형: 짧게, 원거리 레이저/탄막형: 길게, 광란: 더 짧게
+            const warnBase = w <= 4 ? 50 : (w <= 7 ? 65 : 58);
+            e.warnT = Math.floor(warnBase * (isEnrage ? 0.75 : 1.0));
+
             // warnData에 발사 시점의 플레이어 위치 스냅샷 저장
             e.warnData = {
                 ang:     Math.atan2(dy, dx),
@@ -614,8 +671,8 @@ function updateBoss(e) {
                 ap:      e.ap,
                 targetY: p.y + p.h / 2,
                 targetX: p.x + p.w / 2
-            }; 
-            e.vx = 0; 
+            };
+            e.vx = 0;
         }
     }
 

@@ -61,29 +61,6 @@ function render() {
         ctx.fillRect(0, 0, CW, CH);
     }
 
-    // ── Layer 5: 슬로모션 WITCH TIME 효과 ──
-    if (Game.justDodgeActive) {
-        const jdProg = Math.min(1, Game.justDodgeT / 90);
-        const jda = 0.5 + Math.sin(frameNow * 0.015) * 0.15;
-        // 황금빛 테두리
-        ctx.strokeStyle = `rgba(255, 220, 0, ${jda * jdProg})`;
-        ctx.lineWidth = 6; ctx.strokeRect(3, 3, CW - 6, CH - 6);
-        ctx.lineWidth = 2; ctx.strokeRect(8, 8, CW - 16, CH - 16);
-        // 시간이 멈추는 느낌 - 화면 가장자리 흑백화
-        const bwGrd = ctx.createRadialGradient(CW/2, CH/2, CH*0.15, CW/2, CH/2, CW*0.75);
-        bwGrd.addColorStop(0, "rgba(0,0,0,0)");
-        bwGrd.addColorStop(1, `rgba(0,0,0,${0.3 * jdProg})`);
-        ctx.fillStyle = bwGrd;
-        ctx.fillRect(0, 0, CW, CH);
-        // WITCH TIME 텍스트
-        if (jdProg > 0.7) {
-            ctx.font = "bold 14px NeoDunggeunmo"; ctx.textAlign = "center";
-            ctx.fillStyle = `rgba(255,230,80,${(jdProg-0.7)/0.3 * 0.9})`;
-            ctx.shadowBlur = 10; ctx.shadowColor = "#ffcc00";
-            ctx.fillText("W I T C H  T I M E", CW/2, 25);
-            ctx.shadowBlur = 0; ctx.textAlign = "left";
-        }
-    }
 
     // ── Layer 6: 리게인 체력 회복 타이머 시각화 ──
     if (Game.player && (Game.player.grayHp || 0) > 0) {

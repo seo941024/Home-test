@@ -229,20 +229,30 @@ function buildChunkMap(worldN, levelN) {
         // 안전한 발판 x 좌표 목록 — 실제로 발판이 있는 위치만
         const validSpawnX = [];
         // 전체 맵을 TILE 간격으로 스캔해서 안전한 위치 수집
-        for (let sx = 250; sx < levelW - 100; sx += TILE) {
-            if (hasPlatformAt(sx)) validSpawnX.push(sx);
+        // NPC 위치 미리 수집
+        const _npcXList = (Game.eventObjects || [])
+            .filter(ev => ev.type === 'npc')
+            .map(ev => ev.x);
+
+        // 적 스폰 최소 시작점: NPC 안전지대(x=80) 이후 + 첫 점프 구간 지난 위치(x=450)
+        const ENEMY_MIN_X = Math.max(450, (_npcXList.length > 0 ? Math.max(..._npcXList) + 200 : 450));
+        for (let sx = ENEMY_MIN_X; sx < levelW - 100; sx += TILE) {
+            if (!hasPlatformAt(sx)) continue;
+            // NPC 주변 200px 완전 금지
+            if (_npcXList.some(nx => Math.abs(sx - nx) < 200)) continue;
+            validSpawnX.push(sx);
         }
 
         // 적 배치 — validSpawnX에서 직접 선택 (오프셋 없이 검증된 위치만)
         const baseCount = 3 + worldN * 2 + levelN;
         if (validSpawnX.length > 0) {
-            // validSpawnX를 셔플해서 겹치지 않게 배치
             const shuffled = [...validSpawnX].sort(() => Math.random() - 0.5);
             for (let i = 0; i < baseCount; i++) {
                 const sx = shuffled[i % shuffled.length];
-                // 같은 위치에 겹치면 약간 오프셋 (단, hasPlatformAt 재검증)
                 const finalX = sx + (i >= shuffled.length ? (i - shuffled.length + 1) * 8 : 0);
-                if (typeof mkEnemy === 'function') mkEnemy(finalX, floorY - 30, worldN);
+                if (typeof mkEnemy === 'function') {
+                    mkEnemy(finalX, floorY - 30, worldN);
+                }
             }
         }
     }
@@ -279,13 +289,14 @@ function updateTraps() {
                 }
             }
         } else if (t.type === "swamp") {
-            // 독 늪: 서있으면 빠른 틱 DoT — 데미지 약하고 무적 짧아서 즉시 인지 가능
-            if (t.timer % t.tickRate === 0) {
+            // 독 늪: 0.5초(30프레임)마다 1 데미지 DoT, 넉백 없음
+            if (t.timer % 30 === 0) {
                 if (overlap(p, { x: t.x, y: t.y, w: t.w, h: t.h }) && p.onGround) {
-                    if (typeof takeDmg === 'function') takeDmg(t.dmg, null, false);
-                    // 독 전용 짧은 무적 — 넉백/경직 없이 연속 틱만
-                    Game.invT = Math.min(Game.invT, 8);
-                    addText(p.x, p.y - 20, "POISON!", "#44ff44", 20, 10);
+                    // 무적시간 무시하고 직접 hp 차감 (넉백, 히트스톱 없음)
+                    if (p.hp > 1) {
+                        p.hp -= 1;
+                        addText(p.x, p.y - 20, "-1 독", "#44ff44", 30, 11);
+                    }
                 }
             }
         }

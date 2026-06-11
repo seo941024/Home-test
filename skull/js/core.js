@@ -55,9 +55,6 @@ const Game = {
     // 3단계 시스템
     traps: [],
     bloodDecals: [],
-    justDodgeActive: false,
-    justDodgeT: 0,
-    justDodgeDmgBonus: 1.0,
 };
 
 for (let i = 0; i < 40; i++) Game.enemies.push({ active: false });

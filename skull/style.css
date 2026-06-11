@@ -11,29 +11,30 @@ body {
   font-family: "SkullFont", "NeoDunggeunmo", sans-serif;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   overflow: hidden;
 }
 
-/* 💡 화면 전체 1.5배 확대 (640 -> 960) */
+/* 화면 전체 2배 확대 (640 -> 1280) — 픽셀 폰트 선명도 유지 */
 #wrapper {
   position: relative;
-  width: 960px;
-  max-width: 100%;
+  width: 1280px;
   display: flex;
   flex-direction: column;
+  /* 반응형: 뷰포트보다 클 때 비율 유지하며 축소 */
+  transform-origin: top center;
 }
 
 #topBar,
 #bottomBar {
   width: 100%;
   background: #111;
-  padding: 12px 15px;
+  padding: 12px 19px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 18px;
+  font-size: 22px;
   border-bottom: 2px solid #333;
 }
 
@@ -73,12 +74,12 @@ body {
 #bossBarLabel {
   color: #ff3333;
   font-weight: bold;
-  font-size: 16px;
-  width: 220px;
+  font-size: 20px;
+  width: 275px;
 }
 #bossTrack {
   flex-grow: 1;
-  height: 18px;
+  height: 22px;
   background: #111;
   border: 1px solid #ff3333;
   position: relative;
@@ -89,11 +90,11 @@ body {
   transition: width 0.1s;
 }
 
-/* 💡 캔버스 영역 1.5배 확대 (오락실 스캔라인 완전 삭제) */
+/* 캔버스 영역 정확히 2배 확대 (640×360 → 1280×720) */
 #canvasWrap {
   position: relative;
-  width: 960px;
-  height: 540px;
+  width: 1280px;
+  height: 720px;
   background: #000;
   overflow: hidden;
 }
@@ -160,3 +161,49 @@ canvas {
 }
 
 /* keyGuideBar: bottomBar로 통합 */
+/* ── 쯔꾸르 메뉴 스타일 ── */
+.menu-item {
+  font-family: "SkullFont", "NeoDunggeunmo", sans-serif;
+  font-size: 22px;
+  color: #555;
+  cursor: pointer;
+  padding: 8px 28px;
+  letter-spacing: 3px;
+  transition: color 0.15s, text-shadow 0.15s;
+  min-width: 220px;
+  text-align: center;
+}
+
+.menu-item.selected {
+  color: #ffffff;
+  text-shadow:
+    0 0 8px #ffffff,
+    0 0 18px #aaaaff,
+    0 0 32px #6666ff;
+  animation: menuGlow 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes menuGlow {
+  from {
+    text-shadow:
+      0 0 6px #ffffff,
+      0 0 14px #aaaaff,
+      0 0 24px #5555ff;
+  }
+  to {
+    text-shadow:
+      0 0 12px #ffffff,
+      0 0 26px #ccccff,
+      0 0 44px #8888ff;
+  }
+}
+
+/* 커서 화살표 */
+.menu-item.selected::before {
+  content: "▶ ";
+  color: #ffffff;
+}
+
+#overlay {
+  background: #000 !important;
+}

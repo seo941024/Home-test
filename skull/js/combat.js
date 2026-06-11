@@ -70,6 +70,8 @@ function spawnBullet(x, y, vx, vy, life, r, sk, dmg) {
     const b = getObj(Game.bullets);
     b.x = x; b.y = y; b.vx = vx; b.vy = vy;
     b.life = life; b.maxLife = life; b.r = r; b.sk = sk; b.dmg = dmg;
+    b.nhHitCount = 0; b.nhLastHit = {};
+    return b; // Night Hollow 등에서 참조 가능
 }
 
 function spawnEBullet(x, y, vx, vy, life, r, dmg, grav=false, unblockable=false, isArrow=false, isBomb=false) {
@@ -110,6 +112,8 @@ function addItem(x, y, w, h, vy, life, type) {
 // 몬스터 피격 처리
 function hitE(e, dmg, facing, isCrit, extraDmg=0) {
     if (e.dead) return;
+    // 골렘 stun 중: 데미지 완전 차단 (Fatal Strike만 유효)
+    if (e.isTutorialDummy && e.stun) return;
 
     // 투명 구간 중 피해 무효
     if (e.type === "phantom" && !e.visible) {
@@ -130,6 +134,12 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
     // 엘리트/슈퍼아머 몬스터는 넉백 없이 맞음
     const hasSuperArmor = e.superArmor && !e.stun;
 
+    // 스턴 상태면 hitInv 무시하고 처형 시도
+    if (e.stun && typeof executeEnemy === 'function') {
+        executeEnemy(e);
+        return;
+    }
+
     // 일반 몹 피격 무적시간
     if (!e.isBoss) {
         if ((e.hitInv || 0) > 0) return;
@@ -137,11 +147,7 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
     }
 
     const extraDmgAmt = Math.floor(dmg * extraDmg);
-    // Witch Time 보너스 (1회 소모)
-    const jdBonus = (Game.justDodgeDmgBonus > 1.0) ? Game.justDodgeDmgBonus : 1.0;
-    if (jdBonus > 1.0) Game.justDodgeDmgBonus = 1.0;
-
-    const finalDmg = Math.floor((dmg + extraDmgAmt) * jdBonus);
+    const finalDmg = Math.floor(dmg + extraDmgAmt);
     e.hp    -= finalDmg;
     e.flash  = 6;
 
@@ -150,12 +156,6 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
 
     // 체간 데미지는 isCrit 플래그에 종속하지 않고 caller가 직접 넣어줌
     // (패링=50, 강하=30, 일반=0) → applyPoiseHit은 combat 외부에서 호출
-
-    // 스턴 중 공격 → 처형 시도
-    if (e.stun && typeof executeEnemy === 'function') {
-        executeEnemy(e);
-        return;
-    }
 
     // 넉백 (슈퍼아머면 생략)
     if (!e.isBoss && !hasSuperArmor) {
@@ -211,7 +211,9 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
 // 플레이어 피격 처리 — 리게인 완전 삭제, 즉시 hp 차감
 function takeDmg(dmg, eObj, unblockable=false) {
     const p = Game.player;
-    if (!p || p.dead || Game.invT > 0 || p.dashT > 0) return;
+    if (!p || p.dead) return;
+    // unblockable(낙사 등)이면 invT/dashT 무시
+    if (!unblockable && (Game.invT > 0 || p.dashT > 0)) return;
     // 튜토리얼: 체력 무적 + 일반 피격과 동일한 85프레임 무적 부여
     // 무적 간격이 너무 짧으면 TUTORIAL 텍스트가 도배되므로 정상 무적시간 적용
     if (Game.isTutorial) {
@@ -231,14 +233,12 @@ function takeDmg(dmg, eObj, unblockable=false) {
         if (typeof playSfx === 'function') playSfx('parry');
         Game.pMp = Math.min(Game.pMaxMp, Game.pMp + Game.pParryMp);
         addText(p.x, p.y - 20, "PARRY!", "#ffff00", 50, 16);
-        Game.slowMoT = 18;
-
         // 패링 시 체간 50 확정 부여 (isCrit 종속 아님)
         if (eObj && typeof applyPoiseHit === 'function') applyPoiseHit(eObj, 50);
 
         p.vy  = -3; p.kbT = 12;
         p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 2;
-        Game.invT = 40;
+        Game.invT = 60;
 
         if (eObj && !eObj.isBoss) { eObj.kbT = 30; eObj.vx = (eObj.x < p.x ? -1 : 1) * 4; eObj.vy = -3; }
         return;
@@ -258,7 +258,7 @@ function takeDmg(dmg, eObj, unblockable=false) {
             p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 3;
             if (eObj && !eObj.isBoss) { eObj.kbT = 15; eObj.vx = (eObj.x < p.x ? -1 : 1) * 2; eObj.vy = -2; }
             if (typeof playSfx === 'function') playSfx('hit');
-            Game.invT = 15;
+            Game.invT = 60;
             return;
         }
     }
@@ -267,13 +267,6 @@ function takeDmg(dmg, eObj, unblockable=false) {
     dmg = Math.floor(dmg * (Game.pDmgReduction || 1));
     if (dmg < 1) dmg = 1;
 
-    // Witch Time 발동 (피해 완전 무효)
-    if (p.justDodgeReady && typeof triggerJustDodge === 'function') {
-        triggerJustDodge();
-        p.justDodgeReady = false;
-        return;
-    }
-
     p.kbT = 20;
     p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 5;
     p.vy  = -4;
@@ -281,8 +274,8 @@ function takeDmg(dmg, eObj, unblockable=false) {
     if (typeof playSfx === 'function') playSfx('dmg');
     Game.comboCount = 0; Game.comboTimer = 0;
 
-    // 가시 함정 등 eObj=null 환경 피해는 무적 짧게 — 꼼수 방지
-    const invDur = eObj ? 85 : 15;
+    // 낙사(unblockable)는 이미 invT를 무시하므로 일반 피격/환경 피해 무적 통일
+    const invDur = eObj ? 60 : 15;
 
     // 가시 갑옷 반사
     if (Game.pReflectDmg > 0 && eObj && !eObj.isBoss) hitE(eObj, Game.pReflectDmg, p.facing, false);

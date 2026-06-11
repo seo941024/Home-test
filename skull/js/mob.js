@@ -21,7 +21,6 @@ let _enemyIdCounter = 0;
 
 // ── 튜토리얼 전용 더미 골렘 ──────────────
 // 이동속도 0, 공격력 0, 방어력 0 — 때리는 연습용 허수아비
-// 일반 mkEnemy와 완전히 분리되어 일반 스테이지에 영향 없음
 function mkDummyGolem(x, y) {
     let e = getObj(Game.enemies);
     e.x = x; e.y = y;
@@ -106,16 +105,12 @@ function mkEnemy(x, y, w) {
 // 가장 가까운 발판 위로 즉시 이동 — 공중 스폰 낙사 방지
 function _snapToNearestPlatform(e) {
     if (!Game.platforms || Game.platforms.length === 0) return;
-    // 발판 상면(pt.y)이 e.y+e.h보다 아래 200px 이내인 발판 중
-    // 몬스터가 올라설 수 있는(x범위 겹치는) 것 찾기
     const foot = e.y + e.h; // 현재 발 위치
     let best = null, bestDist = 9999;
     for (const pt of Game.platforms) {
-        // 발판 x범위와 몬스터 x범위가 겹치는지
         if (e.x + e.w < pt.x + 4 || e.x > pt.x + pt.w - 4) continue;
-        // 발판 상면이 몬스터 발 아래쪽에 있어야 함 (이미 발판 아래에 스폰된 경우 제외)
         const surfaceY = pt.y;
-        if (surfaceY < e.y - 5) continue; // 머리 위 발판은 무시
+        if (surfaceY < e.y - 5) continue; 
         const dist = Math.abs(surfaceY - foot);
         if (dist < bestDist) { bestDist = dist; best = pt; }
     }
@@ -127,29 +122,26 @@ function _snapToNearestPlatform(e) {
 }
 
 function mkBoss(x, y, w) {
-    // 45스테이지 템포에 맞춘 스케일링 — 보스는 5배로 묵직하게
-    const hps = [0, 4000, 6000, 9000, 12500, 17500, 24000, 30000, 37500, 45000, 30000];
+    const hps = [0, 2000, 3000, 4500, 6250, 8750, 12000, 17000, 21000, 26000, 35000];
     const hp = hps[Math.min(w, 10)]; 
     let e = getObj(Game.enemies);
     
-    // 히트박스 = scale(1.8) × 내부 렌더 좌표 정확히 일치
-    // 공식: e.w = 내부폭 * 1.8, e.h = 내부발끝 * 2 * 1.8
     if (w === 5 || w === 6) {
-        e.w = 130; e.h = 130;  // 더스크/리치킹 — 부유형
+        e.w = 130; e.h = 130;  
     } else if (w === 10) {
         e.w = Math.floor(CW * 0.55);
         e.h = Math.floor(CH * 0.65);
     } else if (w <= 2) {
-        e.w = 47; e.h = 72;   // 고블린 전사장: 내부±13, 발끝y=20 → 26*1.8=47, 20*2*1.8=72
+        e.w = 47; e.h = 72;   
     } else if (w <= 4) {
-        e.w = 50; e.h = 76;   // 언데드 기사: 내부±14, 발끝y=21 → 28*1.8≈50, 21*2*1.8≈76
+        e.w = 50; e.h = 76;   
     } else {
-        e.w = 65; e.h = 100;  // 마족 친위대: 내부±18, 발끝y=28 → 36*1.8≈65, 28*2*1.8≈100
+        e.w = 65; e.h = 100;  
     }
     
     e.x = x; e.y = y; e.vx = 0; e.vy = 0; e.onGround = false;
     e.hp = hp; e.maxHp = hp; e.type = "boss"; e.isBoss = true; e.isElite = false; e.facing = 1;
-    e.isTutorialDummy = false; // 재사용 슬롯에 더미 플래그 잔존 방지 
+    e.isTutorialDummy = false; 
     e.fr = 0; e.frT = 0; e.flash = 0;
     
     e.sT = 60; e.sI = 60; e.phase = 1; e.mT = 50; e.ap = 0; 
@@ -159,14 +151,12 @@ function mkBoss(x, y, w) {
     e.atk = Math.floor(bossBaseAtk * atkMul * 1.5);
     
     e.dead = false; e.kbT = 0; e.warnT = 0; e.warnData = null; e.atkAnim = 0; e.world = w;
-    // 보스 고유 패턴 카운터
     e.patternSeq = 0;
-    // 페이즈2 돌입 연출
     e.p2Triggered = false;
-    // 연계 콤보 큐 (패턴 인덱스 배열, 순서대로 발동)
+    e.enrageTriggered = false;
     e.comboQueue = [];
     e.comboDelay = 0;
-        // 체간 초기화
+    
     if (typeof initPoise === 'function') initPoise(e);
     else { e.poise = 200 + (e.world||1)*80; e.poiseMx = e.poise; e.stun = false; e.stunT = 0; }
     return e;
@@ -177,13 +167,11 @@ function updateEnemies() {
         if (!e.active) return;
         
         if (e.y > CH + 50 && !e.dead) {
-            // 낙사 시 즉시 제거 대신 가장 가까운 발판으로 순간이동
-            // (보스 제외 — 보스는 일부러 낙사 처리)
             if (!e.isBoss) {
                 _snapToNearestPlatform(e);
                 e.vx = 0; e.vy = 0; e.kbT = 0;
-                e._cliffDir = 0; // 낭떠러지 방향 플래그 리셋
-                if (e.y > CH + 50) { e.hp = 0; e.dead = true; } // 발판도 없으면 제거
+                e._cliffDir = 0; 
+                if (e.y > CH + 50) { e.hp = 0; e.dead = true; } 
             } else {
                 e.hp = 0; e.dead = true;
             }
@@ -193,11 +181,11 @@ function updateEnemies() {
             Game.score += e.isBoss ? 500 : (e.isElite ? 150 : 50); Game.kills++; 
             
             if (e.isElite) {
-                Game.darkQuartz += Math.floor(Math.random() * 3) + 1;
+                Game.darkQuartz += Math.floor(Math.random() * 5) + 2;
                 addText(e.x, e.y - 30, "+ DARK QUARTZ", "#aa00ff", 60, 16);
                 if (typeof saveProgress === 'function') saveProgress();
             } else if (e.isBoss) {
-                Game.darkQuartz += Math.floor(Math.random() * 10) + 10;
+                Game.darkQuartz += Math.floor(Math.random() * 15) + 20;
                 Game.rerollCoins += 1;
                 if (typeof saveProgress === 'function') saveProgress();
             }
@@ -214,14 +202,17 @@ function updateEnemies() {
                 } else { 
                     if (roll < 0.35) randType = "hp"; else if (roll < 0.5) randType = "atk_drop"; else if (roll < 0.65) randType = "def_drop"; else if (roll < 0.8) randType = "atk_spd_drop"; else if (roll < 0.9) randType = "move_spd_drop"; else randType = "jump_drop"; 
                 }
-                if(typeof addItem === 'function') addItem(e.x + e.w/2 - 5, Math.min(e.y, CH - 20), 10, 10, -4, 600, randType);
+                
+                // 💡 [패치] 아이템(구슬) 스폰 높이를 낮추고 위로 튀는 힘(vy)을 -4에서 -2로 감소!
+                if(typeof addItem === 'function') {
+                    addItem(e.x + e.w/2 - 5, e.y + e.h - 15, 10, 10, -2, 600, randType);
+                }
             }
             if (Game.enemies.filter(x => x.active && !x.dead).length === 0 && !e.isBoss) {
                 if(typeof playSfx === 'function') playSfx('clear'); 
             } else if (e.isBoss) {
                 if(typeof playSfx === 'function') { playSfx('boss_clear'); playSfx('clear'); }
                 if(typeof stopBGM === 'function') stopBGM();
-                // 보스 처치 화면 연출
                 if (typeof Game !== 'undefined') {
                     Game.camShake = 30;
                     Game.hitStop = 20;
@@ -238,7 +229,6 @@ function updateEnemies() {
 
         if (e.isBoss) { if (typeof updateBoss === 'function') updateBoss(e); return; }
 
-        // 미믹 스폰 딜레이 — 1초간 무적+이동불가 (플레이어 회피 시간 보장)
         if (e._spawnDelay > 0) {
             e._spawnDelay--;
             e.vx = 0; e.sT = 80; e.warnT = 0; e.atkAnim = 0;
@@ -248,19 +238,17 @@ function updateEnemies() {
             return;
         }
 
-        // 더미 골렘: 중력+충돌만 적용, AI/이동/공격 전부 건너뜀
-        // 일반 몬스터 함수엔 전혀 영향 없음 — 플래그 없으면 그냥 통과
         if (e.isTutorialDummy) {
             e.vy = Math.min(e.vy + 0.4, 9);
-            e.vx = 0;           // 이동속도 강제 0
-            e.kbT = 0;          // 넉백도 없음 (위치 고정)
-            e.warnT = 0;        // 경고 표시 안 함
-            e.atkAnim = 0;      // 공격 모션 없음
-            e.sT = 999999;      // 공격 쿨타임 리셋 방지
+            e.vx = 0;           
+            e.kbT = 0;          
+            e.warnT = 0;        
+            e.atkAnim = 0;      
+            e.sT = 999999;      
             e.x += e.vx; e.y += e.vy;
             if (typeof resolveAABB === 'function') resolveAABB(e);
             e.x = Math.max(0, Math.min((Game.levelW || 1600) - e.w, e.x));
-            return; // AI 루프 완전 종료
+            return; 
         }
 
         e.vy = Math.min(e.vy + 0.4, 9);
@@ -269,7 +257,6 @@ function updateEnemies() {
         if (e.kbT > 0 || e.stun) { 
             e.kbT = Math.max(0, e.kbT - 1);
             e.vx *= 0.7;
-            // 스턴 중 깜빡임
             if (e.stun) e.flash = (e.flash + 1) % 4;
         } 
         else {
@@ -279,7 +266,6 @@ function updateEnemies() {
             if (e.type === "melee") {
                 e.sT--;
                 if (Math.abs(dx) < 55 && Math.abs(dy) < 40 && e.sT <= 0 && e.warnT <= 0 && e.atkAnim <= 0) {
-                    // 선딜레이 충분히 — 유저가 패링(V) 타이밍 잡을 수 있게
                     e.warnT = 70;
                     e.sT = e.sI; e.vx = 0; e.facing = dx > 0 ? 1 : -1; 
                 }
@@ -321,7 +307,6 @@ function updateEnemies() {
                 }
             } 
             else {
-                // ranged_bullet / ranged_laser - 경고 방향과 발사 방향 완전 일치
                 if (e.warnT > 0) {
                     e.warnT--; e.vx *= 0.8;
                     if (e.warnT <= 0) {
@@ -335,14 +320,11 @@ function updateEnemies() {
                         e.facing = dx > 0 ? 1 : -1;
                         if (distSq < 14400) e.vx += (dx > 0 ? -1 : 1) * 0.15; else e.vx *= 0.9;
                         e.vx = Math.max(-1.4, Math.min(1.4, e.vx));
-                        // _cliffDir 방향으로 이동하면 즉시 차단
                         if (e._cliffDir && Math.sign(e.vx) === e._cliffDir) e.vx = 0;
                         e.sT--;
                         if (e.sT <= 0) {
                             e.sT = e.sI;
-                            // 원거리도 선딜 충분히 — 보고 피하거나 패링 유도
-                        e.warnT = e.type === "ranged_laser" ? 90 : 65;
-                            // warnData에 발사 시점 방향과 facing 저장
+                            e.warnT = e.type === "ranged_laser" ? 90 : 65;
                             e.warnData = {
                                 ang: Math.atan2(dy, dx),
                                 facing: e.facing
@@ -353,37 +335,31 @@ function updateEnemies() {
                         if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; }
                         if (e._cliffDir && e.pDir === e._cliffDir) e.pDir *= -1;
                         e.vx = e.pDir * (e.isElite ? 1.2 : 0.8);
-                        // cliffDir 방향 최종 차단
                         if (e._cliffDir && Math.sign(e.vx) === e._cliffDir) e.vx = 0;
                     }
                 }
             }
 
-            // ── 특수 타입 AI ─────────────────────────────────────
-
             if (e.type === "bomber") {
-                // 자폭형: 플레이어 근처 접근 → 퓨즈 → 폭발
                 const distSqB = dx * dx + dy * dy;
                 if (!e.exploding) {
-                    if (distSqB < 50000) { // 약 220px 이내 접근 시 퓨즈 시작
+                    if (distSqB < 50000) { 
                         e.fuseT++;
-                        e.vx *= 0.7; // 느려짐
+                        e.vx *= 0.7; 
                         if (e.fuseT === 1) addText(e.x + e.w/2, e.y - 15, "BOOM!", "#ff4400", 80, 13);
-                        if (e.fuseT >= 80) { // 약 1.3초 후 폭발
+                        if (e.fuseT >= 80) { 
                             e.exploding = true;
-                            Game.camShake = 18; playSfx('boss_atk');
-                            // 폭발 범위 피해
+                            Game.camShake = 18; if(typeof playSfx === 'function') playSfx('boss_atk');
                             const boomR = 80;
                             const pdx = Game.player.x - e.x, pdy = Game.player.y - e.y;
                             if (pdx*pdx + pdy*pdy < boomR*boomR) {
-                                takeDmg(e.atk * 3, e, false);
+                                if(typeof takeDmg === 'function') takeDmg(e.atk * 3, e, false);
                             }
-                            for (let pi = 0; pi < 40; pi++) addPart(e.x+e.w/2, e.y+e.h/2, pi<25?"#ff4400":"#ffaa00", 30, 5);
-                            spawnLaser(e.x - boomR, e.y - boomR/2, boomR*2, boomR, 12, "#ff4400", e.atk*2, false, false);
+                            for (let pi = 0; pi < 40; pi++) if(typeof addPart === 'function') addPart(e.x+e.w/2, e.y+e.h/2, pi<25?"#ff4400":"#ffaa00", 30, 5);
+                            if(typeof spawnLaser === 'function') spawnLaser(e.x - boomR, e.y - boomR/2, boomR*2, boomR, 12, "#ff4400", e.atk*2, false, false);
                             e.hp = 0; e.dead = true;
                         }
                     } else {
-                        // 멀면 돌진
                         e.fuseT = Math.max(0, e.fuseT - 2);
                         if (distSqB < 100000) {
                             e.facing = dx > 0 ? 1 : -1;
@@ -397,30 +373,26 @@ function updateEnemies() {
             }
 
             else if (e.type === "phantom") {
-                // 투명형: 주기적으로 투명해짐 / 투명 중 공격 불가(hitE에서 막음)
                 e.phantomT++;
                 const cycle = e.invisDur + e.visDur;
                 const phase = e.phantomT % cycle;
-                e.visible = phase >= e.invisDur; // 투명 구간 중엔 false
-                // 투명 중 플레이어 방향으로 빠르게 접근
+                e.visible = phase >= e.invisDur; 
                 const distSqPh = dx * dx + dy * dy;
                 if (!e.visible) {
                     e.facing = dx > 0 ? 1 : -1;
                     e.vx += e.facing * 0.4; e.vx = Math.max(-3.0, Math.min(3.0, e.vx));
                 } else {
-                    // 가시 상태: 기본 melee AI
                     if (distSqPh < 100000) {
                         e.facing = dx > 0 ? 1 : -1;
                         e.vx += e.facing * 0.2; e.vx = Math.max(-2.0, Math.min(2.0, e.vx));
-                        // 근접 시 공격
                         if (Math.abs(dx) < 55 && Math.abs(dy) < 40 && e.atkAnim <= 0 && e.warnT <= 0) {
                             e.warnT = 20; e.vx = 0;
                         }
                         if (e.warnT > 0) {
                             e.warnT--; e.vx = 0;
                             if (e.warnT <= 0) {
-                                e.atkAnim = 25; playSfx('enemy_atk');
-                                if (Math.abs(dx) < 70 && Math.abs(dy) < 45) takeDmg(e.atk, e);
+                                e.atkAnim = 25; if(typeof playSfx === 'function') playSfx('enemy_atk');
+                                if (Math.abs(dx) < 70 && Math.abs(dy) < 45 && typeof takeDmg === 'function') takeDmg(e.atk, e);
                             }
                         } else if (e.atkAnim > 0) { e.atkAnim--; e.vx = 0; }
                     } else {
@@ -430,14 +402,11 @@ function updateEnemies() {
                 }
             }
 
-            // ── 낭떠러지 감지 ────────────────────────────────
             if (e.onGround && e.kbT <= 0) {
                 const floorY = CH - 40;
                 const isOnFloor = e.y + e.h >= floorY - 4;
-                // 실제 이동 방향으로 체크 (facing이 아닌 vx 방향)
                 const moveDir = e.vx !== 0 ? Math.sign(e.vx) : e.facing;
 
-                // 이동 방향 앞 발판 존재 여부 — 넓은 범위(4~28px)로 체크
                 function hasPlatformAhead(dir) {
                     const foot = e.y + e.h;
                     for (let dist = 4; dist <= 28; dist += 4) {
@@ -459,11 +428,9 @@ function updateEnemies() {
                     e.vx = 0;
 
                     if (isOnFloor) {
-                        // 바닥 낭떠러지: 반대 방향으로 후퇴
                         e.pDir = -moveDir;
                         e.pT   = 40 + Math.random() * 40;
                     } else if (e.type === "melee") {
-                        // 플로팅 발판 끝: 플레이어 향하면 도약
                         const towardPlayer = Game.player && (moveDir > 0) === (Game.player.x > e.x);
                         if (towardPlayer && (Game.frameCount + (e.id || 0)) % 20 === 0) {
                             e.vy = -7.5; e.vx = moveDir * 3.0; e.onGround = false;
@@ -472,10 +439,9 @@ function updateEnemies() {
                             e.pDir = -moveDir; e.pT = 30 + Math.random() * 30;
                         }
                     } else {
-                        // 원거리: 제자리에서 공격 — 절대 낭떠러지 방향으로 이동 안 함
                         e.pDir = -moveDir;
                         e.pT   = 80 + Math.random() * 40;
-                        e._cliffDir = moveDir; // 강하게 고정
+                        e._cliffDir = moveDir; 
                         if (Game.player) e.facing = Game.player.x > e.x ? 1 : -1;
                     }
                 } else if (frontSafe) {
@@ -490,8 +456,9 @@ function updateEnemies() {
         if (typeof resolveAABB === 'function') resolveAABB(e); 
         e.x = Math.max(0, Math.min(Game.levelW - e.w, e.x));
         
-        if (Game.invT === 0 && typeof overlap === 'function' && overlap(Game.player, { x: e.x, y: e.y, w: e.w, h: e.h }) && !Game.player.dead) { 
-            if(typeof takeDmg === 'function') takeDmg(e.atk, e); 
+        // 💡 [패치] 스턴(stun) 뿐만 아니라 넉백 경직(kbT) 중일 때도 유저에게 데미지를 주지 않음!
+        if (!e.stun && e.kbT <= 0 && Game.invT === 0 && typeof overlap === 'function' && overlap(Game.player, { x: e.x, y: e.y, w: e.w, h: e.h }) && !Game.player.dead) {
+            if(typeof takeDmg === 'function') takeDmg(e.atk, e);
         }
     });
 }

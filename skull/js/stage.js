@@ -70,7 +70,7 @@ function genTutorial() {
     // 플레이어 배치 + MP 미리 충전 (필살기 바로 써볼 수 있게)
     if (typeof mkP === 'function') Game.player = mkP(60, floorY - 36);
     if (Game.player && typeof initSystems === 'function') initSystems();
-    Game.pMp = Game.pMaxMp || 100; // MP 풀충전 — Shift 바로 쓸 수 있게
+    Game.pMp = Game.pMaxMp; // MP 풀충전 — Shift 바로 쓸 수 있게
 
     Game.camX = 0;
     Game.gs = "play";
@@ -174,7 +174,7 @@ function nextStage() {
                 Game.highScore = Game.score;
                 localStorage.setItem("skull_highscore", Game.highScore);
             }
-            if (typeof showOv === 'function') showOv("LORD OF SKULLS (CLEAR)", "모든 악몽을 정복했습니다.", "스코어: " + Game.score + " (최고: " + Game.highScore + ")", "▶ RETURN TO LOBBY");
+            // win 상태 표시는 tickPlay()에서 캔버스로 처리
             return;
         }
 
