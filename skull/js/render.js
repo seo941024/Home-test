@@ -103,16 +103,21 @@ function render() {
     // ── Layer 4: 유물 목록 오버레이 (Tab) ──────────
     if (Game._showItemList) {
         const items = (Game.obtainedItems || []);
-        const panW = 260, panX = CW / 2 - panW / 2;
-        const rowH = 18, padX = 12, padY = 10;
+        // 활성 시너지 계산
+        const activeSyn = (typeof SYNERGIES !== 'undefined') ? SYNERGIES.filter(s =>
+            s.ids.every(id => items.includes(id))
+        ) : [];
+
+        const panW = 300, panX = CW / 2 - panW / 2;
+        const rowH = 17, padX = 12, padY = 10;
         const cols = 2, colW = panW / cols;
         const rows = Math.ceil(items.length / cols);
-        const panH = padY * 2 + 20 + rows * rowH + (items.length === 0 ? rowH : 0);
-        const panY = CH / 2 - panH / 2;
+        const synH = activeSyn.length > 0 ? (22 + activeSyn.length * 28) : 0;
+        const panH = padY * 2 + 20 + rows * rowH + (items.length === 0 ? rowH : 0) + synH;
+        const panY = Math.max(4, CH / 2 - panH / 2);
 
         ctx.save();
-        // 배경
-        ctx.fillStyle = "rgba(0,0,0,0.88)";
+        ctx.fillStyle = "rgba(0,0,0,0.92)";
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(panX, panY, panW, panH, 8);
         else ctx.rect(panX, panY, panW, panH);
@@ -120,13 +125,11 @@ function render() {
         ctx.strokeStyle = "#555555"; ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // 타이틀
+        // 유물 타이틀
         ctx.textAlign = "center";
         ctx.fillStyle = "#ffcc00";
         ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
         ctx.fillText(`획득 유물 (${items.length})`, CW / 2, panY + padY + 11);
-
-        // 구분선
         ctx.strokeStyle = "#444"; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(panX + 8, panY + padY + 17); ctx.lineTo(panX + panW - 8, panY + padY + 17); ctx.stroke();
 
@@ -134,8 +137,7 @@ function render() {
         ctx.textAlign = "left";
         ctx.font = "11px SkullFont, NeoDunggeunmo";
         if (items.length === 0) {
-            ctx.fillStyle = "#666666";
-            ctx.textAlign = "center";
+            ctx.fillStyle = "#666666"; ctx.textAlign = "center";
             ctx.fillText("없음", CW / 2, panY + padY + 34);
         } else {
             items.forEach((id, idx) => {
@@ -146,6 +148,35 @@ function render() {
                 const name = UPGRADES[id]?.name?.split(':')[0] ?? `유물 ${id}`;
                 ctx.fillStyle = "#dddddd";
                 ctx.fillText(`· ${name}`, tx, ty);
+            });
+        }
+
+        // 활성 시너지 섹션
+        if (activeSyn.length > 0) {
+            const synStartY = panY + padY + 24 + rows * rowH;
+            ctx.strokeStyle = "#aa7700"; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(panX + 8, synStartY); ctx.lineTo(panX + panW - 8, synStartY); ctx.stroke();
+
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#ffaa00";
+            ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+            ctx.fillText(`✦ 활성 시너지 (${activeSyn.length}) ✦`, CW / 2, synStartY + 12);
+
+            activeSyn.forEach((s, i) => {
+                const sy = synStartY + 24 + i * 28;
+                // 시너지 배경
+                ctx.fillStyle = "rgba(80,50,0,0.6)";
+                if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(panX + 6, sy - 12, panW - 12, 26, 4); ctx.fill(); }
+                ctx.strokeStyle = "rgba(200,140,0,0.5)"; ctx.lineWidth = 0.8;
+                if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(panX + 6, sy - 12, panW - 12, 26, 4); ctx.stroke(); }
+
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#ffe066";
+                ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+                ctx.fillText(s.name, CW / 2, sy);
+                ctx.fillStyle = "#aabbdd";
+                ctx.font = "10px SkullFont, NeoDunggeunmo";
+                ctx.fillText(s.desc, CW / 2, sy + 12);
             });
         }
 

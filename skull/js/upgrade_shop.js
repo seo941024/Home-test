@@ -141,6 +141,66 @@ const SYNERGIES = [
         desc: "치명타 데미지 추가 +40%, 공격력 +8%",
         apply: g => { g.pCritDmg += 0.40; g.pBaseDmgMul += 0.08; }
     },
+    {
+        ids: [4, 17, 39], // 파괴의 룬 + 강화의 룬 + 메아리의 룬
+        name: "마법 폭주",
+        desc: "스킬 피해 추가 +30%, 재시전 확률 +10%",
+        apply: g => { g.pSkillDmgMul += 0.30; g.pDoubleSkillChance = (g.pDoubleSkillChance||0) + 0.10; }
+    },
+    {
+        ids: [16, 28], // 저주받은 대검 + 저주받은 펜던트
+        name: "저주의 계약",
+        desc: "최종 데미지 추가 +30%, 받는 피해 +15%",
+        apply: g => { g.pFinalDmgMul += 0.30; g.pDmgReduction += 0.15; }
+    },
+    {
+        ids: [20, 50], // 광전사의 분노 + 분노의 결정
+        name: "절망의 투혼",
+        desc: "체력 30% 이하 시 데미지 효과 2배",
+        apply: g => { g.pLowHpDmg = Math.max(g.pLowHpDmg, 2.0); }
+    },
+    {
+        ids: [19, 41], // 가시 갑옷 + 재생의 인장
+        name: "생명의 원천",
+        desc: "재생 속도 2배 (1초마다 HP 회복)",
+        apply: g => { g.pRegenFrames = Math.max(30, Math.floor((g.pRegenFrames||120) / 2)); }
+    },
+    {
+        ids: [5, 42], // 도굴왕 + 상인의 손길
+        name: "황금 손",
+        desc: "아이템 드롭 확률 추가 +15%",
+        apply: g => { g.pDropRate += 0.15; }
+    },
+    {
+        ids: [14, 38, 43], // 치명적인 일격 + 예리한 숫돌 + 집중의 보석
+        name: "암살자의 극의",
+        desc: "치명타 확률 +10%, 치명타 피해 +30%",
+        apply: g => { g.pCritChance += 0.10; g.pCritDmg += 0.30; }
+    },
+    {
+        ids: [11, 52], // 닌자의 발걸음 + 사냥꾼의 발
+        name: "그림자 발걸음",
+        desc: "대시 쿨타임 추가 -15%, 대시 무적 +5프레임",
+        apply: g => { g.pDashCDMul = Math.max(0.2, g.pDashCDMul - 0.15); g.pDashInv += 5; }
+    },
+    {
+        ids: [7, 35], // 거인의 힘 + 녹슨 칼날
+        name: "전사의 기백",
+        desc: "공격력 추가 +12, 최종 데미지 +10%",
+        apply: g => { g.pBaseDmg += 12; g.pFinalDmgMul += 0.10; }
+    },
+    {
+        ids: [47, 1], // 철의 심장 + 뼈방패
+        name: "불굴의 수호",
+        desc: "방어막 추가 +25, 최대 HP +20",
+        apply: g => { g.pShield += 25; g.pMaxHp += 20; g.player.maxHp = g.pMaxHp; }
+    },
+    {
+        ids: [12, 29, 45], // 바람의 망토 + 신속의 검 + 전장의 발걸음
+        name: "바람의 화신",
+        desc: "이동속도 추가 +20%, 점프력 +10%",
+        apply: g => { g.pMoveSpdMul += 0.20; g.pJmpMul += 0.10; }
+    },
 ];
 
 const _appliedSynergies = new Set();
