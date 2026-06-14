@@ -186,14 +186,20 @@ function nextStage() {
         if (Game.worldN % 2 === 0) {
             Game._pendingRouteSelect = true;
         }
-        // 보스 클리어 후 유물 선택 (이전: 2스테이지 클리어 후 → 보스 전에 선택되던 문제 수정)
-        Game.gs = "upgrade";
+        // 보스 클리어 → 전설 유물 선택 먼저, 그 다음 일반 유물 선택
+        if (typeof generateBossLoot === 'function') generateBossLoot();
+        Game.gs = "boss_loot";
         if (typeof playBGM === 'function') playBGM('upgrade');
-        if (typeof generateUpgradeOptions === 'function') generateUpgradeOptions();
         return;
     }
 
-    // 1, 2스테이지 클리어 → 바로 다음 스테이지
+    // 1, 2스테이지 클리어 → 30% 확률로 이벤트 방
+    if (Math.random() < 0.30 && typeof generateEventOptions === 'function') {
+        generateEventOptions();
+        Game.gs = "event_room";
+        if (typeof playBGM === 'function') playBGM('upgrade');
+        return;
+    }
     if (typeof nextStageTrigger === 'function') nextStageTrigger();
     
 }

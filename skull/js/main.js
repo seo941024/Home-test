@@ -545,8 +545,9 @@ function updateClassSelect() {
             startGame();
         }
     }
-    if (dn("Escape") && !K.escOld) { Game.gs = "menu"; if (typeof restoreLobbyUI === 'function') restoreLobbyUI(); }
-    if (dn("KeyS") && !K.sOld) { Game._prevShopGs = Game.gs; Game.gs = "shop"; playSfx('item'); }
+    const _noEscGs = ["boss_loot", "event_room", "upgrade", "route_select"];
+    if (dn("Escape") && !K.escOld && !_noEscGs.includes(Game.gs)) { Game.gs = "menu"; if (typeof restoreLobbyUI === 'function') restoreLobbyUI(); }
+    if (dn("KeyS") && !K.sOld && !_noEscGs.includes(Game.gs)) { Game._prevShopGs = Game.gs; Game.gs = "shop"; playSfx('item'); }
 }
 
 // ==========================================
@@ -1015,6 +1016,8 @@ function loop(currentTime) {
         case "class_select": tickClassSelect(frameNow); break;
         case "shop":         tickShop();              break;
         case "upgrade":      tickUpgrade();           break;
+        case "boss_loot":    renderBossLoot();        break;
+        case "event_room":   renderEventRoom();       break;
         case "route_select": tickRouteSelect(frameNow); break;
         case "cutscene":
             if (typeof updateCutscene === 'function') updateCutscene();

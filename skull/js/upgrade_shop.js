@@ -472,6 +472,312 @@ function saveProgress() {
 // 예) base=4: 4, 6, 9, 12, 16, 19... (선형에 가까움)
 function _shopCost(base, lvl) { return Math.floor(base * (1 + lvl * 0.6)); }
 
+// ==========================================
+// 보스 전리품 시스템
+// ==========================================
+const BOSS_ITEMS = {
+    101: { name: "마왕의 심장: 최대 HP +80, 공격력 +20%",           apply: g => { g.pMaxHp += 80; g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.pMaxHp, g.player.hp + 80); g.pBaseDmgMul += 0.20; } },
+    102: { name: "불사의 갑옷: 받는 피해 -30%, 저체력 시 데미지 +50%", apply: g => { g.pDmgReduction -= 0.30; g.pLowHpDmg += 0.50; } },
+    103: { name: "사신의 낫: 공격력 +30%, 치명타 확률 +20%, 치명타 피해 +60%", apply: g => { g.pBaseDmgMul += 0.30; g.pCritChance += 0.20; g.pCritDmg += 0.60; } },
+    104: { name: "공허의 룬석: 스킬 피해 +60%, 재시전 확률 +20%",    apply: g => { g.pSkillDmgMul += 0.60; g.pDoubleSkillChance = (g.pDoubleSkillChance||0) + 0.20; } },
+    105: { name: "폭풍의 날개: 이동속도 +30%, 공속 +30%, 대시쿨 -30%", apply: g => { g.pMoveSpdMul += 0.30; g.pBaseAtkSpd += 0.30; g.pDashCDMul = Math.max(0.1, g.pDashCDMul - 0.30); } },
+    106: { name: "광기의 각인: 최종 데미지 +70%, 최대 HP -30%",       apply: g => { g.pFinalDmgMul += 0.70; g.pMaxHp = Math.max(10, g.pMaxHp - 30); g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.player.hp, g.pMaxHp); } },
+    107: { name: "전설의 방패: 방어막 +80, 방어력 +15, 받는 피해 -20%", apply: g => { g.pShield += 80; g.pBaseDef += 15; g.pDmgReduction -= 0.20; } },
+    108: { name: "불사조의 각인: 부활 +2회, 부활 시 HP 75% 회복",    apply: g => { g.pRevive += 2; g._reviveHpMul = 0.75; } },
+    109: { name: "시간의 파편: 적 투사체 속도 -40%, 공격속도 +20%",   apply: g => { g.pProjSlow = Math.max(0.1, g.pProjSlow - 0.40); g.pBaseAtkSpd += 0.20; } },
+    110: { name: "운명의 다이스: 아이템 드롭률 +30%, 다크쿼츠 획득 +50%", apply: g => { g.pDropRate += 0.30; g._quartzMul = (g._quartzMul || 1) * 1.5; } },
+};
+
+function generateBossLoot() {
+    const obtained = Game.obtainedItems || [];
+    const pool = Object.keys(BOSS_ITEMS).map(Number).filter(id => !obtained.includes(id));
+    Game._bossLootOptions = [];
+    for (let i = 0; i < Math.min(2, pool.length); i++) {
+        const r = Math.floor(Math.random() * pool.length);
+        Game._bossLootOptions.push(pool[r]);
+        pool.splice(r, 1);
+    }
+}
+
+function applyBossItem(id) {
+    const u = BOSS_ITEMS[id];
+    if (!u) return;
+    u.apply(Game);
+    if (!Game.obtainedItems) Game.obtainedItems = [];
+    Game.obtainedItems.push(id);
+    checkSynergy();
+    const gotName = BOSS_ITEMS[id]?.name?.split(':')[0] ?? "전설 유물";
+    addText(CW / 2, CH / 2 - 20, `전설 유물: ${gotName}`, "#ff9900", 160, 16, 0, 0.3);
+}
+
+function renderBossLoot() {
+    const t = Date.now();
+    const pulse = (Math.sin(t * 0.003) + 1) / 2;
+    const opts = Game._bossLootOptions || [];
+
+    // 배경 — 보스 느낌의 짙은 보라/적
+    ctx.fillStyle = "rgba(0,0,0,0.97)"; ctx.fillRect(0, 0, CW, CH);
+    const bgGrd = ctx.createRadialGradient(CW/2, CH*0.4, 8, CW/2, CH/2, CW*0.72);
+    bgGrd.addColorStop(0, "rgba(60,0,30,0.7)"); bgGrd.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = bgGrd; ctx.fillRect(0, 0, CW, CH);
+
+    // 부유 파티클 (붉은 먼지)
+    ctx.save();
+    for (let i = 0; i < 16; i++) {
+        const px = ((i * 89 + t * 0.007 * (i%3===0?1:-0.6)) % CW + CW) % CW;
+        const py = ((i * 67 + t * 0.005 * (i%2===0?0.8:-0.5)) % CH + CH) % CH;
+        const pa = 0.04 + Math.sin(t * 0.002 + i * 1.3) * 0.03;
+        ctx.fillStyle = `rgba(220,60,60,${pa})`;
+        ctx.beginPath(); ctx.arc(px, py, 1 + (i%3)*0.6, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+
+    const sepGrd = ctx.createLinearGradient(0,0,CW,0);
+    sepGrd.addColorStop(0,"transparent"); sepGrd.addColorStop(0.15,"#880033");
+    sepGrd.addColorStop(0.5,"#ff3366"); sepGrd.addColorStop(0.85,"#880033"); sepGrd.addColorStop(1,"transparent");
+
+    ctx.save(); ctx.textAlign = "center";
+    ctx.font = "bold 20px SkullFont, NeoDunggeunmo";
+    ctx.shadowBlur = 14 + pulse*10; ctx.shadowColor = "#ff0044";
+    ctx.fillStyle = "#ff6688";
+    ctx.fillText("★ 보스 전리품 ★", CW/2, 26);
+    ctx.shadowBlur = 0;
+    ctx.font = "12px SkullFont, NeoDunggeunmo";
+    ctx.fillStyle = "#884455";
+    ctx.fillText("전설 등급 유물 중 하나를 선택하라", CW/2, 42);
+    ctx.restore();
+    ctx.strokeStyle = sepGrd; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,48); ctx.lineTo(CW,48); ctx.stroke();
+
+    if (opts.length === 0) {
+        ctx.save(); ctx.textAlign = "center";
+        ctx.fillStyle = "#885566"; ctx.font = "13px SkullFont, NeoDunggeunmo";
+        ctx.fillText("모든 전설 유물을 이미 획득했습니다.", CW/2, CH/2);
+        ctx.fillText("[Enter] 계속", CW/2, CH/2 + 20);
+        ctx.restore();
+        if (dn("Enter","Space","Digit1","Numpad1")) _exitBossLoot();
+        return;
+    }
+
+    const bw = 580, bh = 90, gap = 14;
+    const totalH = opts.length * bh + (opts.length-1)*gap;
+    const startY = Math.max(58, Math.floor((CH - totalH)/2));
+
+    for (let i = 0; i < opts.length; i++) {
+        const item = BOSS_ITEMS[opts[i]];
+        if (!item) continue;
+        const iy = startY + i*(bh+gap);
+        const bx = (CW - bw)/2;
+
+        const colonIdx = item.name.indexOf(': ');
+        const title = colonIdx >= 0 ? item.name.slice(0, colonIdx) : item.name;
+        const desc  = colonIdx >= 0 ? item.name.slice(colonIdx + 2) : "";
+
+        // 카드 — 붉은 계열
+        const cg = ctx.createLinearGradient(bx, iy, bx+bw, iy+bh);
+        cg.addColorStop(0,"rgba(55,10,20,0.95)"); cg.addColorStop(1,"rgba(25,5,10,0.95)");
+        ctx.fillStyle = cg;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy, bw, bh, 7); else ctx.rect(bx, iy, bw, bh); ctx.fill();
+
+        const shimGrd = ctx.createLinearGradient(bx, iy, bx+bw, iy);
+        shimGrd.addColorStop(0,"rgba(200,50,80,0)"); shimGrd.addColorStop(0.5,"rgba(200,50,80,0.10)"); shimGrd.addColorStop(1,"rgba(200,50,80,0)");
+        ctx.fillStyle = shimGrd;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy, bw, bh*0.3, [7,7,0,0]); else ctx.rect(bx, iy, bw, bh*0.3); ctx.fill();
+
+        ctx.shadowBlur = 6 + pulse*6; ctx.shadowColor = "#cc0033";
+        ctx.strokeStyle = `rgba(200,60,80,${0.55+pulse*0.3})`; ctx.lineWidth = 1.8;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy, bw, bh, 7); else ctx.rect(bx, iy, bw, bh); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // ★ 전설 뱃지
+        ctx.fillStyle = "rgba(120,20,40,0.95)";
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx+7, iy+8, 26, 17, 4); else ctx.rect(bx+7, iy+8, 26, 17); ctx.fill();
+        ctx.fillStyle = "#ff6688"; ctx.font = "bold 13px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
+        ctx.fillText(i+1, bx+20, iy+20);
+
+        // 전설 태그
+        ctx.fillStyle = "rgba(100,20,35,0.9)";
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx+bw-60, iy+8, 52, 17, 4); else ctx.rect(bx+bw-60, iy+8, 52, 17); ctx.fill();
+        ctx.fillStyle = "#ff4466"; ctx.font = "bold 10px SkullFont, NeoDunggeunmo";
+        ctx.fillText("★ 전설", bx+bw-34, iy+20);
+
+        ctx.fillStyle = "#ff99aa"; ctx.font = "bold 17px SkullFont, NeoDunggeunmo";
+        ctx.shadowBlur = 5; ctx.shadowColor = "#aa0033";
+        ctx.fillText(title, CW/2, iy+34);
+        ctx.shadowBlur = 0;
+
+        if (desc) {
+            ctx.font = "14px SkullFont, NeoDunggeunmo";
+            const lines2 = _wrapDesc(desc, bw-80);
+            if (lines2.length === 1) {
+                ctx.fillStyle = "#ffccdd"; ctx.fillText(lines2[0], CW/2, iy+60);
+            } else {
+                ctx.fillStyle = "#ffccdd"; ctx.fillText(lines2[0], CW/2, iy+54);
+                ctx.fillStyle = "#ddaabb"; ctx.fillText(lines2[1], CW/2, iy+70);
+            }
+        }
+    }
+
+    ctx.textAlign = "left";
+    if (opts[0] !== undefined && (dn("Digit1")||dn("Numpad1")) && !K.u1Old) { playSfx('menu_select'); applyBossItem(opts[0]); _exitBossLoot(); }
+    else if (opts[1] !== undefined && (dn("Digit2")||dn("Numpad2")) && !K.u2Old) { playSfx('menu_select'); applyBossItem(opts[1]); _exitBossLoot(); }
+}
+
+function _exitBossLoot() {
+    Game._bossLootOptions = null;
+    Game.gs = "upgrade";
+    if (typeof playBGM === 'function') playBGM('upgrade');
+    if (typeof generateUpgradeOptions === 'function') generateUpgradeOptions();
+}
+
+// ==========================================
+// 이벤트 방 시스템
+// ==========================================
+const EVENTS = [
+    { name: "고통의 제단",   color: "#ff4444",
+      desc: "현재 HP -25%, 공격력 영구 +20%",
+      apply: g => { g.player.hp = Math.max(1, g.player.hp - Math.floor(g.player.hp * 0.25)); g.pBaseDmgMul += 0.20; }},
+    { name: "신비의 우물",   color: "#44aaff",
+      desc: "체력 60% 회복",
+      apply: g => { g.player.hp = Math.min(g.pMaxHp, g.player.hp + Math.floor(g.pMaxHp * 0.6)); }},
+    { name: "상인의 보따리", color: "#ffcc00",
+      desc: "랜덤 유물 1개 무료 획득",
+      apply: g => {
+          const pool = Object.keys(UPGRADES).map(Number).filter(id => !(g.obtainedItems||[]).includes(id));
+          if (pool.length > 0) applyUpgrade(pool[Math.floor(Math.random() * pool.length)]);
+      }},
+    { name: "다크쿼츠 광맥", color: "#aa88ff",
+      desc: "다크쿼츠 +10 획득",
+      apply: g => { g.darkQuartz += 10; saveProgress(); }},
+    { name: "피의 계약",     color: "#cc2244",
+      desc: "최대 HP -20, 공격력 영구 +20",
+      apply: g => { g.pMaxHp = Math.max(10, g.pMaxHp - 20); g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.player.hp, g.pMaxHp); g.pBaseDmg += 20; }},
+    { name: "수호의 가호",   color: "#44ffaa",
+      desc: "방어막 +50 획득",
+      apply: g => { g.pShield += 50; }},
+    { name: "죽음의 도박",   color: "#ff8800",
+      desc: "50% 확률: 랜덤 유물 2개 / 50%: HP 절반",
+      apply: g => {
+          if (Math.random() < 0.5) {
+              const pool = Object.keys(UPGRADES).map(Number).filter(id => !(g.obtainedItems||[]).includes(id));
+              for (let i = 0; i < 2 && pool.length > 0; i++) {
+                  const r = Math.floor(Math.random() * pool.length);
+                  applyUpgrade(pool[r]); pool.splice(r, 1);
+              }
+          } else {
+              g.player.hp = Math.max(1, Math.floor(g.player.hp * 0.5));
+          }
+      }},
+    { name: "강인함의 증명", color: "#ffffff",
+      desc: "5초간 무적 + 치명타 확률 영구 +10%",
+      apply: g => { g.invT = 300; g.pCritChance += 0.10; }},
+    { name: "잊혀진 지식",   color: "#66ffff",
+      desc: "필살기 피해 +30%, 이동속도 +10%",
+      apply: g => { g.pSkillDmgMul += 0.30; g.pMoveSpdMul += 0.10; }},
+    { name: "부활의 샘",     color: "#ffaaff",
+      desc: "부활 횟수 +1, 최대 HP +15",
+      apply: g => { g.pRevive += 1; g.pMaxHp += 15; g.player.maxHp = g.pMaxHp; }},
+];
+
+function generateEventOptions() {
+    const pool = [...EVENTS];
+    Game._eventOptions = [];
+    for (let i = 0; i < 3 && pool.length > 0; i++) {
+        const r = Math.floor(Math.random() * pool.length);
+        Game._eventOptions.push(pool[r]);
+        pool.splice(r, 1);
+    }
+}
+
+function renderEventRoom() {
+    const t = Date.now();
+    const pulse = (Math.sin(t * 0.003) + 1) / 2;
+    const opts = Game._eventOptions || [];
+
+    ctx.fillStyle = "rgba(0,0,0,0.96)"; ctx.fillRect(0, 0, CW, CH);
+    const bgGrd = ctx.createRadialGradient(CW/2, CH*0.35, 5, CW/2, CH/2, CW*0.65);
+    bgGrd.addColorStop(0, "rgba(10,30,50,0.6)"); bgGrd.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = bgGrd; ctx.fillRect(0, 0, CW, CH);
+
+    // 부유 파티클 (청록)
+    ctx.save();
+    for (let i = 0; i < 14; i++) {
+        const px = ((i * 83 + t * 0.006 * (i%3===0?1:-0.5)) % CW + CW) % CW;
+        const py = ((i * 61 + t * 0.004 * (i%2===0?0.7:-0.4)) % CH + CH) % CH;
+        const pa = 0.04 + Math.sin(t * 0.0015 + i * 1.2) * 0.025;
+        ctx.fillStyle = `rgba(60,180,200,${pa})`;
+        ctx.beginPath(); ctx.arc(px, py, 1 + (i%3)*0.5, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+
+    const sepGrd = ctx.createLinearGradient(0,0,CW,0);
+    sepGrd.addColorStop(0,"transparent"); sepGrd.addColorStop(0.15,"#005577");
+    sepGrd.addColorStop(0.5,"#00aacc"); sepGrd.addColorStop(0.85,"#005577"); sepGrd.addColorStop(1,"transparent");
+
+    ctx.save(); ctx.textAlign = "center";
+    ctx.font = "bold 20px SkullFont, NeoDunggeunmo";
+    ctx.shadowBlur = 14 + pulse*8; ctx.shadowColor = "#00aacc";
+    ctx.fillStyle = "#66ddff";
+    ctx.fillText("◈ 이벤트 방 ◈", CW/2, 26);
+    ctx.shadowBlur = 0;
+    ctx.font = "12px SkullFont, NeoDunggeunmo";
+    ctx.fillStyle = "#336677";
+    ctx.fillText("하나를 선택하라", CW/2, 42);
+    ctx.restore();
+    ctx.strokeStyle = sepGrd; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,48); ctx.lineTo(CW,48); ctx.stroke();
+
+    const bw = 560, bh = 72, gap = 12;
+    const totalH = opts.length * bh + (opts.length-1)*gap;
+    const startY = Math.max(58, Math.floor((CH - totalH)/2));
+
+    for (let i = 0; i < opts.length; i++) {
+        const ev = opts[i];
+        const iy = startY + i*(bh+gap);
+        const bx = (CW - bw)/2;
+
+        const cg = ctx.createLinearGradient(bx, iy, bx+bw, iy+bh);
+        cg.addColorStop(0,"rgba(5,25,40,0.95)"); cg.addColorStop(1,"rgba(2,12,20,0.95)");
+        ctx.fillStyle = cg;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy, bw, bh, 7); else ctx.rect(bx, iy, bw, bh); ctx.fill();
+
+        // 색상 포인트 사이드바
+        ctx.fillStyle = ev.color + "55";
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy, 5, bh, [7,0,0,7]); else ctx.rect(bx, iy, 5, bh); ctx.fill();
+        ctx.fillStyle = ev.color;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy + bh*0.25, 4, bh*0.5, 2); else ctx.rect(bx, iy+bh*0.25, 4, bh*0.5); ctx.fill();
+
+        ctx.shadowBlur = 4 + pulse*4; ctx.shadowColor = ev.color;
+        ctx.strokeStyle = `${ev.color}66`; ctx.lineWidth = 1.5;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, iy, bw, bh, 7); else ctx.rect(bx, iy, bw, bh); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // 키 뱃지
+        ctx.fillStyle = "rgba(0,60,80,0.95)";
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx+10, iy+8, 22, 17, 4); else ctx.rect(bx+10, iy+8, 22, 17); ctx.fill();
+        ctx.fillStyle = "#44ddff"; ctx.font = "bold 13px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
+        ctx.fillText(i+1, bx+21, iy+20);
+
+        ctx.fillStyle = ev.color; ctx.font = "bold 16px SkullFont, NeoDunggeunmo";
+        ctx.shadowBlur = 4; ctx.shadowColor = ev.color;
+        ctx.fillText(ev.name, CW/2, iy+28);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#aaccdd"; ctx.font = "13px SkullFont, NeoDunggeunmo";
+        ctx.fillText(ev.desc, CW/2, iy+52);
+    }
+
+    ctx.textAlign = "left";
+    if (opts[0] && (dn("Digit1")||dn("Numpad1")) && !K.u1Old) { playSfx('menu_select'); opts[0].apply(Game); _exitEventRoom(); }
+    else if (opts[1] && (dn("Digit2")||dn("Numpad2")) && !K.u2Old) { playSfx('menu_select'); opts[1].apply(Game); _exitEventRoom(); }
+    else if (opts[2] && (dn("Digit3")||dn("Numpad3")) && !K.u3Old) { playSfx('menu_select'); opts[2].apply(Game); _exitEventRoom(); }
+}
+
+function _exitEventRoom() {
+    Game._eventOptions = null;
+    if (typeof nextStageTrigger === 'function') nextStageTrigger();
+}
+
 // 영구 강화 항목 정의
 const PERM_UPGRADES = [
     { key:"1", prop:"permHpLvl",      base:4,  max:15, name:"최대 체력",   eff:"+10 HP",        apply: g => { g.pMaxHp += 10; } },
