@@ -228,6 +228,14 @@ function _wrapDialogText(ctx, text, x, y, maxW, lineH) {
     if (line) ctx.fillText(line, cx, y);
 }
 
+function renderNPCDialogsOnly(frameNow) {
+    if (!Game.eventObjects) return;
+    for (const ev of Game.eventObjects) {
+        if (ev.type !== "npc" || !ev.talking) continue;
+        _renderNPCDialog(ev, frameNow);
+    }
+}
+
 function updateNPCs() {
     if (!Game.eventObjects || !Game.player || Game.player.dead) return;
     const p = Game.player;

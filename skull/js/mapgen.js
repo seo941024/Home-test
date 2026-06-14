@@ -310,7 +310,9 @@ function triggerMimic(ev) {
     if (typeof mkEnemy === 'function') {
         const e = mkEnemy(ev.x, ev.y - 24, Game.worldN);
         if (e) {
-            e.isElite = true; e.hp *= 2; e.maxHp = e.hp;
+            // 미믹은 isElite 강제 + 기본 체력의 2배 (eliteHpMul 중복 방지)
+            if (!e.isElite) { e.isElite = true; e.hp *= 2; e.maxHp = e.hp; }
+            else { e.hp = Math.floor(e.hp / 1.5 * 2); e.maxHp = e.hp; } // 헬: 이미 ×1.5 적용됨 → ×2로 교체
             // 스폰 직후 1초(60프레임) 동안 공격/피격 없음 — 플레이어가 피할 시간
             e.sT  = 80;       // 공격 쿨다운 초기 딜레이
             e.kbT = 0;
@@ -319,7 +321,7 @@ function triggerMimic(ev) {
             e._spawnDelay = 60; // 커스텀 플래그 — 60프레임 후 활성
         }
     }
-    addText(ev.x, ev.y - 20, "MIMIC!!", "#ff4400", 80, 18);
+    addText(ev.x, ev.y - 20, "미믹!!", "#ff4400", 80, 18);
     Game.camShake = 15;
     if (typeof playSfx === 'function') playSfx('enemy_atk');
 }

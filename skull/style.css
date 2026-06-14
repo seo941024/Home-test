@@ -26,7 +26,16 @@ body {
   transform-origin: top center;
 }
 
-#topBar,
+#topBar {
+  width: 100%;
+  background: #111;
+  padding: 12px 19px;
+  display: grid;
+  grid-template-columns: 312px 1fr 312px;
+  align-items: center;
+  font-size: 26px;
+  border-bottom: 2px solid #333;
+}
 #bottomBar {
   width: 100%;
   background: #111;
@@ -34,7 +43,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 22px;
+  font-size: 26px;
   border-bottom: 2px solid #333;
 }
 
@@ -49,6 +58,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  grid-column: 1;
 }
 .hpLabel {
   color: #ff5555;
@@ -57,9 +67,15 @@ body {
 #stageLabel {
   font-weight: bold;
   color: #ffaa00;
+  text-align: center;
+  justify-self: center;
+  grid-column: 2;
 }
 #scoreLabel {
   color: #aaaaff;
+  text-align: right;
+  justify-self: end;
+  grid-column: 3;
 }
 
 #bossBarWrap {
@@ -126,10 +142,10 @@ canvas {
 }
 
 #overlay h1 {
-  color: #ff0055;
+  color: #fff8e7;
   font-size: 64px;
   margin: 0 0 15px 0;
-  text-shadow: 4px 4px 0 #550000;
+  text-shadow: 0 0 18px #ff2200, 0 0 36px #aa1100, 3px 3px 0 #330000;
   letter-spacing: 2px;
 }
 #overlay .sub {

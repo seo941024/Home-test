@@ -40,7 +40,7 @@ function genTutorial() {
 
     // ── 더미 골렘 2기 배치 (완전 독립, 일반 몬스터와 무관) ──
     if (typeof mkDummyGolem === 'function') {
-        // 골렘 1: 평타/콤보/강하/처형 연습
+        // 골렘 1: 평타/콤보/강하 연습
         const d1 = mkDummyGolem(500, floorY - 40);
         if (d1) { d1.poise = 60; d1.poiseMx = 60; } // 패링 연습용 체간
 
@@ -54,10 +54,10 @@ function genTutorial() {
         { x: 60,  y: floorY - 46,  text: "← → 이동  /  X 점프  /  Z 대시(무적 회피)",    col: "#ffee88" },
         { x: 380, y: floorY - 46,  text: "C 평타 — 연속 3타 후 콤보 배율 상승",           col: "#ff9944" },
         { x: 380, y: floorY - 62,  text: "Shift 필살기 — MP 게이지 가득 차면 사용 가능", col: "#00ffcc" },
-        { x: 380, y: floorY - 78,  text: "↓+C 강하공격 — 공중에서 아래+C (체간 대량 감소)", col: "#ff4444" },
+        { x: 380, y: floorY - 78,  text: "↓+C 강하공격 — 공중에서 아래+C (강력한 타격)",    col: "#ff4444" },
         { x: 620, y: floorY - 46,  text: "V 가드  — 피격 직전 누르면 패링!",             col: "#44aaff" },
-        { x: 620, y: floorY - 62,  text: "패링 성공 → 적 체간↓↓ → 기절(STUN) 유도",      col: "#ffcc00" },
-        { x: 620, y: floorY - 78,  text: "기절 중 C → FATAL STRIKE (처형, 무적)",         col: "#ff2222" },
+        { x: 620, y: floorY - 62,  text: "패링 성공 → HP 30% 확정 피해 + 기절(STUN)",    col: "#ffcc00" },
+        { x: 620, y: floorY - 78,  text: "기절 중엔 적이 멈춤 — 자유롭게 공격 가능!",       col: "#ff2222" },
         { x: 1350, y: floorY - 46, text: "▶ 모든 조작 완료! 문을 통과하면 모험 시작",    col: "#00ffcc" },
     ];
 
@@ -102,6 +102,7 @@ function genStage(w, l) {
 
     Game.kills = 0;
     Game.invT = 0;
+    Game.bossKillSeq = null;
     Game.hitStop = 0;
     
     Game.eventObjects = [];
@@ -130,8 +131,8 @@ function genStage(w, l) {
         if (typeof mkBoss === 'function') mkBoss(Game.levelW / 2, bossSpawnY, w);
         document.getElementById("bossBarWrap").style.display = "flex";
         const bossNames = [
-            "", "고블린 킹", "언데드 고블린 킹", "스켈레톤 치프틴", "언데드 스켈레톤 치프틴", 
-            "거대 괴수 더스크", "리치 킹", "마족 제1친위대장 (쌍검)", "마족 제2친위대장 (대검)", "마족 제3친위대장 (사신)", "마왕 (Demon Lord)"
+            "", "고블린 킹", "언데드 고블린 킹", "스켈레톤 치프틴", "언데드 스켈레톤 치프틴",
+            "거대 괴수 더스크", "파괴된 더스크", "마족 제1친위대장 (쌍검)", "마족 제2친위대장 (대검)", "마족 제3친위대장 (사신)", "마왕"
         ];
         document.getElementById("bossBarLabel").textContent = bossNames[Math.min(w, 10)];
         Game.gs = "boss_intro";
@@ -158,13 +159,14 @@ function genStage(w, l) {
 
 function nextStage() {
     Game.levelN++;
-    
+    if (typeof _checkRunUnlocks === 'function') _checkRunUnlocks();
+
     if (Game.player && Game.pHealOnClear > 0) {
         Game.player.hp = Math.min(Game.pMaxHp, Game.player.hp + Game.pHealOnClear);
     }
 
     if (Game.levelN > 3) {
-        // 보스전(3스테이지) 클리어 → 월드 진행
+        // 보스전(3스테이지) 클리어 → 유물 선택 → 다음 월드
         Game.levelN = 1;
         Game.worldN++;
 
@@ -174,22 +176,24 @@ function nextStage() {
                 Game.highScore = Game.score;
                 localStorage.setItem("skull_highscore", Game.highScore);
             }
-            // win 상태 표시는 tickPlay()에서 캔버스로 처리
+            if (typeof stopBGM === 'function') stopBGM();
+            document.getElementById("bossBarWrap").style.display = "none";
+            if (typeof updateHUD === 'function') updateHUD();
             return;
         }
 
-        // 보스 클리어 시 유물 선택창 (항상)
-        // 짝수 월드이면 유물 선택 후 루트 선택창도 예약
+        // 짝수 월드 진입 시 루트 선택창 예약
         if (Game.worldN % 2 === 0) {
-            Game._pendingRouteSelect = true; // 짝수 월드 보스 클리어 시만 루트 선택
+            Game._pendingRouteSelect = true;
         }
+        // 보스 클리어 후 유물 선택 (이전: 2스테이지 클리어 후 → 보스 전에 선택되던 문제 수정)
         Game.gs = "upgrade";
         if (typeof playBGM === 'function') playBGM('upgrade');
         if (typeof generateUpgradeOptions === 'function') generateUpgradeOptions();
         return;
     }
 
-    // 1,2스테이지 클리어는 바로 다음 스테이지 — 유물창 없음
+    // 1, 2스테이지 클리어 → 바로 다음 스테이지
     if (typeof nextStageTrigger === 'function') nextStageTrigger();
     
 }

@@ -118,6 +118,50 @@ const STORY = {
     ],
   },
 
+  // 보스 처치 대사 [worldN] = [{speaker, text, duration}]  ← 게임플레이 비차단, 하단 말풍선
+  bossKill: {
+    1: [
+      { speaker: "고블린 킹",  duration: 120, text: "끼...끼에에... 왜... 왜 우리가..." },
+    ],
+    2: [
+      { speaker: "언데드 고블린 킹", duration: 130, text: "끼에... 이 고통이... 끝나는건가..." },
+      { speaker: "해골용사",         duration: 120, text: "이제 편히 쉬어라." },
+    ],
+    3: [
+      { speaker: "스켈레톤 치프틴", duration: 140, text: "...넌 이 굴레를 끊을 수 있겠는가..." },
+      { speaker: "해골용사",        duration: 120, text: "반드시." },
+    ],
+    4: [
+      { speaker: "언데드 스켈레톤 치프틴", duration: 160, text: "...마왕의 저주가 풀리는 것이... 느껴진다..." },
+      { speaker: "해골용사",               duration: 120, text: "...네 고통은 이걸로 끝이다." },
+    ],
+    5: [
+      { speaker: "내레이터",           duration: 150, text: "분노의 형체가 서서히 잦아들었다." },
+      { speaker: "해골용사",           duration: 100, text: "됐군. 가볼까." },
+    ],
+    6: [
+      { speaker: "파괴된 더스크", duration: 140, text: "G...G...HHHHH..." },
+      { speaker: "해골용사",      duration: 110, text: "이번엔 진짜 끝이다." },
+    ],
+    7: [
+      { speaker: "마족 제1친위대장", duration: 150, text: "...크윽... 인정한다. 네가 강했다." },
+   
+    ],
+    8: [
+      { speaker: "마족 제2친위대장", duration: 150, text: "...이 마검조차... 꺾이다니..." },
+  
+    ],
+    9: [
+      { speaker: "마족 제3친위대장", duration: 170, text: "...ㅁ...마..왕니..ㅁ..." },
+  
+    ],
+    10: [
+      { speaker: "마왕",      duration: 170, text: "크...으...아직... 짐은... 아직 지지 않는다!!!" },
+      { speaker: "마왕",      duration: 170, text: "이 세계가... 짐 없이 평화로울 것이라 믿는가...?" },
+      { speaker: "해골용사",  duration: 150, text: "......우린 살아갈거야." },
+    ],
+  },
+
   ending: [
     { img: "ending/ending1.png", speaker: "내레이터", duration: 300,
       text: "마침내 — 용사의 검이 마왕을 베었다." },
@@ -125,12 +169,16 @@ const STORY = {
       text: "...인간 따위에게...!!!! 짐이.... 짐이 패배하다니...!!!!!" },
     { img: "ending/ending3.png", speaker: "해골용사", duration: 340,
       text: "..... 끝난건가 ........ 아무것도 남지 않았군......" },
-    { img: "ending/ending4.png", speaker: "해골용사", duration: 360,
-      text: "...... 살아있는 사람은 없는건가..?...." },
     { img: "", speaker: "내레이터", duration: 380,
       text: "... 그렇게 몇날며칠, 수개월을 돌아 다녔지만, 폐허가 된 곳 뿐이었다-" },
+    { img: "ending/ending4.png", speaker: "해골용사", duration: 360,
+      text: "...... 살아있는 사람은 없는건가..?...." },
+      { img: "", speaker: "????", duration: 300,
+      text: ".........." },
     { img: "", speaker: "????", duration: 300,
-      text: ".......!!!!!" },
+      text: ".......?..." },
+    { img: "", speaker: "????", duration: 300,
+      text: "..........!!!!!!!!!" },
     { img: "ending/ending5.png", speaker: "해골용사", duration: 360,
       text: "...이 곳은 ....... " },
     { img: "ending/ending6.png", speaker: "내레이터", duration: 380,
@@ -164,17 +212,19 @@ function startCutscene(type, worldN) {
         fadeAlpha: 1,
         lines,
     };
-    // 오프닝 컷신 시작 시 프롤로그 BGM
+    // 컷신별 BGM
     if (type === "opening" && typeof playBGM === 'function') playBGM('prologue');
+    if (type === "ending"  && typeof playBGM === 'function') playBGM('ending_dark');
     Game.gs = "cutscene";
 }
 
 function _cutsceneEnd(type) {
     Game.cutscene = null;
     if (type === "opening") {
-        // 오프닝 컷씬 완료 → 클래스 선택
+        // 오프닝 컷씬 완료 → 난이도 선택
         if (typeof stopBGM === 'function') stopBGM();
-        Game.gs = "class_select";
+        if (typeof _diffReset === 'function') _diffReset();
+        Game.gs = "difficulty_select";
     } else if (type === "boss") {
         // 컷신 끝나고 플레이로 — 카메라/상태 초기화
         Game.gs = "play";
@@ -225,7 +275,7 @@ function updateCutscene() {
     }
 
     // SPACE / ENTER / Z로 스킵 — 타이핑 중이면 전체 표시, 완료면 다음으로
-    const skip = dn("Space", "Enter", "KeyZ", "KeyX");
+    const skip = dn("Space", "Enter");
     // ESC: 컷씬 전체 즉시 종료
     if (dn("Escape") && !cs._escOld) {
         _cutsceneEnd(cs.type);
@@ -234,6 +284,7 @@ function updateCutscene() {
     }
     cs._escOld = dn("Escape");
     if (skip && !cs._skipOld && cs.t > 10) {
+        if (typeof playSfx === 'function') playSfx('menu_select');
         if (cur.text && cs.typeIdx < cur.text.length) {
             // 타이핑 미완성: 전체 즉시 표시
             cs.typeIdx = cur.text.length;
@@ -265,6 +316,13 @@ function updateCutscene() {
         }
     }
     cs._skipOld = skip;
+
+    // 엔딩 BGM 트리거 (step 변화 시 1회만)
+    if (cs.type === 'ending' && cs._lastBgmStep !== cs.step) {
+        cs._lastBgmStep = cs.step;
+        if (cs.step === 5 && typeof stopBGM === 'function') stopBGM();
+        else if (cs.step === 8 && typeof playBGM === 'function') playBGM('ending_bright');
+    }
 }
 
 // ── 컷신 렌더 (매 프레임 호출) ────────────────────────────
@@ -299,11 +357,17 @@ function renderCutscene(frameNow) {
         return;
     }
 
+    // 같은 이미지가 연속으로 이어지면 fade 비활성화
+    const prevLine = cs.step > 0 ? cs.lines[cs.step - 1] : null;
+    const nextLine = cs.step < cs.lines.length - 1 ? cs.lines[cs.step + 1] : null;
+    const sameImgPrev = prevLine && prevLine.img && prevLine.img === cur.img;
+    const sameImgNext = nextLine && nextLine.img && nextLine.img === cur.img;
+
     // 페이드 알파 계산
     const fadeDur = 40; // 페이드 속도 2배 느리게
     let alpha = 1;
-    if (cs.t < fadeDur) alpha = cs.t / fadeDur;
-    else if (cs.t > (cs._effectiveDur||cur.duration) - fadeDur)
+    if (!sameImgPrev && cs.t < fadeDur) alpha = cs.t / fadeDur;
+    else if (!sameImgNext && cs.t > (cs._effectiveDur||cur.duration) - fadeDur)
         alpha = Math.max(0, ((cs._effectiveDur||cur.duration) - cs.t) / fadeDur);
 
     // 이미지 렌더
@@ -339,14 +403,29 @@ function renderCutscene(frameNow) {
 
     // 텍스트 박스
     if (cur.text) {
-        const boxY = CH - 95;
+        const lineH  = 28;
+        const padX   = 18, padY = 12;
+        const boxX   = 12, boxW = CW - 24;
+        const boxY   = CH - 130;
+        const boxH   = 103;
+
+        // 검은 반투명 배경 박스 — alpha와 분리해 깜빡임 방지, 최소 0.45 보장
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+        else ctx.rect(boxX, boxY, boxW, boxH);
+        ctx.fill();
+        ctx.restore();
+
         // 화자
         if (cur.speaker) {
             ctx.save();
             ctx.globalAlpha = alpha;
             ctx.fillStyle = "#ffcc44";
-            ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
-            ctx.fillText(cur.speaker, 18, boxY - 6);
+            ctx.font = "bold 15px SkullFont, NeoDunggeunmo";
+            ctx.fillText(cur.speaker, boxX + padX, boxY + padY + 12);
             ctx.restore();
         }
 
@@ -355,24 +434,23 @@ function renderCutscene(frameNow) {
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = "rgba(240,230,220,1)";
-        ctx.font = "13px SkullFont, NeoDunggeunmo";
+        ctx.font = "18px SkullFont, NeoDunggeunmo";
         ctx.textAlign = "left";
-        // 줄바꿈
-        const maxW = CW - 36;
-        let line = "", ly = boxY + 16;
+        const maxW = boxW - padX * 2;
+        let line = "", ly = boxY + padY + 40;
         for (let ch2 of displayText) {
             const test = line + ch2;
             if (ctx.measureText(test).width > maxW && line.length > 0) {
-                ctx.fillText(line, 18, ly);
-                line = ch2; ly += 18;
+                ctx.fillText(line, boxX + padX, ly);
+                line = ch2; ly += lineH;
             } else { line = test; }
         }
-        if (line) ctx.fillText(line, 18, ly);
+        if (line) ctx.fillText(line, boxX + padX, ly);
         // 커서
-        if ((cs.typeIdx||0) < cur.text.length) {
+        if ((cs.typeIdx || 0) < cur.text.length) {
             if (Math.floor(frameNow / 200) % 2 === 0) {
                 ctx.fillStyle = "rgba(255,220,100,0.9)";
-                ctx.fillText("▌", 18 + ctx.measureText(line).width, ly);
+                ctx.fillText("▌", boxX + padX + ctx.measureText(line).width, ly);
             }
         }
         ctx.restore();
@@ -383,20 +461,20 @@ function renderCutscene(frameNow) {
         const glow = (Math.sin(frameNow * 0.008) + 1) / 2;
         const skipAlpha = 0.35 + glow * 0.55;
         ctx.save();
-        ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+        ctx.font = "bold 16px SkullFont, NeoDunggeunmo";
 
         // ESC — 우측 상단 형광
         ctx.textAlign = "right";
         ctx.fillStyle = `rgba(${Math.floor(120+glow*100)},${Math.floor(200+glow*55)},255,${skipAlpha})`;
         ctx.shadowBlur = glow * 10;
         ctx.shadowColor = `rgba(100,180,255,${glow*0.8})`;
-        ctx.fillText("[ESC] 스킵", CW - 12, 22);
+        ctx.fillText("[ESC] 스킵", CW - 12, 24);
         ctx.shadowBlur = 0;
 
         // SPACE — 중앙 최하단 회색
         ctx.textAlign = "center";
         ctx.fillStyle = `rgba(160,160,160,${0.4 + glow * 0.3})`;
-        ctx.fillText("[SPACE] 다음", CW / 2, CH - 10);
+        ctx.fillText("[SPACE] 다음", CW / 2, CH - 18);
 
         ctx.restore();
     }
@@ -508,7 +586,7 @@ function _drawCutsceneBg(bg, frameNow) {
         // 글자: 채도 없는 아주 어두운 색
         ctx.fillStyle = "rgba(75,55,70,0.5)";
         ctx.font = "10px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
-        ctx.fillText("HERO", CW / 2, CH - 100);
+        ctx.fillText("용사", CW / 2, CH - 100);
         ctx.textAlign = "left";
 
         // 안개 (낮은 지면, 보라빛)
@@ -696,7 +774,7 @@ function _drawCutsceneBg(bg, frameNow) {
         ctx.strokeRect(CW / 2 - 20, CH - 130, 40, 82);
         ctx.beginPath(); ctx.arc(CW / 2, CH - 130, 20, Math.PI, 0); ctx.stroke();
         ctx.fillStyle = "#6a5888"; ctx.font = "10px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
-        ctx.fillText("HERO", CW / 2, CH - 100);
+        ctx.fillText("용사", CW / 2, CH - 100);
         ctx.textAlign = "left";
         // 지면
         ctx.fillStyle = "#08030f";
@@ -775,7 +853,7 @@ function _drawCutsceneBg(bg, frameNow) {
         ctx.beginPath(); ctx.arc(CW / 2, CH - 132, 20, Math.PI, 0); ctx.stroke();
         ctx.fillStyle = "rgba(75,55,70,0.5)";
         ctx.font = "10px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
-        ctx.fillText("HERO", CW / 2, CH - 100);
+        ctx.fillText("용사", CW / 2, CH - 100);
         ctx.textAlign = "left";
 
         // 안개
@@ -876,7 +954,7 @@ function _drawCutsceneBg(bg, frameNow) {
         ctx.font = "bold 52px SkullFont, NeoDunggeunmo";
         ctx.textAlign = "center";
         ctx.shadowBlur = 25; ctx.shadowColor = "#ff0033";
-        ctx.fillText("SKULL YUUSHA", CW / 2, CH / 2 - 10);
+        ctx.fillText("해골용사", CW / 2, CH / 2 - 10);
         ctx.shadowBlur = 0;
         ctx.fillStyle = `rgba(180,160,120,${0.5 + pulse * 0.3})`;
         ctx.font = "16px SkullFont, NeoDunggeunmo";
@@ -914,11 +992,12 @@ function updateOpeningAnim() {
         if (a.waitT === 1) { a._spaceOld = true; }
         // 60프레임(약 1초) 후 SPACE 입력 감지
         if (a.waitT > 60) {
-            const spaceNow = dn("Space", "Enter", "KeyZ", "KeyX");
+            const spaceNow = dn("Space", "Enter");
             if (spaceNow && !a._spaceOld) {
                 Game.openingAnim = null;
                 if (typeof stopBGM === 'function') stopBGM();
-                Game.gs = "class_select";
+                if (typeof _diffReset === 'function') _diffReset();
+                Game.gs = "difficulty_select";
                 return;
             }
             a._spaceOld = spaceNow;
@@ -927,7 +1006,7 @@ function updateOpeningAnim() {
     }
     
     // 조립 중 스킵 (phase 2 이상)
-    const spaceNow = dn("Space", "Enter", "KeyZ", "KeyX");
+    const spaceNow = dn("Space", "Enter");
     if (a.t > 160 && spaceNow && !a._spaceOld && !a.waitPhase) {
         a.waitPhase = true;
         a.waitT = 0;
@@ -968,8 +1047,8 @@ function renderOpeningAnim(frameNow) {
         ctx.globalAlpha = titleAlpha;
         ctx.textAlign = "center";
         ctx.font = "bold 48px SkullFont, NeoDunggeunmo";
-        ctx.fillStyle = "#d4bfff";
-        ctx.shadowBlur = 20 * pulse; ctx.shadowColor = "#9966ff";
+        ctx.fillStyle = "#fff8e7";
+        ctx.shadowBlur = 22 * pulse; ctx.shadowColor = "#ff2200";
         ctx.fillText("해골용사", CW/2, CH * 0.72);
         ctx.shadowBlur = 0;
         ctx.restore();
@@ -984,7 +1063,7 @@ function renderOpeningAnim(frameNow) {
             ctx.fillStyle = "#ffcc00";
             ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
             ctx.shadowBlur = 8; ctx.shadowColor = "#ffcc00";
-            ctx.fillText("PRESS  SPACE", CW/2, CH * 0.72 + 32);
+            ctx.fillText("스페이스를 눌러주세요", CW/2, CH * 0.72 + 32);
             ctx.shadowBlur = 0;
             ctx.restore();
         }

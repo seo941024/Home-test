@@ -88,6 +88,7 @@ function initPoise(e) {
 // 체간 데미지 적용 — isCrit 종속 버그 수정, 패링/강하 확정 부여
 // poiseHit: 패링=50, 강하=30, 일반타=0 (크리랑 무관)
 function applyPoiseHit(e, poiseHit) {
+    if (!e.isBoss) return; // 체간 시스템은 보스 전용
     if (!poiseHit || poiseHit <= 0) return;
     if (e.stun) return;
 
@@ -123,7 +124,7 @@ function canExecute(e) {
     if (!e.stun) return false;
     if (!Game.player) return false;
     if (e.isTutorialDummy) return false; // 골렘은 처형 불가
-    const inRange = Math.abs(Game.player.x - e.x) < 70 && Math.abs(Game.player.y - e.y) < 70;
+    const inRange = Math.abs(Game.player.x - e.x) < 160 && Math.abs(Game.player.y - e.y) < 120;
     return inRange;
 }
 
@@ -131,27 +132,25 @@ function canExecute(e) {
 function executeEnemy(e) {
     if (!canExecute(e)) return false;
 
-    let dmg;
-    if (e.isBoss) {
-        // 보스 그로기 처형: 최대 체력의 12% 확정 피해
-        dmg = Math.floor(e.maxHp * 0.12);
-        e.stun  = false; // 그로기 해제 후 재전투
-        e.stunT = 0;
-        addText(e.x + e.w / 2, e.y - 40, "체간 붕괴!!", "#ff6600", 90, 24);
-    } else {
-        // 일반 처형: 즉사
-        dmg    = e.hp;
-        e.hp   = 0;
-        e.dead = true;
+    // 점멸: 플레이어를 적 바로 옆으로 순간이동
+    if (Game.player) {
+        Game.player.x = e.x + (Game.player.x < e.x ? -e.w : e.w);
+        Game.player.vx = 0; Game.player.vy = 0;
     }
+
+    // 보스 그로기: 최대 체력 12% 확정 피해 후 그로기 해제
+    const dmg = Math.floor(e.maxHp * 0.12);
+    e.stun  = false;
+    e.stunT = 0;
+    addText(e.x + e.w / 2, e.y - 40, "체간 붕괴!!", "#ff6600", 90, 24);
 
     e.hp = Math.max(0, e.hp - dmg);
 
     Game.camShake = 22;
     Game.hitStop  = 20;
 
-    // 처형 모션 동안 무적 — 얻어맞으면서 처형하는 꼴 방지
-    Game.invT = 45;
+    // 처형 후 1초(60프레임) 무적
+    Game.invT = 60;
 
     addText(e.x + e.w / 2, e.y - 30, "치명적 일격!!", "#ff0000", 80, 22);
     for (let i = 0; i < 40; i++) {

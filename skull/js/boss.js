@@ -53,16 +53,16 @@ function fireEnemyRanged(e) {
 // 예: [0, 1] → ap0 발동 후 35프레임 뒤 ap1 발동
 function _getBossP2Combo(w) {
     const combos = {
-        1:  [0, 1],         // 부채꼴 → 수평 레이저
-        2:  [2, 0, 1],      // 전방위 → 부채꼴 → 레이저
-        3:  [0, 2, 1],      // 레이저 → 화살비 → 화살
-        4:  [2, 0, 2],      // 전방위 → 레이저 → 전방위
-        5:  [1, 0, 2],      // 전방위 → 레이저 → 폭탄
-        6:  [2, 1, 0],      // 낙뢰 → 유도탄 → Y레이저
-        7:  [0, 2, 1],      // 2단레이저 → 전방위+레이저 → 충격파
-        8:  [0, 1, 2, 0],   // 포격 → 광역 → 화살비 → 포격
-        9:  [1, 2, 0],      // 영혼탄 → 소용돌이 → 낙뢰
-        10: [0, 1, 2, 0, 2], // 낙뢰 → 지옥의 문 → 강림 → 낙뢰 → 강림
+        1:  [0, 2, 1],         // 슬래시 → 회전슬래시 → 충격파
+        2:  [2, 0, 1],         // 도끼투척 → 슬래시 → 충격파
+        3:  [0, 3, 1],         // 레이저 → 뼈기둥 → 화살
+        4:  [2, 3, 0],         // 확산 → 도끼투척 → 슬래시
+        5:  [3, 1, 0],         // 돌진충격파 → 전방위 → 레이저
+        6:  [3, 2, 1],         // 저주봉인 → 낙뢰 → 유도탄  (파괴된 더스크)
+        7:  [3, 0, 2],         // 사방난무 → 2단레이저 → 전방위
+        8:  [3, 0, 1, 3],      // 돌진대검 → 포격 → 레이저 → 돌진대검
+        9:  [2, 3, 1],         // 소용돌이 → 영혼낫 → 영혼탄
+        10: [0, 3, 1, 2, 3],   // 낙뢰 → 광란탄막 → 지옥의문 → 강림 → 광란탄막
     };
     return [...(combos[w] || [0, 1])]; // 복사본 반환
 }
@@ -91,7 +91,7 @@ const AgileBossAI = {
             e.x = p.x - e.facing * 30;
             e.y = p.y;
             e.vx = 0; e.vy = 0;
-            addText(e.x, e.y - 20, "BLINK!", "#aaaaff", 30, 14);
+            addText(e.x, e.y - 20, "순간이동!", "#aaaaff", 30, 14);
             for (let i = 0; i < 8; i++) addPart(e.x + e.w/2, e.y + e.h/2, "#aaaaff", 20, 3);
             // 등 뒤에서 즉시 타격
             if (typeof takeDmg === 'function') takeDmg(dmg, e);
@@ -147,45 +147,63 @@ const BossAI = {
     // ── W1 고블린 킹: 철퇴 휘두르기 / 점프 폭발 / 2페이즈: 연속 투사체
    1: (e, oX, spd, dmg, p2, wd) => {
         if (wd.ap === 0) {
-            // 전방 근접 철퇴 휘두르기
-            const slashX = e.facing > 0 ? e.x + e.w - 10 : e.x - 70;
-            spawnLaser(slashX, e.y - 15, 80, e.h * 1.5, 15, "#ff5500", Math.floor(dmg * 1.2), false, false);
-            e.vx = e.facing * 7; // 앞으로 훅 돌진
-            Game.camShake = 10; playSfx('boss_atk');
-        } else {
-            // 제자리 점프 후 좁은 범위 강한 충격파 (근접 판정)
-            e.vy = -12;
-            e.vx = e.facing * 4;
+            // 전방 근접 철퇴 휘두르기 — 범위 크게
+            const slashX = e.facing > 0 ? e.x + e.w - 15 : e.x - 100;
+            spawnLaser(slashX, e.y - 25, 115, e.h * 1.8, 18, "#ff5500", Math.floor(dmg * 1.2), false, false);
+            e.vx = e.facing * 8;
+            Game.camShake = 12; playSfx('boss_atk');
+        } else if (wd.ap === 1) {
+            // 점프 후 지면 강타 충격파 — 경고 범위와 일치, 넓게
+            e.vy = -13;
+            e.vx = e.facing * 3;
             setTimeout(() => {
                 if (!e.dead) {
-                    spawnLaser(e.x - 30, e.y + e.h - 20, e.w + 60, 40, 20, "#cc3300", Math.floor(dmg * 1.5), false, false);
-                    Game.camShake = 15; playSfx('boss_atk');
+                    spawnLaser(e.x - 45, e.y + e.h - 20, e.w + 90, 55, 22, "#cc3300", Math.floor(dmg * 1.6), false, false);
+                    Game.camShake = 18; playSfx('boss_atk');
                 }
-            }, 300); // 떨어질 때쯤 타격
+            }, 400);
+        } else {
+            // 회전 슬래시 — 보스 주위 원형 광역 타격
+            spawnLaser(e.x - 45, e.y - 45, e.w + 90, e.h + 90, 16, "#ff5500", Math.floor(dmg * 1.1), false, false);
+            e.vx = 0;
+            Game.camShake = 16; playSfx('boss_atk');
         }
     },
 
     // ── W2 언데드 고블린 킹: 더 빠르고 연속적인 근접 공격 ──
     2: (e, oX, spd, dmg, p2, wd) => {
         if (wd.ap === 0) {
-            // 빠른 2연속 근접 베기
+            // 전방 근접 슬래시 (범위 크게)
             const doSlash = (delay) => {
                 setTimeout(() => {
                     if (!e.dead) {
-                        const slashX = e.facing > 0 ? e.x + e.w - 5 : e.x - 75;
-                        spawnLaser(slashX, e.y - 10, 80, e.h * 1.2, 10, "#ff2200", dmg, false, false);
-                        e.vx = e.facing * 9; Game.camShake = 8;
+                        const slashX = e.facing > 0 ? e.x + e.w - 10 : e.x - 95;
+                        spawnLaser(slashX, e.y - 20, 105, e.h * 1.6, 14, "#ff2200", Math.floor(dmg * 1.1), false, false);
+                        e.vx = e.facing * 9; Game.camShake = 10;
                     }
                 }, delay);
             };
-            doSlash(0); 
-            if (p2) doSlash(300); // 2페이즈면 2연격
+            doSlash(0);
+            if (p2) doSlash(350);
+        } else if (wd.ap === 1) {
+            // 점프 후 지면 충격파 (W2도 동일 패턴, 좀 더 큰 범위)
+            e.vy = -12; e.vx = e.facing * 4;
+            setTimeout(() => {
+                if (!e.dead) {
+                    spawnLaser(e.x - 50, e.y + e.h - 18, e.w + 100, 55, 18, "#aa1100", Math.floor(dmg * 1.5), false, false);
+                    Game.camShake = 15; playSfx('boss_atk');
+                }
+            }, 380);
         } else {
-            // 분노의 전방 찌르기 (짧은 사거리)
-            const slashX = e.facing > 0 ? e.x + e.w : e.x - 90;
-            spawnLaser(slashX, e.y + 10, 90, 30, 18, "#aa1100", Math.floor(dmg * 1.4), false, false);
-            e.vx = e.facing * 12; // 빠르게 쇄도
-            Game.camShake = 12;
+            // 도끼 투척 — 중력 적용 광역 투사체
+            const cx2 = e.x + e.w / 2, cy2 = e.y + e.h / 2;
+            const ang2 = Math.atan2(Game.player.y - cy2, Game.player.x - cx2);
+            spawnEBullet(cx2, cy2, Math.cos(ang2)*7*spd, Math.sin(ang2)*7*spd - 1.5, 160, 10, Math.floor(dmg*1.5), true, true);
+            if (p2) {
+                spawnEBullet(cx2, cy2, Math.cos(ang2+0.3)*6*spd, Math.sin(ang2+0.3)*6*spd - 1.5, 150, 8, dmg, true, true);
+                spawnEBullet(cx2, cy2, Math.cos(ang2-0.3)*6*spd, Math.sin(ang2-0.3)*6*spd - 1.5, 150, 8, dmg, true, true);
+            }
+            Game.camShake = 10; playSfx('boss_atk');
         }
     },
 
@@ -207,13 +225,22 @@ const BossAI = {
                 spawnEBullet(cx, cy, Math.cos(a)*8*spd, Math.sin(a)*8*spd, 110, 5, dmg, false, false, true);
             }
             playSfx('mob_laser');
-        } else {
+        } else if (wd.ap === 2) {
             // 위에서 낙하하는 화살비
             const amt = p2 ? 8 : 5;
             for (let i = 0; i < amt; i++) {
                 const tx = Game.player.x + (i - Math.floor(amt/2)) * 40;
                 spawnEBullet(tx, 0, 0, 7*spd, 130, 5, dmg, false, false, true);
             }
+        } else {
+            // 바닥 뼈 기둥 — 플레이어 위치에서 수직 레이저 솟아오름
+            const positions3 = p2 ? 5 : 3;
+            const baseX3 = wd.targetX || Game.player.x;
+            for (let i = 0; i < positions3; i++) {
+                const tx = baseX3 + (i - Math.floor(positions3/2)) * 80;
+                spawnLaser(tx - 10, CH - 85, 20, 85, 22, "#ddddaa", Math.floor(dmg*1.2), false, true);
+            }
+            Game.camShake = 10; playSfx('boss_atk');
         }
     },
 
@@ -242,7 +269,7 @@ const BossAI = {
                 }, delay);
             };
             doSlash(0); doSlash(350);
-        } else {
+        } else if (wd.ap === 2) {
             // 보조: 2페이즈에서만 소수 확산탄
             if (p2) {
                 const amt = 6;
@@ -256,6 +283,15 @@ const BossAI = {
                 e.vx = e.facing * 5;
                 Game.camShake = 8; playSfx('boss_atk');
             }
+        } else {
+            // 회전 도끼 투척 — 전방 부채꼴 중력 투사체
+            const count4 = p2 ? 5 : 3;
+            const baseAng4 = e.facing > 0 ? 0 : Math.PI;
+            for (let i = 0; i < count4; i++) {
+                const a = baseAng4 + (i - Math.floor(count4/2)) * 0.35;
+                spawnEBullet(cx, cy, Math.cos(a)*8*spd, Math.sin(a)*8*spd - 2, 160, 8, Math.floor(dmg*1.2), true, true);
+            }
+            Game.camShake = 10; playSfx('boss_atk');
         }
     },
 
@@ -276,17 +312,27 @@ const BossAI = {
                 const a = (i / amt) * Math.PI * 2;
                 spawnEBullet(cx, cy, Math.cos(a)*7*spd, Math.sin(a)*7*spd, 150, 6, dmg);
             }
-        } else {
+        } else if (wd.ap === 2) {
             // 플레이어 위치 추적 낙하 폭탄 (중력 적용)
             const amt = p2 ? 6 : 3;
             for (let i = 0; i < amt; i++) {
                 const tx = Game.player.x + (i - Math.floor(amt/2)) * 60;
                 spawnEBullet(tx, e.y + e.h, (tx - cx) * 0.03, -8, 180, 7, dmg, true, false, false, true);
             }
+        } else {
+            // 돌진 충격파 — 빠른 수평 이동 후 광역 타격
+            e.vx = e.facing * 18;
+            setTimeout(() => {
+                if (!e.dead) {
+                    spawnLaser(e.x - 55, e.y - 25, e.w + 110, e.h + 50, 24, "#552299", Math.floor(dmg*1.8), false, false);
+                    e.vx = 0;
+                    Game.camShake = 20; playSfx('boss_atk');
+                }
+            }, 250);
         }
     },
 
-    // ── W6 리치 킹: 같은 방향 3단 레이저 / 추적 유도탄 / 2페이즈: 수직 낙뢰
+    // ── W6 파괴된 더스크: 같은 방향 3단 레이저 / 추적 유도탄 / 2페이즈: 수직 낙뢰
     6: (e, oX, spd, dmg, p2, wd) => {
         const cx = e.x + e.w / 2, cy = e.y + e.h / 2;
         if (wd.ap === 0) {
@@ -303,15 +349,25 @@ const BossAI = {
                 const a = ang + s * 0.12;
                 spawnEBullet(cx, cy, Math.cos(a)*8*spd, Math.sin(a)*8*spd, 130, 5, dmg);
             }
-        } else {
+        } else if (wd.ap === 2) {
             // 플레이어 위치에 수직 낙뢰 (최대 3개)
             const pX = Game.player.x;
             const offsets = p2 ? [-60, 0, 60] : [0];
             for (const off of offsets) {
                 spawnLaser(pX + off - 10, 0, 20, CH, 35, "#ff0055", Math.floor(dmg*1.8), false, true);
             }
-            addText(pX, CH - 50, "THUNDER!", "#ff0055", 25, 14);
+            addText(pX, CH - 50, "낙뢰!", "#ff0055", 25, 14);
             Game.camShake = 12;
+        } else {
+            // 저주의 봉인 — 바닥 지속 장판 다수
+            const pX6 = wd.targetX || Game.player.x;
+            const count6 = p2 ? 5 : 4;
+            for (let i = 0; i < count6; i++) {
+                const tx = pX6 + (i - Math.floor(count6/2)) * 90;
+                spawnLaser(tx - 18, CH - 35, 36, 35, 45, "#ff0055", Math.floor(dmg*1.6), false, false);
+            }
+            addText(e.x + e.w/2, e.y - 30, "저주의 봉인", "#ff0055", 30, 12);
+            Game.camShake = 14;
         }
     },
 
@@ -335,7 +391,7 @@ const BossAI = {
                 const a = baseAng + s * 0.2;
                 spawnEBullet(cx, cy, Math.cos(a)*10*spd, Math.sin(a)*10*spd, 110, 6, dmg);
             }
-        } else {
+        } else if (wd.ap === 2) {
             // 전방위 난무 + 수평 레이저 동시
             const amt = p2 ? 20 : 12;
             for (let i = 0; i < amt; i++) {
@@ -345,6 +401,15 @@ const BossAI = {
             const lBox = calcLaser(oX, cy - 8, 16, e.facing);
             spawnLaser(lBox.x, cy - 8, lBox.w, 16, 18, "#0055ff", Math.floor(dmg*1.2), false);
             Game.camShake = 8;
+        } else {
+            // 사방 난무 — 전방위 가로 레이저 + 수직 십자 타격
+            spawnLaser(0, cy - 8, Game.levelW, 16, 16, "#0044ff", Math.floor(dmg*1.2), false);
+            spawnLaser(cx - 10, 0, 20, CH, 16, "#0044ff", Math.floor(dmg*1.2), false, true);
+            if (p2) {
+                spawnLaser(0, cy + 20, Game.levelW, 16, 16, "#0066ff", Math.floor(dmg*1.0), false);
+            }
+            addText(cx, cy - 30, "사방 난무!", "#0044ff", 30, 12);
+            Game.camShake = 16;
         }
     },
 
@@ -359,20 +424,31 @@ const BossAI = {
                 const tx = pX + (i - Math.floor(cols/2)) * 35;
                 spawnLaser(tx - 10, 0, 20, CH, 40, "#ff6600", Math.floor(dmg*2.2), false, true);
             }
-            addText(pX, CH - 60, "BARRAGE!", "#ff6600", 30, 14);
+            addText(pX, CH - 60, "탄막!", "#ff6600", 30, 14);
             Game.camShake = 18;
         } else if (wd.ap === 1) {
             // 넓은 광역 충격파 레이저 (facing 방향)
             const lBox = calcLaser(oX, cy - 20, 40, e.facing);
             spawnLaser(lBox.x, cy - 20, lBox.w, 40, 25, "#ff3300", Math.floor(dmg*2.0), false);
             Game.camShake = 12;
-        } else {
+        } else if (wd.ap === 2) {
             // 위에서 쏟아지는 화살비
             const amt = p2 ? 16 : 10;
             for (let i = 0; i < amt; i++) {
                 const tx = Game.player.x + (Math.random() - 0.5) * 400;
                 spawnEBullet(tx, 0, 0, 8*spd, 200, 6, dmg, false, true, true);
             }
+        } else {
+            // 전속력 돌진 대검 — 빠른 이동 후 대형 슬래시
+            e.vx = e.facing * 20;
+            setTimeout(() => {
+                if (!e.dead) {
+                    const sx = e.facing > 0 ? e.x + e.w - 15 : e.x - 100;
+                    spawnLaser(sx, e.y - 30, 115, e.h * 2.0, 20, "#ff3300", Math.floor(dmg*2.0), false, false);
+                    e.vx = 0;
+                    Game.camShake = 22; playSfx('boss_atk');
+                }
+            }, 200);
         }
     },
 
@@ -397,8 +473,8 @@ const BossAI = {
                 const a = ang + (i - Math.floor(amt/2)) * 0.15;
                 spawnEBullet(cx, cy, Math.cos(a)*7*spd, Math.sin(a)*7*spd, 150, 6, dmg, false, true);
             }
-            addText(cx, cy - 30, "SOUL REAP", "#aa00ff", 25, 12);
-        } else {
+            addText(cx, cy - 30, "영혼 수확", "#aa00ff", 25, 12);
+        } else if (wd.ap === 2) {
             // 죽음의 소용돌이 - 나선형 전방위
             const amt = p2 ? 28 : 18;
             const offset = (Game.frameCount * 0.05) % (Math.PI * 2);
@@ -408,6 +484,16 @@ const BossAI = {
                 spawnEBullet(cx, cy, Math.cos(a)*s2, Math.sin(a)*s2, 160, 5, dmg);
             }
             Game.camShake = 10;
+        } else {
+            // 영혼의 낫 — 대형 고속 관통 투사체
+            const ang9 = wd.ang;
+            const count9 = p2 ? 3 : 1;
+            for (let i = 0; i < count9; i++) {
+                const a = ang9 + (i - Math.floor(count9/2)) * 0.22;
+                spawnEBullet(cx, cy, Math.cos(a)*6*spd, Math.sin(a)*6*spd, 200, 16, Math.floor(dmg*2.2), false, true);
+            }
+            addText(cx, cy - 30, "영혼의 낫", "#aa00ff", 35, 14);
+            Game.camShake = 14;
         }
     },
 
@@ -454,7 +540,7 @@ const BossAI = {
             addText(cx, cy - 50, "지옥의 문", "#ff0000", 45, 16);
             Game.camShake = 28;
 
-        } else {
+        } else if (wd.ap === 2) {
             // ── 어둠의 강림: 플레이어 추적 운석 + 바닥 어둠 확산
             const amt = p2 ? 8 : 5;
             for (let i = 0; i < amt; i++) {
@@ -474,6 +560,20 @@ const BossAI = {
             }
             addText(cx, cy - 50, "어둠의 강림", "#880044", 38, 14);
             Game.camShake = 18;
+        } else {
+            // ── 광란의 탄막: 전방위 고속 + 3연 낙뢰 동시
+            const radAmt2 = p2 ? 32 : 22;
+            for (let i = 0; i < radAmt2; i++) {
+                const a = (i / radAmt2) * Math.PI * 2;
+                spawnEBullet(cx, cy, Math.cos(a)*9*spd, Math.sin(a)*9*spd, 220, 7, dmg, false, true);
+            }
+            const strikes10 = p2 ? 5 : 3;
+            for (let i = 0; i < strikes10; i++) {
+                const tx = pX + (i - Math.floor(strikes10/2)) * 65;
+                spawnLaser(tx - 12, 0, 24, CH, 40, "#ff2200", Math.floor(dmg*2.5), false, true);
+            }
+            addText(cx, cy - 50, "광란의 탄막!", "#ff0000", 50, 16);
+            Game.camShake = 28;
         }
     }
 };
@@ -544,7 +644,7 @@ function updateBoss(e) {
         e.kbT = 30;
         Game.camShake = 35;
         Game.hitStop = 10;
-        addText(e.x + e.w/2, e.y - 50, w === 10 ? "광란" : "ENRAGE!", "#ff6600", 70, 20);
+        addText(e.x + e.w/2, e.y - 50, w === 10 ? "광란" : "격노!!", "#ff6600", 70, 20);
         for (let i = 0; i < 50; i++) addPart(e.x + e.w/2, e.y + e.h/2, "#ff4400", 50, 7);
         if (typeof playSfx === 'function') playSfx('boss_atk');
     }
@@ -559,8 +659,9 @@ function updateBoss(e) {
                 ang: Math.atan2(dy2, dx2), facing: e.facing,
                 ap: nextAp, targetY: Game.player.y + 9, targetX: Game.player.x + 7
             };
-            e.warnT = 20; // 연계는 예고 짧게
-            e.comboDelay = 35; // 다음 연계까지 간격
+            e.warnT = 28; // 연계 예고
+            e._warnBase = 28;
+            e.comboDelay = 30; // 다음 연계까지 간격
         }
     }
     
@@ -609,14 +710,14 @@ function updateBoss(e) {
                 e.y = isFlying ? targetY : Math.min(CH - 40 - e.h, targetY); 
                 e.vx = 0; e.vy = 0;
                 e.kbT = 35; 
-                addText(e.x, e.y - 25, "TELEPORT!", "#aa00ff", 40, 18); 
+                addText(e.x, e.y - 25, "순간이동!", "#aa00ff", 40, 18); 
                 for (let i = 0; i < 15; i++) addPart(e.x + e.w/2, e.y + e.h/2, "#aa00ff", 20, 4);
             }
 
             // 소용돌이 끌어당기기 (w5, w9, w10)
             if ((w === 5 || w === 9 || w === 10) && isP2 && Math.random() < 0.3) { 
                 p.vx -= Math.sign(dx) * 10; p.vy = -3; 
-                addText(p.x, p.y, "PULLED!", "#cc00ff", 30, 20); 
+                addText(p.x, p.y, "당겨짐!", "#cc00ff", 30, 20); 
             }
             
             // 메인 BossAI 우선 — AgileBossAI는 BossAI 없을 때만 폴백
@@ -624,6 +725,28 @@ function updateBoss(e) {
                 BossAI[w](e, originX, spdM, bDmg, isP2, wd);
             } else if (AgileBossAI && AgileBossAI[w]) {
                 AgileBossAI[w](e, originX, spdM, bDmg, isP2, wd);
+            }
+
+            // P2 동반 공격 — W1~6, 몸통 충돌 제거 보완
+            if (isP2 && w >= 1 && w <= 6) {
+                const _cx = e.x + e.w / 2, _cy = e.y + e.h / 2;
+                const _pX = p.x + p.w / 2, _pY = p.y + p.h / 2;
+                if (w <= 2) {
+                    // W1~2: 전방 확산 3탄
+                    for (let i = -1; i <= 1; i++) {
+                        const _a = (e.facing > 0 ? 0 : Math.PI) + i * 0.28;
+                        spawnEBullet(_cx, _cy, Math.cos(_a) * 5, Math.sin(_a) * 5, 95, 5, Math.floor(bDmg * 0.55));
+                    }
+                } else if (w <= 4) {
+                    // W3~4: 플레이어 조준 2발
+                    const _a = Math.atan2(_pY - _cy, _pX - _cx);
+                    spawnEBullet(_cx, _cy, Math.cos(_a) * 9, Math.sin(_a) * 9, 110, 5, Math.floor(bDmg * 0.65));
+                    spawnEBullet(_cx, _cy, Math.cos(_a + 0.22) * 8, Math.sin(_a + 0.22) * 8, 100, 5, Math.floor(bDmg * 0.50));
+                } else {
+                    // W5~6: 플레이어 위치 낙하탄 2발
+                    spawnEBullet(_pX - 35, 0, 0, 7 * spdM, 150, 6, Math.floor(bDmg * 0.65), false, false, true);
+                    spawnEBullet(_pX + 35, 0, 0, 7 * spdM, 150, 6, Math.floor(bDmg * 0.65), false, false, true);
+                }
             }
         }
     } else {
@@ -642,27 +765,25 @@ function updateBoss(e) {
         if (e.sT <= 0) {
             // 패턴 인터벌: 후반 월드일수록 빠름, 광란 상태에서 더 빠름
             const isEnrage = e.hp < e.maxHp * 0.2;
-            let baseInterval = w <= 4 ? 100 : 70;
-            e.sI = Math.max(50, baseInterval - w * 3);
-            const p2Mul = isP2 ? (w >= 8 ? 0.62 : 0.70) : 1.0;
-            const engageMul = isEnrage ? 0.75 : 1.0;
-            e.sT = Math.floor(e.sI * p2Mul * engageMul * (e.isRevived ? 0.8 : 1.0));
+            let baseInterval = w <= 4 ? 130 : 90;
+            e.sI = Math.max(70, baseInterval - w * 3);
+            const p2Mul = isP2 ? (w >= 8 ? 0.70 : 0.80) : 1.0;
+            const engageMul = isEnrage ? 0.80 : 1.0;
+            e.sT = Math.floor(e.sI * p2Mul * engageMul * (e.isRevived ? 0.85 : 1.0));
 
-            // 패턴 순환 — 의도적 순서로 순환 (무작위 제거)
-            // P2에서는 2연속 패턴 콤보 (짝수 순번에서 이전 패턴 재사용)
-            const maxAp = w >= 7 ? 3 : (w >= 3 ? 3 : 2);
-            if (isP2 && w >= 6 && (e.patternSeq % 2 === 1)) {
-                // P2 짝수 순번: 이전 패턴을 강화 버전으로 반복 (콤보 느낌)
-                // ap 유지 → 같은 패턴이 바로 또 나옴
+            // 패턴 순환
+            const maxAp = w >= 7 ? 4 : (w >= 3 ? 4 : 3);
+            if (isP2 && w >= 6 && (e.patternSeq % 2 === 0)) {
+                // P2 짝수 순번: 이전 패턴 강화 반복
             } else {
                 e.patternSeq = (e.patternSeq + 1) % maxAp;
                 e.ap = e.patternSeq;
             }
 
-            // 선딜레이 — 패턴 유형에 따라 차별화
-            // 근접형: 짧게, 원거리 레이저/탄막형: 길게, 광란: 더 짧게
-            const warnBase = w <= 4 ? 50 : (w <= 7 ? 65 : 58);
-            e.warnT = Math.floor(warnBase * (isEnrage ? 0.75 : 1.0));
+            // 선딜레이 — 월드 높을수록 짧아짐
+            const warnBase = w <= 2 ? 72 : w <= 4 ? 62 : w <= 6 ? 55 : w <= 8 ? 50 : 42;
+            e.warnT = Math.floor(warnBase * (isEnrage ? 0.80 : 1.0));
+            e._warnBase = e.warnT; // 렌더링 정규화용
 
             // warnData에 발사 시점의 플레이어 위치 스냅샷 저장
             e.warnData = {
@@ -698,7 +819,7 @@ function updateBoss(e) {
         e.vy = -9;
     }
 
-    if (Game.invT === 0 && typeof overlap === 'function' && overlap(Game.player, { x: e.x, y: e.y, w: e.w, h: e.h }) && !Game.player.dead) {
+    if (Game.invT === 0 && (Game.difficulty || 0) >= 3 && typeof overlap === 'function' && overlap(Game.player, { x: e.x, y: e.y, w: e.w, h: e.h }) && !Game.player.dead) {
         if(typeof takeDmg === 'function') takeDmg(e.atk, e);
     }
     if (e.y > CH + 60) e.dead = true;

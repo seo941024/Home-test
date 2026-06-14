@@ -66,10 +66,11 @@ function resolveAABB(e) {
     }
 }
 
-function spawnBullet(x, y, vx, vy, life, r, sk, dmg) {
+function spawnBullet(x, y, vx, vy, life, r, sk, dmg, col) {
     const b = getObj(Game.bullets);
     b.x = x; b.y = y; b.vx = vx; b.vy = vy;
     b.life = life; b.maxLife = life; b.r = r; b.sk = sk; b.dmg = dmg;
+    b.col = col || null;
     b.nhHitCount = 0; b.nhLastHit = {};
     return b; // Night Hollow 등에서 참조 가능
 }
@@ -112,12 +113,12 @@ function addItem(x, y, w, h, vy, life, type) {
 // 몬스터 피격 처리
 function hitE(e, dmg, facing, isCrit, extraDmg=0) {
     if (e.dead) return;
-    // 골렘 stun 중: 데미지 완전 차단 (Fatal Strike만 유효)
+    // 골렘 stun 중: 데미지 완전 차단
     if (e.isTutorialDummy && e.stun) return;
 
     // 투명 구간 중 피해 무효
     if (e.type === "phantom" && !e.visible) {
-        addText(e.x + e.w/2, e.y - 10, "MISS", "#888", 25, 12);
+        addText(e.x + e.w/2, e.y - 10, "빗나감", "#888", 25, 12);
         return;
     }
 
@@ -127,21 +128,21 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
         const isBlocked = (facing > 0 && e.facing < 0) || (facing < 0 && e.facing > 0);
         if (isBlocked) {
             dmg = Math.max(1, Math.floor(dmg * 0.3)); // 70% 감소, 최소 1
-            addText(e.x + e.w/2, e.y - 10, "BLOCK", "#aaddff", 30, 11);
+            addText(e.x + e.w/2, e.y - 10, "막기", "#aaddff", 30, 11);
         }
     }
 
     // 엘리트/슈퍼아머 몬스터는 넉백 없이 맞음
     const hasSuperArmor = e.superArmor && !e.stun;
 
-    // 스턴 상태면 hitInv 무시하고 처형 시도
-    if (e.stun && typeof executeEnemy === 'function') {
+    // 보스 그로기 상태면 처형(12% 확정피해) 시도
+    if (e.stun && e.isBoss && typeof executeEnemy === 'function') {
         executeEnemy(e);
         return;
     }
 
-    // 일반 몹 피격 무적시간
-    if (!e.isBoss) {
+    // 일반 몹 피격 무적시간 — stun(기절) 상태면 무시
+    if (!e.isBoss && !e.stun) {
         if ((e.hitInv || 0) > 0) return;
         e.hitInv = 8;
     }
@@ -154,8 +155,6 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
     // 혈흔 데칼
     if (typeof addBloodDecal === 'function') addBloodDecal(e.x + e.w/2, e.y + e.h - 4);
 
-    // 체간 데미지는 isCrit 플래그에 종속하지 않고 caller가 직접 넣어줌
-    // (패링=50, 강하=30, 일반=0) → applyPoiseHit은 combat 외부에서 호출
 
     // 넉백 (슈퍼아머면 생략)
     if (!e.isBoss && !hasSuperArmor) {
@@ -166,14 +165,14 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
 
     addText(e.x + e.w/2, e.y - 10, dmg.toString(),
         isCrit ? "#ffcc00" : "#ffffff", 40, isCrit ? 24 : 16);
-    if (extraDmgAmt > 0) addText(e.x + e.w/2 + 10, e.y - 2, "+" + extraDmgAmt, "#aaaaaa", 35, 11);
+    if (extraDmgAmt > 0) addText(e.x + e.w/2 + 18, e.y + 6, "+" + extraDmgAmt, "#999999", 35, 10);
 
     for (let i = 0; i < 10; i++) addPart(e.x + e.w/2, e.y + e.h/2, "#ff0000", 15, 3);
 
     // 흡혈
     if (Game.pLifestealChance > 0 && Math.random() < Game.pLifestealChance && Game.player.hp < Game.pMaxHp) {
         Game.player.hp = Math.min(Game.pMaxHp, Game.player.hp + 2);
-        addText(Game.player.x, Game.player.y - 10, "ABSORB", "#00ff00", 30, 12);
+        addText(Game.player.x, Game.player.y - 10, "흡수", "#00ff00", 30, 12);
     }
     if (Game.pHealOnHit && Game.player.hp < Game.pMaxHp && Math.random() < 0.1) {
         Game.player.hp = Math.min(Game.pMaxHp, Game.player.hp + 1);
@@ -202,14 +201,21 @@ function hitE(e, dmg, facing, isCrit, extraDmg=0) {
                 se.id      = (typeof _enemyIdCounter !== 'undefined') ? _enemyIdCounter++ : Math.random();
                 se.splitDone = true;
             }
-            addText(e.x + e.w/2, e.y - 15, "SPLIT!", "#ff8800", 50, 14);
+            addText(e.x + e.w/2, e.y - 15, "분열!", "#ff8800", 50, 14);
+        }
+        // 엘리트 처치 카운터
+        if (e.isElite) {
+            Game.totalEliteKills = (Game.totalEliteKills || 0) + 1;
+            localStorage.setItem("skull_eliteKills", Game.totalEliteKills);
+            _checkUnlocks();
         }
         e.dead = true;
     }
 }
 
 // 플레이어 피격 처리 — 리게인 완전 삭제, 즉시 hp 차감
-function takeDmg(dmg, eObj, unblockable=false) {
+// noParry=true 이면 패링은 차단하지만 가드는 허용 (몸박 피해용)
+function takeDmg(dmg, eObj, unblockable=false, noParry=false) {
     const p = Game.player;
     if (!p || p.dead) return;
     // unblockable(낙사 등)이면 invT/dashT 무시
@@ -222,25 +228,45 @@ function takeDmg(dmg, eObj, unblockable=false) {
         p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 4;
         p.vy  = -3;
         Game.camShake = 8;
-        addText(p.x, p.y - 20, "TUTORIAL", "#88ffcc", 40, 13);
+        addText(p.x, p.y - 20, "무적", "#88ffcc", 40, 13);
         for (let i = 0; i < 8; i++) addPart(p.x + 7, p.y + 9, "#88ffcc", 18, 3);
         return;
     }
 
-    // 1. 패링 성공
-    if (!unblockable && p.parryT > 0) {
+    // 1. 패링 성공 (noParry면 패링 차단)
+    if (!unblockable && !noParry && p.parryT > 0) {
         Game.hitStop = 8;
         if (typeof playSfx === 'function') playSfx('parry');
         Game.pMp = Math.min(Game.pMaxMp, Game.pMp + Game.pParryMp);
-        addText(p.x, p.y - 20, "PARRY!", "#ffff00", 50, 16);
-        // 패링 시 체간 50 확정 부여 (isCrit 종속 아님)
-        if (eObj && typeof applyPoiseHit === 'function') applyPoiseHit(eObj, 50);
+        addText(p.x, p.y - 20, "패링!", "#ffff00", 50, 16);
+        // 패링 누적 카운터
+        Game.totalParryCount = (Game.totalParryCount || 0) + 1;
+        localStorage.setItem("skull_parryCount", Game.totalParryCount);
+        _checkUnlocks();
+        // 검성 패시브: 패링 후 다음 공격 3배
+        if (Game.pClass === 9) { Game._swordParryReady = true; addText(p.x, p.y-30, "카운터!", "#aaddff", 40, 13); }
+        // 보스: 체간 50 / 일반몹: 현재HP 30% + 즉시 기절
+        if (eObj) {
+            if (eObj.isBoss && typeof applyPoiseHit === 'function') {
+                applyPoiseHit(eObj, 50);
+            } else if (!eObj.isBoss) {
+                // 즉시 기절 먼저 (hitE가 stun 해제하지 않도록)
+                eObj.stun  = true;
+                eObj.stunT = 90;
+                eObj.vx    = 0;
+                eObj.kbT   = 90;
+                // 30% 확정 피해 — hitE 경유로 정상 사망 처리 보장
+                const parryDmg = Math.max(1, Math.floor(eObj.hp * 0.30));
+                if (typeof hitE === 'function') hitE(eObj, parryDmg, p.facing, false);
+                addText(eObj.x + eObj.w/2, eObj.y - 30, "기절!", "#ffee00", 60, 16);
+            }
+        }
 
         p.vy  = -3; p.kbT = 12;
         p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 2;
         Game.invT = 60;
 
-        if (eObj && !eObj.isBoss) { eObj.kbT = 30; eObj.vx = (eObj.x < p.x ? -1 : 1) * 4; eObj.vy = -3; }
+        if (eObj && !eObj.isBoss) { eObj.vx = (eObj.x < p.x ? -1 : 1) * 4; eObj.vy = -3; }
         return;
     }
 
@@ -253,7 +279,7 @@ function takeDmg(dmg, eObj, unblockable=false) {
             // 가드 브레이크 시엔 dmg 절반은 그냥 들어감
             dmg = Math.floor(dmg * 0.5);
         } else {
-            addText(p.x, p.y - 20, "GUARD", "#00ccff", 40, 14);
+            addText(p.x, p.y - 20, "가드", "#00ccff", 40, 14);
             p.kbT = 15; p.vy = -3;
             p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 3;
             if (eObj && !eObj.isBoss) { eObj.kbT = 15; eObj.vx = (eObj.x < p.x ? -1 : 1) * 2; eObj.vy = -2; }
@@ -263,9 +289,11 @@ function takeDmg(dmg, eObj, unblockable=false) {
         }
     }
 
-    // 3. 맨몸 피격
+    // 3. 맨몸 피격 (방어력: 감소율 = def / (def + 60), 최대 70% 감소)
     dmg = Math.floor(dmg * (Game.pDmgReduction || 1));
-    if (dmg < 1) dmg = 1;
+    const _def = Game.pBaseDef || 0;
+    const _defRate = _def >= 0 ? _def / (_def + 60) : Math.max(-0.3, _def / 20);
+    dmg = Math.max(1, Math.floor(dmg * (1 - _defRate)));
 
     p.kbT = 20;
     p.vx  = (eObj ? (p.x < eObj.x ? -1 : 1) : -p.facing) * 5;
@@ -291,6 +319,19 @@ function takeDmg(dmg, eObj, unblockable=false) {
         p.hp -= dmg;
         addText(p.x, p.y - 20, `-${dmg}`, "#ff0000", 40, 22);
         for (let i = 0; i < 20; i++) addPart(p.x + 7, p.y + 9, "#ff0000", 25, 4);
+        // 혈귀 패시브: 분노의 피 — 피격 시 스택 +1 (최대 5, 4초 유지)
+        if (Game.pClass === 8) {
+            Game._bloodFuryStacks = Math.min(5, (Game._bloodFuryStacks || 0) + 1);
+            Game._bloodFuryTimer = 240;
+            addText(p.x + 20, p.y - 30, `분노 ${Game._bloodFuryStacks}`, "#cc2244", 40, 12);
+        }
+        // 선봉대 패시브: 피격 시 10초간 방어력 +10
+        if (Game.pClass === 18) {
+            if ((Game._vanguardDefBuff || 0) <= 0) Game.pBaseDef += 10;
+            Game._vanguardDefBuff = 600;
+            addText(p.x + 20, p.y - 30, "방어 강화!", "#8899aa", 40, 11);
+        }
+        if (Game.runStats) Game.runStats.totalDmgTaken = (Game.runStats.totalDmgTaken || 0) + dmg;
     }
 
     Game.invT = invDur;
@@ -300,7 +341,7 @@ function takeDmg(dmg, eObj, unblockable=false) {
         if (Game.pRevive > 0) {
             Game.pRevive--;
             p.hp = Math.floor(Game.pMaxHp * 0.5);
-            addText(p.x, p.y - 30, "REVIVED!", "#ffaa00", 60, 20);
+            addText(p.x, p.y - 30, "부활!", "#ffaa00", 60, 20);
             if (typeof playSfx === 'function') playSfx('item');
             for (let i = 0; i < 30; i++) addPart(p.x + 7, p.y + 9, "#ffaa00", 30, 5);
         } else {

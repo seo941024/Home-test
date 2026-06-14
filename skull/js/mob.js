@@ -25,7 +25,7 @@ function mkDummyGolem(x, y) {
     let e = getObj(Game.enemies);
     e.x = x; e.y = y;
     e.w = 32; e.h = 40;         // 골렘 크기 (플레이어보다 약간 큼)
-    e.vx = 0; e.vy = 0; e.onGround = false;
+    e.vx = 0; e.vy = 0; e.onGround = true;
     e.hp = 9999; e.maxHp = 9999;
     e.type = "melee";
     e.isBoss = false; e.isElite = false;
@@ -63,9 +63,17 @@ function mkEnemy(x, y, w) {
     
     let e = getObj(Game.enemies); 
     
-    const isElite = (w >= 2 && Math.random() < 0.1);
-    const baseHp = (20 + w * 25 + (type === "melee" ? 5 : 0)) * 5;
-    const hp = isElite ? Math.floor(baseHp * 3) : baseHp;
+    // 난이도별 엘리트 확률: 쉬움5% 보통10% 어려움20% 헬100%
+    const _diff = Game.difficulty || 0;
+    const _eliteChance = [0.05, 0.20, 0.40, 1.0][_diff];
+    const isElite = (_diff === 3) ? true : (w >= 2 && Math.random() < _eliteChance);
+    // 난이도별 스탯 배율: 쉬움0.5 보통1 어려움3 헬15
+    const _statMul = [0.5, 1, 3, 15][_diff]; // HP·ATK 공통
+    const baseHp = Math.floor((60 + w * 70 + (type === "melee" ? 20 : 0)) * 5 * 2 / 3 * _statMul);
+    // 헬 난이도 엘리트는 *_statMul이 이미 15배라 ×3이면 45배 → 렉 원인
+    // 헬일 때 ×1.5, 나머지 난이도는 ×3 유지
+    const eliteHpMul = (_diff === 3) ? 0.5 : 3;
+    const hp = isElite ? Math.floor(baseHp * eliteHpMul) : baseHp;
     
     e.x = x; e.y = y;
     e.isTutorialDummy = false; // 재사용 슬롯 잔존 플래그 클리어
@@ -80,9 +88,10 @@ function mkEnemy(x, y, w) {
     e.sI = isElite ? 100 : 160; 
     e.sT = 80 + Math.random() * 50; 
     
-    const baseAtk = Math.floor(Math.random() * 5) + 3; 
-    const atkMul = 1 + Math.floor((w - 1) / 2) * 0.5;  
-    e.atk = Math.floor(baseAtk * atkMul * (isElite ? 1.5 : 1.0));
+    const baseAtk = Math.floor(Math.random() * 4) + 4;
+    const atkMul = 1 + Math.floor((w - 1) / 2) * 0.6;
+    e.atk = Math.floor(baseAtk * atkMul * (isElite ? 1.8 : 1.0) * _statMul);
+    e.isBurning = false;
     
     e.pDir = Math.random() < 0.5 ? 1 : -1; 
     e.pT = 0; e.dead = false; e.kbT = 0; e.warnT = 0; e.warnData = null; e.atkAnim = 0; e.world = w;
@@ -123,7 +132,9 @@ function _snapToNearestPlatform(e) {
 
 function mkBoss(x, y, w) {
     const hps = [0, 2000, 3000, 4500, 6250, 8750, 12000, 17000, 21000, 26000, 35000];
-    const hp = hps[Math.min(w, 10)]; 
+    const _bdiff = Game.difficulty || 0;
+    const _bStatMul = [0.5, 1, 3, 15][_bdiff];
+    const hp = Math.floor(hps[Math.min(w, 10)] * _bStatMul); 
     let e = getObj(Game.enemies);
     
     if (w === 5 || w === 6) {
@@ -144,11 +155,11 @@ function mkBoss(x, y, w) {
     e.isTutorialDummy = false; 
     e.fr = 0; e.frT = 0; e.flash = 0;
     
-    e.sT = 60; e.sI = 60; e.phase = 1; e.mT = 50; e.ap = 0; 
-    
-    const bossBaseAtk = Math.floor(Math.random() * 5) + 8; 
+    e.sT = 60; e.sI = 60; e.phase = (_bdiff === 3 ? 2 : 1); e.mT = 50; e.ap = 0;
+
+    const bossBaseAtk = Math.floor(Math.random() * 4) + 7;
     const atkMul = 1 + Math.floor((w - 1) / 2) * 0.5;
-    e.atk = Math.floor(bossBaseAtk * atkMul * 1.5);
+    e.atk = Math.floor(bossBaseAtk * atkMul * 1.5 * _bStatMul);
     
     e.dead = false; e.kbT = 0; e.warnT = 0; e.warnData = null; e.atkAnim = 0; e.world = w;
     e.patternSeq = 0;
@@ -178,15 +189,29 @@ function updateEnemies() {
         } 
         
         if (e.dead) {
-            Game.score += e.isBoss ? 500 : (e.isElite ? 150 : 50); Game.kills++; 
+            Game.score += e.isBoss ? 500 : (e.isElite ? 150 : 50); Game.kills++;
+            Game.totalKills = (Game.totalKills || 0) + 1;
+            localStorage.setItem("skull_totalKills", Game.totalKills);
+            if (typeof _checkUnlocks === 'function') _checkUnlocks();
+            // 강령술사: 처치 시 영혼 스택 +1 (최대 10)
+            if (Game.pClass === 7 && !e.isBoss) {
+                Game.soulStacks = Math.min(10, (Game.soulStacks || 0) + 1);
+                if (Game.soulStacks >= 10) addText(e.x, e.y - 20, "영혼 포화!", "#44ff88", 45, 14);
+            }
             
             if (e.isElite) {
-                Game.darkQuartz += Math.floor(Math.random() * 5) + 2;
-                addText(e.x, e.y - 30, "+ DARK QUARTZ", "#aa00ff", 60, 16);
+                // 난이도별 쿼츠 드롭 배율: 쉬움1x 보통1.5x 어려움2.5x 헬4x
+                const _dqMul = [1, 2, 4, 8][Game.difficulty || 0];
+                const dqAmt = Math.floor((Math.floor(Math.random() * 5) + 2) * _dqMul);
+                Game.darkQuartz += dqAmt;
+                addText(e.x, e.y - 30, `다크 쿼츠 +${dqAmt} 획득!`, "#dd44ff", 60, 13);
                 if (typeof saveProgress === 'function') saveProgress();
             } else if (e.isBoss) {
-                Game.darkQuartz += Math.floor(Math.random() * 15) + 20;
+                const _dqMulB = [1, 2, 4, 8][Game.difficulty || 0];
+                const dqAmt2 = Math.floor((Math.floor(Math.random() * 15) + 20) * _dqMulB);
+                Game.darkQuartz += dqAmt2;
                 Game.rerollCoins += 1;
+                addText(e.x, e.y - 40, `다크 쿼츠 +${dqAmt2} 획득!`, "#dd44ff", 90, 15);
                 if (typeof saveProgress === 'function') saveProgress();
             }
 
@@ -216,6 +241,16 @@ function updateEnemies() {
                 if (typeof Game !== 'undefined') {
                     Game.camShake = 30;
                     Game.hitStop = 20;
+                    // 보스 처치 대사 시퀀스 시작
+                    const killLines = (typeof STORY !== 'undefined' && STORY.bossKill)
+                        ? (STORY.bossKill[Game.worldN] || null) : null;
+                    if (killLines) {
+                        Game.bossKillSeq = { lines: killLines, idx: 0, timer: killLines[0].duration };
+                    }
+                }
+                // 보스 처치 시 HP 오브 보장 드랍
+                if (typeof addItem === 'function') {
+                    addItem(e.x + e.w/2 - 5, e.y + e.h/2 - 5, 10, 10, -4, 600, "hp");
                 }
             }
             e.active = false;
@@ -262,7 +297,11 @@ function updateEnemies() {
         else {
             const dx = Game.player.x - e.x; const dy = Game.player.y - e.y;
             const distSq = dx * dx + dy * dy;
-            
+            // 근접/방패 이속 배율: 쉬움1.0 보통1.0 어려움1.2 헬2.0
+            const _spdMul = [1.0, 1.0, 1.2, 2.0][Game.difficulty || 0];
+            // 원거리 이속 배율
+            const _rangedSpdMul = [1.0, 1.0, 1.1, 1.3][Game.difficulty || 0];
+
             if (e.type === "melee") {
                 e.sT--;
                 if (Math.abs(dx) < 55 && Math.abs(dy) < 40 && e.sT <= 0 && e.warnT <= 0 && e.atkAnim <= 0) {
@@ -280,15 +319,15 @@ function updateEnemies() {
                     }
                 } else if (e.atkAnim > 0) { e.atkAnim--; e.vx = 0; } 
                 else {
-                    if (distSq < 100000) { 
-                        let eSpd = e.isElite ? 0.30 : 0.20;
-                        let maxSpd = e.isElite ? 2.2 : 1.7;
-                        e.facing = dx > 0 ? 1 : -1; e.vx += (dx > 0 ? 1 : -1) * eSpd; e.vx = Math.max(-maxSpd, Math.min(maxSpd, e.vx)); 
+                    if (distSq < 100000) {
+                        let eSpd = (e.isElite ? 0.30 : 0.20) * _spdMul;
+                        let maxSpd = (e.isElite ? 2.2 : 1.7) * _spdMul;
+                        e.facing = dx > 0 ? 1 : -1; e.vx += (dx > 0 ? 1 : -1) * eSpd; e.vx = Math.max(-maxSpd, Math.min(maxSpd, e.vx));
                     } else {
                         e.pT--;
                         if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; }
                         if (e._cliffDir && e.pDir === e._cliffDir) e.pDir *= -1;
-                        e.vx = e.pDir * (e.isElite ? 1.5 : 1.0);
+                        e.vx = e.pDir * (e.isElite ? 1.5 : 1.0) * _spdMul;
                     }
                 }
             } 
@@ -297,13 +336,13 @@ function updateEnemies() {
                 e.isGuarding = e.guardT < 180;   
                 if (distSq < 100000) {
                     e.facing = dx > 0 ? 1 : -1; 
-                    let spdAdd = e.isGuarding ? 0.05 : (e.isElite ? 0.25 : 0.15); 
-                    let spdMax = e.isGuarding ? 0.4 : (e.isElite ? 1.5 : 1.0);
-                    e.vx += (dx > 0 ? 1 : -1) * spdAdd; 
-                    e.vx = Math.max(-spdMax, Math.min(spdMax, e.vx)); 
-                } else { 
-                    e.pT--; if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; } 
-                    e.vx = e.pDir * (e.isGuarding ? 0.4 : (e.isElite ? 1.1 : 0.8)); 
+                    let spdAdd = e.isGuarding ? 0.05 : (e.isElite ? 0.25 : 0.15) * _spdMul;
+                    let spdMax = e.isGuarding ? 0.4 : (e.isElite ? 1.5 : 1.0) * _spdMul;
+                    e.vx += (dx > 0 ? 1 : -1) * spdAdd;
+                    e.vx = Math.max(-spdMax, Math.min(spdMax, e.vx));
+                } else {
+                    e.pT--; if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; }
+                    e.vx = e.pDir * (e.isGuarding ? 0.4 : (e.isElite ? 1.1 : 0.8)) * _spdMul;
                 }
             } 
             else {
@@ -334,7 +373,7 @@ function updateEnemies() {
                         e.pT--;
                         if (e.pT <= 0) { e.pT = 60 + Math.random() * 60; e.pDir *= -1; }
                         if (e._cliffDir && e.pDir === e._cliffDir) e.pDir *= -1;
-                        e.vx = e.pDir * (e.isElite ? 1.2 : 0.8);
+                        e.vx = e.pDir * (e.isElite ? 1.2 : 0.8) * _rangedSpdMul;
                         if (e._cliffDir && Math.sign(e.vx) === e._cliffDir) e.vx = 0;
                     }
                 }
@@ -346,7 +385,7 @@ function updateEnemies() {
                     if (distSqB < 50000) { 
                         e.fuseT++;
                         e.vx *= 0.7; 
-                        if (e.fuseT === 1) addText(e.x + e.w/2, e.y - 15, "BOOM!", "#ff4400", 80, 13);
+                        if (e.fuseT === 1) addText(e.x + e.w/2, e.y - 15, "폭발!", "#ff4400", 80, 13);
                         if (e.fuseT >= 80) { 
                             e.exploding = true;
                             Game.camShake = 18; if(typeof playSfx === 'function') playSfx('boss_atk');
@@ -457,8 +496,9 @@ function updateEnemies() {
         e.x = Math.max(0, Math.min(Game.levelW - e.w, e.x));
         
         // 💡 [패치] 스턴(stun) 뿐만 아니라 넉백 경직(kbT) 중일 때도 유저에게 데미지를 주지 않음!
+        // 몸박: 패링 차단(noParry=true), 가드는 허용
         if (!e.stun && e.kbT <= 0 && Game.invT === 0 && typeof overlap === 'function' && overlap(Game.player, { x: e.x, y: e.y, w: e.w, h: e.h }) && !Game.player.dead) {
-            if(typeof takeDmg === 'function') takeDmg(e.atk, e);
+            if(typeof takeDmg === 'function') takeDmg(e.atk, e, false, true);
         }
     });
 }

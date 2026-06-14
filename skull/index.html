@@ -24,16 +24,26 @@
   <body>
     <div id="wrapper">
       <div id="topBar" style="min-height: 58px">
-        <div id="ui-hp" class="hpArea" style="display: none; width: 312px">
-          <span class="hpLabel">HP</span>
+        <div
+          id="ui-hp"
+          class="hpArea"
+          style="display: none; width: 340px; align-items: center; gap: 6px"
+        >
+          <span
+            class="hpLabel"
+            style="font-size: 20px; font-weight: bold; white-space: nowrap"
+            >HP</span
+          >
           <div
             id="playerHpBarWrap"
             style="
-              width: 188px;
-              height: 20px;
+              width: 240px;
+              height: 28px;
               background: #200505;
-              border: 2px solid #ffaaaa;
+              border: 2px solid #ff6666;
+              border-radius: 4px;
               position: relative;
+              overflow: hidden;
             "
           >
             <div
@@ -41,8 +51,8 @@
               style="
                 width: 100%;
                 height: 100%;
-                background: #ff1111;
-                transition: width 0.1s;
+                background: linear-gradient(to right, #cc0000, #ff3333);
+                transition: width 0.12s;
               "
             ></div>
             <div
@@ -54,7 +64,7 @@
                 position: absolute;
                 top: 0;
                 left: 0;
-                transition: width 0.1s;
+                transition: width 0.12s;
                 opacity: 0.8;
                 display: none;
               "
@@ -66,11 +76,15 @@
                 width: 100%;
                 text-align: center;
                 left: 0;
-                top: 0px;
-                font-size: 18px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 15px;
                 font-weight: bold;
                 color: #fff;
-                text-shadow: 1px 1px 2px #000;
+                text-shadow:
+                  1px 1px 3px #000,
+                  0 0 6px #000;
+                pointer-events: none;
               "
               >50 / 50</span
             >
@@ -133,7 +147,7 @@
             id="mainTitle"
             style="
               position: absolute;
-              bottom: 32%;
+              bottom: 47%;
               left: 50%;
               transform: translateX(-50%);
               z-index: 2;
@@ -146,14 +160,14 @@
               style="
                 font-family:
                   &quot;SkullFont&quot;, &quot;NeoDunggeunmo&quot;, sans-serif;
-                color: #d4bfff;
-                font-size: 65px;
+                color: #f0f4ff;
+                font-size: 120px;
                 margin: 0;
                 letter-spacing: 7px;
                 text-shadow:
-                  0 0 20px #9966ff,
-                  0 0 40px #6633cc,
-                  3px 3px 0 #220044;
+                  0 0 20px #87aee0,
+                  0 0 40px #6d7cc2,
+                  3px 3px 0 #181c3b;
               "
             >
               해골용사
@@ -180,15 +194,15 @@
               style="
                 font-family:
                   &quot;SkullFont&quot;, &quot;NeoDunggeunmo&quot;, sans-serif;
-                font-size: 25px;
+                font-size: 30px;
                 color: #ffffff;
                 letter-spacing: 4px;
                 min-width: 200px;
                 text-align: center;
                 text-shadow:
                   0 0 10px #ffffff,
-                  0 0 22px #aaaaff,
-                  0 0 38px #6666ff;
+                  0 0 22px #3e3ed6,
+                  0 0 38px #2a2a49;
                 animation: menuGlow 1.4s ease-in-out infinite alternate;
               "
             >
@@ -315,26 +329,35 @@
           padding: 12px 19px;
         "
       >
+        <!-- position:relative 컨테이너 — 스태미너를 절대좌표로 올림 -->
         <div
           style="
             display: flex;
             width: 100%;
             align-items: center;
             min-height: 55px;
+            position: relative;
           "
         >
-          <span
-            id="killLabel"
-            style="display: none; width: 150px; font-size: 16px; flex-shrink: 0;"
-            >처치: 0</span
-          >
+          <!-- 좌: 처치수 -->
+          <div style="width: 180px; flex-shrink: 0">
+            <span id="killLabel" style="display: none; font-size: 25px"
+              >처치: 0</span
+            >
+          </div>
+
+          <!-- 중: 스태미너 — 바의 중심이 정확히 전체 너비의 50%에 위치 -->
+          <!-- left = 50% - 라벨(96) - gap(8) - 바절반(130) = 50% - 234px -->
           <div
             id="ui-gauges"
             style="
               display: none;
-              flex: 1;
-              position: relative;
-              height: 55px;
+              position: absolute;
+              left: 0;
+              right: 0;
+              top: 0;
+              bottom: 0;
+              pointer-events: none;
               align-items: center;
             "
           >
@@ -342,33 +365,37 @@
               id="ui-stamina"
               style="
                 position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
+                left: calc(50% - 234px);
+                top: 50%;
+                transform: translateY(-50%);
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
               "
             >
               <span
                 style="
                   color: #ccff33;
                   font-weight: bold;
-                  font-size: 19px;
+                  font-size: 22px;
                   letter-spacing: 1px;
                   text-shadow: 0 0 6px #ccff33;
+                  white-space: nowrap;
+                  width: 110px;
+                  text-align: right;
                 "
                 >스태미너</span
               >
               <div
                 style="
-                  width: 275px;
+                  width: 260px;
                   height: 18px;
                   background: #111;
                   border: 2px solid #ccff33;
-                  position: relative;
                   border-radius: 3px;
                   flex-shrink: 0;
                   box-shadow: 0 0 4px #ccff33;
+                  position: relative;
                 "
               >
                 <div
@@ -386,139 +413,145 @@
                 id="staminaLabel"
                 style="
                   color: #ccff33;
-                  font-size: 18px;
-                  width: 58px;
+                  font-size: 20px;
+                  width: 110px;
                   text-align: left;
                   font-weight: bold;
+                  white-space: nowrap;
                 "
                 >최대</span
               >
             </div>
+          </div>
 
+          <!-- 우: 스킬·대쉬 -->
+          <div
+            style="
+              margin-left: auto;
+              width: 310px;
+              flex-shrink: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+              align-items: flex-end;
+            "
+          >
             <div
+              id="ui-skill"
               style="
-                position: absolute;
-                right: 0;
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
+                display: none;
+                align-items: center;
+                justify-content: flex-end;
               "
             >
-              <div
-                id="ui-skill"
+              <span
                 style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0;
-                  justify-content: flex-end;
+                  color: #00ffcc;
+                  font-weight: bold;
+                  font-size: 20px;
+                  width: 60px;
+                  text-align: right;
+                  margin-right: 8px;
+                  white-space: nowrap;
+                "
+                >스킬</span
+              >
+              <div
+                style="
+                  width: 120px;
+                  height: 15px;
+                  background: #111;
+                  border: 2px solid #00ffcc;
+                  border-radius: 3px;
+                  flex-shrink: 0;
+                  position: relative;
                 "
               >
-                <span
-                  style="
-                    color: #00ffcc;
-                    font-weight: bold;
-                    font-size: 18px;
-                    width: 60px;
-                    text-align: right;
-                    margin-right: 9px;
-                  "
-                  >스킬</span
-                >
                 <div
+                  id="mpFill"
                   style="
-                    width: 125px;
-                    height: 15px;
-                    background: #111;
-                    border: 2px solid #00ffcc;
-                    position: relative;
-                    border-radius: 3px;
-                    flex-shrink: 0;
+                    width: 0%;
+                    height: 100%;
+                    background: #00ffcc;
+                    transition: width 0.1s;
+                    border-radius: 2px;
                   "
-                >
-                  <div
-                    id="mpFill"
-                    style="
-                      width: 0%;
-                      height: 100%;
-                      background: #00ffcc;
-                      transition: width 0.1s;
-                      border-radius: 2px;
-                    "
-                  ></div>
-                </div>
-                <span
-                  id="skillLabel"
-                  style="
-                    color: #00ffcc;
-                    font-size: 16px;
-                    width: 62px;
-                    text-align: right;
-                    margin-left: 9px;
-                    font-weight: bold;
-                  "
-                  >0%</span
-                >
+                ></div>
               </div>
-              <div
-                id="ui-dash"
+              <span
+                id="skillLabel"
                 style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0;
-                  justify-content: flex-end;
+                  color: #00ffcc;
+                  font-size: 18px;
+                  width: 96px;
+                  text-align: right;
+                  margin-left: 8px;
+                  font-weight: bold;
+                  white-space: nowrap;
+                "
+                >0%</span
+              >
+            </div>
+            <div
+              id="ui-dash"
+              style="
+                display: none;
+                align-items: center;
+                justify-content: flex-end;
+              "
+            >
+              <span
+                style="
+                  color: #ffdd00;
+                  font-weight: bold;
+                  font-size: 20px;
+                  width: 60px;
+                  text-align: right;
+                  margin-right: 8px;
+                  white-space: nowrap;
+                "
+                >대쉬</span
+              >
+              <div
+                style="
+                  width: 120px;
+                  height: 15px;
+                  background: #111;
+                  border: 2px solid #ffdd00;
+                  border-radius: 3px;
+                  flex-shrink: 0;
+                  position: relative;
                 "
               >
-                <span
-                  style="
-                    color: #ffdd00;
-                    font-weight: bold;
-                    font-size: 18px;
-                    width: 60px;
-                    text-align: right;
-                    margin-right: 9px;
-                  "
-                  >대쉬</span
-                >
                 <div
+                  id="dashFill"
                   style="
-                    width: 125px;
-                    height: 15px;
-                    background: #111;
-                    border: 2px solid #ffdd00;
-                    position: relative;
-                    border-radius: 3px;
-                    flex-shrink: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: #ffdd00;
+                    transition: width 0.08s;
+                    border-radius: 2px;
                   "
-                >
-                  <div
-                    id="dashFill"
-                    style="
-                      width: 100%;
-                      height: 100%;
-                      background: #ffdd00;
-                      transition: width 0.08s;
-                      border-radius: 2px;
-                    "
-                  ></div>
-                </div>
-                <span
-                  id="dashLabel"
-                  style="
-                    color: #ffdd00;
-                    font-size: 16px;
-                    width: 62px;
-                    text-align: right;
-                    margin-left: 9px;
-                    font-weight: bold;
-                  "
-                  >준비완료</span
-                >
+                ></div>
               </div>
+              <span
+                id="dashLabel"
+                style="
+                  color: #ffdd00;
+                  font-size: 18px;
+                  width: 96px;
+                  text-align: right;
+                  margin-left: 8px;
+                  font-weight: bold;
+                  white-space: nowrap;
+                "
+                >준비완료!</span
+              >
             </div>
           </div>
         </div>
         <div
-          style="font-size: 16px; color: #888; text-align: center; width: 100%"
+          style="font-size: 19px; color: #888; text-align: center; width: 100%"
         >
           ← → 이동 &nbsp;|&nbsp; Z 대쉬 &nbsp;|&nbsp; X 점프 &nbsp;|&nbsp; C
           평타 &nbsp;|&nbsp; ↓+C 강하 공격 &nbsp;|&nbsp; Shift 스킬 사용

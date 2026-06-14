@@ -26,263 +26,504 @@ function renderClassSelect(frameNow) {
     ctx.fillStyle = bgGrd; ctx.fillRect(0, 0, CW, CH);
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "#ffcc00"; ctx.font = "bold 22px SkullFont, NeoDunggeunmo";
+    ctx.fillStyle = "#ffcc00"; ctx.font = "bold 24px SkullFont, NeoDunggeunmo";
     ctx.shadowBlur = 10; ctx.shadowColor = "#aa00ff";
-    ctx.fillText("클래스 선택", CW/2, 30);
+    ctx.fillText("직업 선택", CW/2, 35);
     ctx.shadowBlur = 0;
-    ctx.fillStyle = "#919191"; ctx.font = "11px SkullFont, NeoDunggeunmo";
-    ctx.fillText("← → 이동  |  스페이스 결정  |  S 다크 쿼츠 시스템", CW/2, 55);
 
-    // ── 6직업 데이터 (hp/def/crit/atkSpd/movSpd/jmp는 카드 표시용 기본값) ──
+    // ── 9직업 데이터 ──
     const classes = [
-        { name:"검사",   color:"#ffffff", hp:60,  def:0,   crit:20, atkSpd:100, movSpd:100, jmp:100,
-          tags:["근거리","밸런스형"],
-          skill:"파워스트라이크",
-          skillDesc:"적을 향해 돌진하며 일도양단한다.",
-          charDesc:"검과 방어가 균형잡힌 기본 전사." },
-        { name:"도적",   color:"#cc44ff", hp:50,  def:-5,  crit:35, atkSpd:200, movSpd:130, jmp:120,
-          tags:["근거리","이속 최상"],
-          skill:"새비지블로우",
-          skillDesc:"6연타로 무차별 난도질 후 돌진 마무리.",
-          charDesc:"초고속 쌍단검, 이마의 X자 흉터가 특징." },
-        { name:"마법사", color:"#00ccff", hp:40,  def:-5,  crit:18, atkSpd:55,  movSpd:100, jmp:100,
-          tags:["원거리","마나 회복↑"],
-          skill:"에너지 볼트",
-          skillDesc:"관통하는 마법 파동을 발사한다.",
-          charDesc:"마법탄 발사, 마나 회복력 1.5배 증가" },
-        { name:"버서커", color:"#ff2200", hp:100, def:5,   crit:12, atkSpd:45,  movSpd:85,  jmp:100,
-          tags:["중거리","체력 최상"],
-          skill:"인레이지",
-          skillDesc:"공중 도약 후 내려찍어 핏빛 폭발을 일으킨다.",
-          charDesc:"역수 대검으로 지면을 끌며 싸우는 광전사." },
-        { name:"발키리", color:"#aaaaaa", hp:50,  def:0,   crit:28, atkSpd:250, movSpd:110, jmp:100,
-          tags:["원거리","8발 연사"],
-          skill:"서먼 크루",
-          skillDesc:"5초간 무적 선원 2명을 소환해 함께 싸운다.",
-          charDesc:"8발 연사 후 자동 재장전하는 총잡이." },
-        { name:"성기사", color:"#ffcc00", hp:80,  def:10,  crit:10, atkSpd:90,  movSpd:90,  jmp:95,
-          tags:["중거리","패링 3배"],
-          skill:"헤븐즈콜",
-          skillDesc:"망치를 내리쳐 전방 광역에 신성 충격파를 날린다.",
-          charDesc:"망치와 방패, 패링 판정 3배의 수호자." },
+        { name:"검사",   color:"#ffffff", diffStars:3,
+          hp:60,  atk:70,  def:5,   crit:20, atkSpd:100, movSpd:100,
+          ratings:[["체력","중상"],["공격력","상"],["방어","중상"],["공격속도","보통"],["이동속도","보통"],["치명타","중상"]],
+          skill:"파워스트라이크", skillDesc:"적을 향해 돌진하며 일도양단한다.",
+          passive:"강철의지", passiveDesc:"HP 30% 이하 시 공격력 +25%",
+          charDesc:"마왕에게 도전한 용기있는 검사\n패배했지만 상처를 딛고 맞서 싸운다\n검과 방어가 균형잡힌 밸런스형 전사이다.",
+          unlockCond: null },
+        { name:"도적",   color:"#cc44ff", diffStars:5,
+          hp:50,  atk:30,  def:-5,  crit:35, atkSpd:200, movSpd:130,
+          ratings:[["체력","중하"],["공격력","중하"],["방어","최하"],["공격속도","최상"],["이동속도","최상"],["치명타","최상"]],
+          skill:"새비지블로우", skillDesc:"6연타로 무차별 난도질 후 돌진 마무리.",
+          passive:"잔상", passiveDesc:"대시 직후 1.5초간 치명타율 +20%",
+          charDesc:"초고속 쌍단검으로\n누구보다 빠르고 높게 이동하며\n눈 앞의 적을 빠르게 섬멸한다.",
+          unlockCond: null },
+        { name:"마법사", color:"#00ccff", diffStars:2, _default:true,
+          hp:40,  atk:50,  def:-5,  crit:18, atkSpd:55,  movSpd:100,
+          ratings:[["체력","최하"],["공격력","중하"],["방어","최하"],["공격속도","최하"],["이동속도","보통"],["치명타","중하"]],
+          skill:"아크틱 할로우", skillDesc:"수속성 블랙홀를 발사해 적을 여러 번 흡수한다.",
+          passive:"연쇄 시전", passiveDesc:"스킬 시전 시 20% 확률로 추가 발사",
+          charDesc:"마법능력이 높아 스킬을\n빨리 시전할 수 있으며\n원거리에서 마법탄을 쏘는 것이 특징이다.",
+          unlockCond: null },
+        { name:"버서커", color:"#ff2200", diffStars:1,
+          hp:100, atk:80,  def:10,  crit:12, atkSpd:45,  movSpd:85,
+          ratings:[["체력","최상"],["공격력","최상"],["방어","중상"],["공격속도","최하"],["이동속도","하"],["치명타","하"]],
+          skill:"인레이지", skillDesc:"공중 도약 후 내려찍어 핏빛 폭발을 일으킨다.",
+          passive:"광기", passiveDesc:"처치 시 공격력 +5% (최대 5스택, 15초간 지속)",
+          charDesc:"역수 대검으로 지면을 끌며 \n싸우는 전장의 포효자\n 적을 죽일 수록 강해진다.",
+          unlockCond: "공격력 120 이상 · 공격속도 60% 이하 동시 달성" },
+        { name:"발키리", color:"#aaaaaa", diffStars:2,
+          hp:50,  atk:25,  def:-5,  crit:28, atkSpd:250, movSpd:110,
+          ratings:[["체력","중하"],["공격력","최하"],["방어","최하"],["공격속도","최상"],["이동속도","중상"],["치명타","상"]],
+          skill:"서먼 크루", skillDesc:"10초간 선원 2명을 소환해 함께 싸운다.",
+          passive:"현상금", passiveDesc:"엘리트 처치 시 3초간 크리티컬 확정",
+          charDesc:"자신의 마력으로 재빠르게 \n총을 장전하며 싸운다.\n 손이 매우 빠르다.",
+          unlockCond: "누적 처치 20회" },
+        { name:"성기사", color:"#ffcc00", diffStars:4,
+          hp:80,  atk:40,  def:15,  crit:10, atkSpd:90,  movSpd:90,
+          ratings:[["체력","상"],["공격력","하"],["방어","최상"],["공격속도","중하"],["이동속도","중하"],["치명타","최하"]],
+          skill:"헤븐즈콜", skillDesc:"망치를 내리쳐 전방 광역에 신성 충격파를 날린다.",
+          passive:"신성방패", passiveDesc:"패링 성공 시 3초간 피해 30% 감소",
+          charDesc:"신성력을 이용해 싸우는 수호자\n패링 능력이 매우 탁월하며\n방어력이 올라갈수록 강해진다.",
+          unlockCond: "패링 10회" },
+        { name:"소환사", color:"#ff8800", diffStars:2,
+          hp:45,  atk:40,  def:0,   crit:15, atkSpd:70,  movSpd:100,
+          ratings:[["체력","최하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","보통"],["치명타","중하"]],
+          skill:"소환 삼령", skillDesc:"불·번개·빛 속성 정령 3체를 소환해 함께 싸운다.",
+          passive:"영체결속", passiveDesc:"소환수 활성 시 공격력 +30%",
+          charDesc:"3체의 속성 정령을 다루는 소환사\n자신은 약하지만 소환수들이\n강력한 공격을 대신 수행한다.",
+          unlockCond: "영구 강화 합산 5" },
+        { name:"강령술사", color:"#44ff88", diffStars:3,
+          hp:55,  atk:35,  def:0,   crit:20, atkSpd:80,  movSpd:95,
+          ratings:[["체력","중하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","중하"],["치명타","중상"]],
+          skill:"영혼 작열", skillDesc:"저장된 영혼을 탄환으로 변환해 일제 발사한다.",
+          passive:"영혼 수집", passiveDesc:"적 처치 시 영혼 +1 (최대 10), 스택당 공격력 +5%",
+          charDesc:"죽은 자의 영혼을 수집해 무기로\n삼는 강령술사. 처치할수록\n강해지는 후반형 직업이다.",
+          unlockCond: "누적 처치 30회" },
+        { name:"혈귀", color:"#cc2244", diffStars:4,
+          hp:70,  atk:60,  def:-5,  crit:25, atkSpd:110, movSpd:105,
+          ratings:[["체력","중상"],["공격력","상"],["방어","최하"],["공격속도","상"],["이동속도","중상"],["치명타","상"]],
+          skill:"혈기격", skillDesc:"HP 20% 소모, 전방 광역 흡혈 대참격을 날린다.",
+          passive:"분노의 피", passiveDesc:"피격 시 4초간 공격력 +15% 스택 (최대 5중첩)",
+          charDesc:"피를 마시며 싸우는 저주받은 존재\n피해를 받을수록 광분하여\n더욱 강력한 공격을 날린다.",
+          unlockCond: "한 런에서 피해 1000 이상 받고 클리어" },
+        { name:"검성",   color:"#aaddff", diffStars:4,
+          hp:75,  atk:80,  def:8,   crit:20, atkSpd:95,  movSpd:95,
+          ratings:[["체력","중상"],["공격력","상"],["방어","중상"],["공격속도","중하"],["이동속도","중하"],["치명타","중상"]],
+          skill:"팔방참", skillDesc:"8방향으로 검기를 동시 발사한다.",
+          passive:"카운터", passiveDesc:"패링 직후 다음 공격 피해량 3배",
+          charDesc:"검의 극의에 도달한 무인\n패링 후 역습으로 치명적인\n일격을 날리는 반격형 전사.",
+          unlockCond: "패링 20회" },
+        { name:"마창사", color:"#ff66ff", diffStars:3,
+          hp:55,  atk:65,  def:-5,  crit:22, atkSpd:80,  movSpd:100,
+          ratings:[["체력","중하"],["공격력","중상"],["방어","최하"],["공격속도","중하"],["이동속도","보통"],["치명타","중상"]],
+          skill:"마창 폭격", skillDesc:"전방 전체를 관통하는 마창 레이저를 발사한다.",
+          passive:"마력 충전", passiveDesc:"스킬 사용 시 MP +10 추가 충전",
+          charDesc:"마력을 창 끝에 응축시켜\n강력한 레이저를 발사하는 마창사\n스킬 연계가 핵심인 공세형 직업.",
+          unlockCond: "스킬 사용 15회" },
+        { name:"귀신병", color:"#66ffdd", diffStars:3,
+          hp:60,  atk:55,  def:-10, crit:18, atkSpd:100, movSpd:115,
+          ratings:[["체력","중하"],["공격력","중하"],["방어","최하"],["공격속도","보통"],["이동속도","상"],["치명타","중하"]],
+          skill:"귀신 강습", skillDesc:"적을 관통 이동 후 착지 지점 광역 폭발.",
+          passive:"대시 무적", passiveDesc:"대시 중 50% 피해 감소",
+          charDesc:"귀신처럼 빠르게 적진에 침투해\n관통 돌파 후 폭발로 마무리하는\n게릴라 전술의 달인.",
+          unlockCond: "엘리트 처치 10회" },
+        { name:"폭탄병", color:"#ff9922", diffStars:4,
+          hp:90,  atk:90,  def:8,   crit:15, atkSpd:55,  movSpd:88,
+          ratings:[["체력","상"],["공격력","최상"],["방어","중하"],["공격속도","최하"],["이동속도","하"],["치명타","중하"]],
+          skill:"초대형 폭탄", skillDesc:"포물선 폭탄을 던져 스킬 피해 3배 광역 대폭발을 일으킨다.",
+          passive:"폭발 전문가", passiveDesc:"스킬 피해량 300%, 폭발 반경 +40%",
+          charDesc:"처치 1000회를 달성한 자만이 다룰 수 있는\n극단적 한방 화력의 폭발 전문가\n한 발로 화면을 날려버리는 광역 섬멸형.",
+          unlockCond: "누적 처치 50회" },
+        { name:"빙술사", color:"#88ddff", diffStars:2,
+          hp:50,  atk:55,  def:0,   crit:15, atkSpd:75,  movSpd:95,
+          ratings:[["체력","중하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","중하"],["치명타","중하"]],
+          skill:"빙결 폭풍", skillDesc:"전방 부채꼴 범위의 적을 1.5초간 빙결시킨다.",
+          passive:"냉기 기운", passiveDesc:"빙결 적에게 공격 시 피해 +30%",
+          charDesc:"냉기 마법으로 적을 얼리는 빙술사\n군중 제어와 후속 딜의 조합으로\n싸우는 제어 특화 마법사.",
+          unlockCond: "영구 강화 합산 10" },
+        { name:"무당",   color:"#dd88ff", diffStars:4,
+          hp:55,  atk:50,  def:0,   crit:28, atkSpd:85,  movSpd:100,
+          ratings:[["체력","중하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","보통"],["치명타","상"]],
+          skill:"저주 의식", skillDesc:"주변 적 전체에 저주 — 스킬 피해 250%의 독 지속 피해.",
+          passive:"원한 축적", passiveDesc:"저주 적 처치 시 MP +5, 스킬 피해 250%",
+          charDesc:"스킬 200회를 채운 숙련된 무당\n저주 하나로 화면의 적을 모두 녹이는\n극강 지속 피해형 직업.",
+          unlockCond: "스킬 사용 30회" },
+        { name:"도박사", color:"#ffdd00", diffStars:5,
+          hp:60,  atk:55,  def:-10, crit:50, atkSpd:110, movSpd:115,
+          ratings:[["체력","중하"],["공격력","중하"],["방어","최하"],["공격속도","상"],["이동속도","상"],["치명타","최상"]],
+          skill:"도박 일격", skillDesc:"50% 확률로 4배 대박 OR 자신 HP 25% 손실.",
+          passive:"행운아", passiveDesc:"치명타 50%, 치명타 피해 700%",
+          charDesc:"처치 2000회 달성자만의 절대 강자\n크리티컬 하나로 보스를 순살하는\n확률형 최강 직업. 운이 나쁘면 자멸.",
+          unlockCond: "누적 처치 100회" },
+        { name:"분신술사", color:"#cc88ff", diffStars:4,
+          hp:55,  atk:60,  def:-5,  crit:40, atkSpd:150, movSpd:125,
+          ratings:[["체력","중하"],["공격력","중상"],["방어","최하"],["공격속도","최상"],["이동속도","최상"],["치명타","최상"]],
+          skill:"분신 소환", skillDesc:"4방향 그림자 분신을 생성해 함께 공격한다.",
+          passive:"그림자 수호", passiveDesc:"항상 분신 1기 유지, 분신도 강화 스탯 적용",
+          charDesc:"엘리트 200회 달성자의 증표\n분신들이 진짜 강해 동시 타격으로\n화면을 뒤덮는 물량 최강형 직업.",
+          unlockCond: "엘리트 처치 30회" },
+        { name:"연금술사", color:"#99ff66", diffStars:4,
+          hp:70,  atk:60,  def:8,   crit:22, atkSpd:100, movSpd:100,
+          ratings:[["체력","중상"],["공격력","중상"],["방어","중상"],["공격속도","보통"],["이동속도","보통"],["치명타","중상"]],
+          skill:"독 폭탄", skillDesc:"착탄 범위에 광역 독 구름을 생성해 지속 피해를 준다.",
+          passive:"연금 포션", passiveDesc:"5초마다 무작위 포션 (회복/강화/무적) + 피격 시 HP 회복",
+          charDesc:"다양한 포션과 독을 활용하는 연금술사\n5초마다 포션이 자동 발동되며\n독 피해가 극단적으로 강한 지속형 직업.",
+          unlockCond: "영구 강화 합산 15" },
+        { name:"선봉대", color:"#8899aa", diffStars:4,
+          hp:130, atk:50,  def:35,  crit:12, atkSpd:85,  movSpd:88,
+          ratings:[["체력","최상"],["공격력","중하"],["방어","최상"],["공격속도","중하"],["이동속도","하"],["치명타","최하"]],
+          skill:"전방 돌격", skillDesc:"전방 돌진하며 경로상 적 전체를 기절시킨다.",
+          passive:"전위 방패", passiveDesc:"피격 시 10초간 방어력 +10 추가 (중첩 가능)",
+          charDesc:"최전선을 책임지는 돌격대원\n체력 130 방어 35의 압도적 내구성\n방어 레벨을 극한으로 올린 자만 해금된다.",
+          unlockCond: "영구 방어 레벨 3" },
     ];
 
-    const cur  = Game.pClass || 0;
-    const prev = (cur + 5) % 6;
-    const next = (cur + 1) % 6;
+    const RATING_COLORS = {
+        "최상":"#00ffaa", "상":"#88ff44", "중상":"#ccff44",
+        "보통":"#aaaaaa", "중하":"#ffcc44", "하":"#ff8844", "최하":"#ff4444"
+    };
+
+    const cur = Game.pClass || 0;
+    const cl  = classes[cur];
+    const isUnlocked = (Game.unlockedClasses || Array(19).fill(0).map((v,i)=>i===0?1:0))[cur] === 1;
 
     const slideDir = Game._classSlideDir || 0;
     const slideT   = Game._classSlideT !== undefined ? Game._classSlideT : 1;
     const eased    = slideT < 1 ? 1 - Math.pow(1 - slideT, 2) : 1;
 
-    // 카드 크기 & 위치 — CH=360 기준
-    const BIG_W = 210, BIG_H = 245;
-    const SML_W = 155, SML_H = 190;
-    const GAP   = 12;
-    const CY    = CH / 2 + 8;   // 중앙 y
+    // ── 2패널 카드 (CW=640 기준, 좌우 대칭) ──
+    const CARD_X = 8,  CARD_Y = 58;
+    const CARD_W = 624, CARD_H = 275;
+    const PANEL_W = 306;               // 좌=우 동일 너비
+    const DIV_X  = CARD_X + PANEL_W;  // 구분선 x=314
+    const DIV_W  = 12;
+    const LC = CARD_X + PANEL_W / 2;         // 왼쪽 패널 중심 = 8+153 = 161
+    const RC = DIV_X + DIV_W + PANEL_W / 2;  // 오른쪽 패널 중심 = 314+12+153 = 479
+    const CARD_CX = CARD_X + CARD_W / 2;     // 카드 전체 중심 = 320
 
-    const bigCX   = CW / 2;
-    const leftCX  = bigCX - BIG_W / 2 - GAP - SML_W / 2;
-    const rightCX = bigCX + BIG_W / 2 + GAP + SML_W / 2;
+    const slideOff = slideDir !== 0 && eased < 1
+        ? Math.round((CARD_W + 20) * slideDir * (1 - eased))
+        : 0;
 
-    function getCardX(slot) {
-        const targets = { "-1": leftCX, "0": bigCX, "1": rightCX };
-        const base = targets[String(slot)];
-        if (slideDir === 0 || eased >= 1) return base;
-        const step   = rightCX - bigCX;
-        const offset = step * slideDir * (1 - eased);
-        return base + offset;
-    }
+    const _blink = Math.floor(frameNow / 700) % 2 === 0;
+
+    const r = parseInt(cl.color.slice(1,3),16);
+    const g = parseInt(cl.color.slice(3,5),16);
+    const b = parseInt(cl.color.slice(5,7),16);
 
     ctx.save();
-    ctx.beginPath(); ctx.rect(0, 46, CW, CH - 46); ctx.clip();
+    ctx.beginPath(); ctx.rect(0, 50, CW, CH - 50); ctx.clip();
 
-    const renderOrder = [
-        { cls: prev, slot: -1, isCenter: false },
-        { cls: next, slot:  1, isCenter: false },
-        { cls: cur,  slot:  0, isCenter: true  },
+    ctx.save();
+    ctx.translate(slideOff, 0);
+
+    // ── 카드 배경 & 테두리 ──
+    ctx.fillStyle = `rgba(${r},${g},${b},0.08)`;
+    ctx.fillRect(CARD_X, CARD_Y, CARD_W, CARD_H);
+    ctx.strokeStyle = cl.color; ctx.lineWidth = 2;
+    ctx.shadowBlur = 10; ctx.shadowColor = cl.color;
+    ctx.strokeRect(CARD_X, CARD_Y, CARD_W, CARD_H);
+    ctx.shadowBlur = 0;
+
+    // ── 중앙 구분선 (하단 SPACE 공간 확보) ──
+    ctx.fillStyle = `rgba(${r},${g},${b},0.20)`;
+    ctx.fillRect(DIV_X + 4, CARD_Y + 10, 3, CARD_H - 47);  // 하단 36px 남기고 끊음
+
+    // ════════════════════════════════
+    // 왼쪽 패널
+    // ════════════════════════════════
+
+    // 직업명
+    ctx.fillStyle = cl.color;
+    ctx.font = "bold 26px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "center";
+    ctx.shadowBlur = 10; ctx.shadowColor = cl.color;
+    ctx.fillText(cl.name, LC, CARD_Y + 30);
+    ctx.shadowBlur = 0;
+
+    // 난이도 별
+    const starStr = "★".repeat(cl.diffStars) + "☆".repeat(5 - cl.diffStars);
+    ctx.font = "14px SkullFont, NeoDunggeunmo";
+    ctx.fillStyle = "#ffcc44";
+    ctx.shadowBlur = 4; ctx.shadowColor = "#ffaa00";
+    ctx.fillText("난이도  " + starStr, LC, CARD_Y + 50);
+    ctx.shadowBlur = 0;
+
+    // 구분선 A
+    const DA_Y = CARD_Y + 60;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(CARD_X + 10, DA_Y); ctx.lineTo(CARD_X + PANEL_W - 4, DA_Y); ctx.stroke();
+
+    // 스킬명
+    ctx.fillStyle = cl.color;
+    ctx.font = "bold 16px SkullFont, NeoDunggeunmo";
+    ctx.shadowBlur = 5; ctx.shadowColor = cl.color;
+    ctx.fillText("스킬: " + cl.skill, LC, DA_Y + 40);
+    ctx.shadowBlur = 0;
+
+    // 스킬 설명
+    ctx.fillStyle = "#ccccee";
+    ctx.font = "13px SkullFont, NeoDunggeunmo";
+    const skMaxW = PANEL_W - 20;
+    let skLine = "", skY = DA_Y + 62;
+    for (let i = 0; i < cl.skillDesc.length; i++) {
+        const test = skLine + cl.skillDesc[i];
+        if (ctx.measureText(test).width > skMaxW && skLine.length > 0) {
+            ctx.fillText(skLine, LC, skY); skLine = cl.skillDesc[i]; skY += 18;
+        } else { skLine = test; }
+    }
+    if (skLine) ctx.fillText(skLine, LC, skY);
+
+    // 구분선 B
+    const DB_Y = DA_Y + 96;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(CARD_X + 10, DB_Y); ctx.lineTo(CARD_X + PANEL_W - 4, DB_Y); ctx.stroke();
+
+    // 패시브 헤더
+    ctx.fillStyle = "#ffdd88";
+    ctx.font = "bold 15px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "center";
+    ctx.shadowBlur = 4; ctx.shadowColor = "#cc8800";
+    ctx.fillText("[ 패시브 ]  " + cl.passive, LC, DB_Y + 40);
+    ctx.shadowBlur = 0;
+
+    // 패시브 설명
+    ctx.fillStyle = "#bbbbcc";
+    ctx.font = "13px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "center";
+    let paLine = "", paY = DB_Y + 60;
+    for (let i = 0; i < cl.passiveDesc.length; i++) {
+        const test = paLine + cl.passiveDesc[i];
+        if (ctx.measureText(test).width > skMaxW && paLine.length > 0) {
+            ctx.fillText(paLine, LC, paY); paLine = cl.passiveDesc[i]; paY += 16;
+        } else { paLine = test; }
+    }
+    if (paLine) ctx.fillText(paLine, LC, paY);
+
+    // ════════════════════════════════
+    // 오른쪽 패널
+    // ════════════════════════════════
+    const RX = DIV_X + DIV_W; // 오른쪽 패널 시작 x = 326
+
+    // ── 상단: 스탯 수치 (다크쿼츠 보너스 포함) ──
+    const bonusHp     = (Game.permHpLvl    || 0) * 10;
+    const bonusAtk    = (Game.permAtkLvl   || 0) * 2;
+    const bonusCrit   = (Game.permCritLvl  || 0) * 2;
+    const bonusSpd    = (Game.permSpdLvl   || 0) * 4;
+    const bonusDef    = (Game.permDefLvl   || 0) * 2;
+    const bonusAtkSpd = (Game.permAtkSpdLvl|| 0) * 5;
+
+    const defVal = cl.def >= 0 ? "+" + cl.def : String(cl.def);
+    const statPairs = [
+        [{ lbl:"체력",     val:`${cl.hp}`,      bonus: bonusHp     > 0 ? `+${bonusHp}`      : "", col:"#ff8888" },
+         { lbl:"공격력",   val:`${cl.atk}`,     bonus: bonusAtk    > 0 ? `+${bonusAtk}`     : "", col:"#ffaa66" }],
+        [{ lbl:"방어",     val:defVal,           bonus: bonusDef    > 0 ? `+${bonusDef}`     : "", col:"#88ff88" },
+         { lbl:"치명타",   val:`${cl.crit}%`,   bonus: bonusCrit   > 0 ? `+${bonusCrit}%`   : "", col:"#ff88cc" }],
+        [{ lbl:"공격속도", val:`${cl.atkSpd}%`, bonus: bonusAtkSpd > 0 ? `+${bonusAtkSpd}%` : "", col:"#ffee88" },
+         { lbl:"이동속도", val:`${cl.movSpd}%`, bonus: bonusSpd    > 0 ? `+${bonusSpd}%`    : "", col:"#88ccff" }],
     ];
 
-    renderOrder.forEach(({ cls, slot, isCenter }) => {
-        const cl  = classes[cls];
-        const cw  = isCenter ? BIG_W : SML_W;
-        const ch  = isCenter ? BIG_H : SML_H;
-        const ccx = getCardX(slot);
-        const bx  = Math.round(ccx - cw / 2);
-        const by  = Math.round(CY - ch / 2);
+    const STAT_TOP = CARD_Y + 16;
+    const STAT_ROW_H = 26;
+    const CELL_W = 144, LBL_W = 58;
+    const STAT_BX = RX + 4;
 
-        ctx.save();
-        ctx.globalAlpha = isCenter ? 1.0 : 0.4;
-
-        const r = parseInt(cl.color.slice(1,3),16);
-        const g = parseInt(cl.color.slice(3,5),16);
-        const b = parseInt(cl.color.slice(5,7),16);
-
-        // 카드 배경
-        ctx.fillStyle = isCenter
-            ? `rgba(${r},${g},${b},0.15)`
-            : "rgba(255,255,255,0.03)";
-        ctx.fillRect(bx, by, cw, ch);
-
-        // 테두리
-        if (isCenter) {
-            ctx.strokeStyle = cl.color; ctx.lineWidth = 2;
-            ctx.shadowBlur = 8; ctx.shadowColor = cl.color;
-            ctx.strokeRect(bx, by, cw, ch);
-            ctx.shadowBlur = 0;
-        } else {
-            ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 1;
-            ctx.strokeRect(bx, by, cw, ch);
-        }
-
-        // ── 직업명 ──
-        ctx.fillStyle = isCenter ? cl.color : "#666";
-        ctx.font = `bold ${isCenter ? 15 : 12}px SkullFont, NeoDunggeunmo`;
-        ctx.textAlign = "center";
-        if (isCenter) { ctx.shadowBlur = 5; ctx.shadowColor = cl.color; }
-        ctx.fillText(cl.name, bx + cw/2, by + 22);
-        ctx.shadowBlur = 0;
-
-        // ── 사이드 카드: 간략 표기 ──
-        const bonusHp = (Game.permHpLvl || 0) * 10;
-        if (!isCenter) {
-            ctx.font = "9px SkullFont, NeoDunggeunmo";
-            ctx.fillStyle = "#555";
-            ctx.fillText(`HP ${cl.hp + bonusHp}  치명 ${cl.crit}%`, bx + cw/2, by + 36);
-            ctx.restore(); return;
-        }
-
-        // ── 중앙 카드 전용: 3행×2열 스탯 그리드 (라벨|값 정렬, 블록 중앙정렬) ──
-        const bonusAtk = (Game.permAtkLvl || 0) * 2;
-        const GRID_TOP = by + 32;
-        const GRID_ROW_H = 16;
-
-        // 각 열 고정폭: 라벨 44px + 간격 10px + 값 40px = 94px 한 셀
-        // 두 셀 + 중앙 간격 18px = 206px → 카드 중앙 정렬
-        const CELL_W = 94;   // 라벨+값 한 쌍 폭
-        const CELL_GAP = 18; // 두 열 사이 간격
-        const LBL_W = 44;    // 라벨 고정폭 (오른쪽 정렬)
-        const BLOCK_W = CELL_W * 2 + CELL_GAP;
-        const BLOCK_X = bx + (cw - BLOCK_W) / 2; // 블록 좌측 기준점
-
-        const statPairs = [
-            [{ lbl:"체력",    val:`${cl.hp + bonusHp}`, col:"#ff8888" },
-             { lbl:"방어",    val:`${cl.def >= 0 ? "+"+cl.def : cl.def}`, col:"#88ff88" }],
-            [{ lbl:"치명타",  val:`${cl.crit}%`,   col:"#ff88cc" },
-             { lbl:"공격속도", val:`${cl.atkSpd}%`, col:"#ffdd88" }],
-            [{ lbl:"이동속도", val:`${cl.movSpd}%`, col:"#88ccff" },
-             { lbl:"점프력",  val:`${cl.jmp}%`,    col:"#cc88ff" }],
-        ];
-
-        ctx.font = "9px SkullFont, NeoDunggeunmo";
-        statPairs.forEach((pair, row) => {
-            const sy = GRID_TOP + row * GRID_ROW_H + 9;
-            pair.forEach((st, col) => {
-                const cellX = BLOCK_X + col * (CELL_W + CELL_GAP);
-                // 라벨 — 고정폭 오른쪽 정렬
-                ctx.fillStyle = "#777";
-                ctx.textAlign = "right";
-                ctx.fillText(st.lbl, cellX + LBL_W, sy);
-                // 값 — 라벨 바로 오른쪽 왼정렬
-                ctx.fillStyle = st.col;
-                ctx.textAlign = "left";
-                ctx.fillText(st.val, cellX + LBL_W + 4, sy);
-            });
+    ctx.font = "14px SkullFont, NeoDunggeunmo";
+    statPairs.forEach((pair, row) => {
+        const sy = STAT_TOP + row * STAT_ROW_H + 11;
+        pair.forEach((st, col) => {
+            const cellX = STAT_BX + col * CELL_W;
+            ctx.fillStyle = "#888";
+            ctx.textAlign = "right";
+            ctx.fillText(st.lbl, cellX + LBL_W, sy);
+            ctx.fillStyle = st.col;
+            ctx.textAlign = "left";
+            ctx.fillText(st.val, cellX + LBL_W + 5, sy);
+            if (st.bonus) {
+                const valW = ctx.measureText(st.val).width;
+                ctx.fillStyle = "#df40ff";
+                ctx.fillText(st.bonus, cellX + LBL_W + 5 + valW + 2, sy);
+            }
         });
-
-        // 영구 보너스 표기 (퍼크 있을 때)
-        if (bonusHp > 0 || bonusAtk > 0) {
-            ctx.fillStyle = "#df40ff"; ctx.font = "8px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
-            ctx.fillText(`[영구: HP+${bonusHp} ATK+${bonusAtk}]`, bx + cw/2, GRID_TOP + 3 * GRID_ROW_H + 2);
-        }
-
-        // ── 구분선 1 ──
-        const LINE1_Y = GRID_TOP + 3 * GRID_ROW_H + (bonusHp > 0 || bonusAtk > 0 ? 14 : 6);
-        ctx.fillStyle = `rgba(${r},${g},${b},0.35)`;
-        ctx.fillRect(bx + 10, LINE1_Y, cw - 20, 1);
-
-        // ── 스킬 이름 ──
-        const SKILL_Y = LINE1_Y + 13;
-        ctx.fillStyle = cl.color;
-        ctx.font = "bold 10px SkullFont, NeoDunggeunmo";
-        ctx.textAlign = "center";
-        ctx.shadowBlur = 4; ctx.shadowColor = cl.color;
-        ctx.fillText(`스킬: ${cl.skill}`, bx + cw/2, SKILL_Y);
-        ctx.shadowBlur = 0;
-
-        // ── 스킬 설명 ──
-        ctx.fillStyle = "#aaaacc";
-        ctx.font = "9px SkullFont, NeoDunggeunmo";
-        const words = cl.skillDesc;
-        const maxW  = cw - 20;
-        let line = "", lineY = SKILL_Y + 13;
-        for (let i = 0; i < words.length; i++) {
-            const test = line + words[i];
-            if (ctx.measureText(test).width > maxW && line.length > 0) {
-                ctx.fillText(line, bx + cw/2, lineY);
-                line = words[i]; lineY += 12;
-            } else { line = test; }
-        }
-        if (line) ctx.fillText(line, bx + cw/2, lineY);
-
-        // ── 구분선 2 ──
-        const LINE2_Y = lineY + 8;
-        ctx.fillStyle = `rgba(${r},${g},${b},0.2)`;
-        ctx.fillRect(bx + 10, LINE2_Y, cw - 20, 1);
-
-        // ── 직업 설명 + 태그 ──
-        ctx.fillStyle = "#99aacc";
-        ctx.font = "9px SkullFont, NeoDunggeunmo";
-        ctx.textAlign = "center";
-        ctx.fillText(cl.charDesc, bx + cw/2, LINE2_Y + 11);
-
-        // 태그 (하단 2개, 작게)
-        const TAG_Y2 = LINE2_Y + 22;
-        const TAG_W2 = 66, TAG_H2 = 11, TAG_GAP2 = 4;
-        const tagsTotal2 = cl.tags.length * TAG_W2 + (cl.tags.length - 1) * TAG_GAP2;
-        let tagX2 = bx + (cw - tagsTotal2) / 2;
-        cl.tags.forEach(tag => {
-            ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
-            ctx.fillRect(tagX2, TAG_Y2, TAG_W2, TAG_H2);
-            ctx.strokeStyle = `rgba(${r},${g},${b},0.4)`; ctx.lineWidth = 0.7;
-            ctx.strokeRect(tagX2, TAG_Y2, TAG_W2, TAG_H2);
-            ctx.fillStyle = "#aaaaaa";
-            ctx.font = "8px SkullFont, NeoDunggeunmo";
-            ctx.textAlign = "center";
-            ctx.fillText(tag, tagX2 + TAG_W2/2, TAG_Y2 + 8);
-            tagX2 += TAG_W2 + TAG_GAP2;
-        });
-
-        // ── 선택 플래시 ──
-        if (Math.floor(frameNow / 350) % 2 === 0) {
-            ctx.fillStyle = cl.color;
-            ctx.font = "bold 9px SkullFont, NeoDunggeunmo";
-            ctx.textAlign = "center";
-            ctx.fillText("▶ SPACE 선택 ◀", bx + cw/2, by + ch - 6);
-        }
-
-        ctx.restore();
     });
 
-    // 사이드 화살표
-    ctx.save(); ctx.globalAlpha = 0.35; ctx.font = "16px SkullFont, NeoDunggeunmo"; ctx.textAlign = "center";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText("◀", leftCX - SML_W/2 - 10, CY + 5);
-    ctx.fillText("▶", rightCX + SML_W/2 + 10, CY + 5);
-    ctx.restore();
+    // 구분선 (스탯/배지 경계)
+    const RDIV_Y = STAT_TOP + 3 * STAT_ROW_H + 10;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(RX + 6, RDIV_Y); ctx.lineTo(RX + PANEL_W - 4, RDIV_Y); ctx.stroke();
 
-    // 페이지 인디케이터
-    ctx.save();
-    for (let i = 0; i < 6; i++) {
-        const dotX = CW/2 - 5*7 + i*14 + 7;
-        const dotY = CY + BIG_H/2 + 12;
-        ctx.fillStyle = i === cur ? "#ffcc00" : "rgba(255,255,255,0.18)";
-        ctx.beginPath(); ctx.arc(dotX, dotY, i === cur ? 4 : 2.5, 0, Math.PI*2); ctx.fill();
+    // ── 하단: 등급 배지 ──
+    const BADGE_COLS = 3;
+    const BADGE_W = 92, BADGE_H = 28, BADGE_GAP_X = 4, BADGE_GAP_Y = 6;
+    const badgeBlockW = BADGE_COLS * BADGE_W + (BADGE_COLS - 1) * BADGE_GAP_X;
+    const badgeSX = RX + (PANEL_W - badgeBlockW) / 2;
+    const badgeSY = RDIV_Y + 10;
+
+    (cl.ratings || []).forEach((rt, i) => {
+        const col = i % BADGE_COLS, row = Math.floor(i / BADGE_COLS);
+        const tx = badgeSX + col * (BADGE_W + BADGE_GAP_X);
+        const ty = badgeSY + row * (BADGE_H + BADGE_GAP_Y);
+        const rCol = RATING_COLORS[rt[1]] || "#aaaaaa";
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(tx, ty, BADGE_W, BADGE_H);
+        ctx.strokeStyle = rCol + "99"; ctx.lineWidth = 1;
+        ctx.strokeRect(tx, ty, BADGE_W, BADGE_H);
+        ctx.fillStyle = "#888";
+        ctx.font = "12px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "left";
+        ctx.fillText(rt[0], tx + 6, ty + 17);
+        ctx.fillStyle = rCol;
+        ctx.font = "bold 12px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "right";
+        ctx.fillText(rt[1], tx + BADGE_W - 6, ty + 17);
+    });
+
+    // ── 배지 아래 구분선 + 캐릭터 설명 ──
+    const badgeBlockH = 2 * (BADGE_H + BADGE_GAP_Y);
+    const descDivY = badgeSY + badgeBlockH + 4;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(RX + 10, descDivY); ctx.lineTo(RX + PANEL_W - 10, descDivY); ctx.stroke();
+    if (cl.charDesc) {
+        ctx.fillStyle = "#aaaaaa";
+        ctx.font = "13px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "center";
+        cl.charDesc.split("\n").forEach((line, i) => {
+            ctx.fillText(line, RX + PANEL_W / 2, descDivY + 20 + i * 16);
+        });
     }
+
+    // ── SPACE 선택 (카드 정중앙 하단) ──
+    ctx.font = "bold 15px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "center";
+    if (_blink) {
+        ctx.fillStyle = cl.color;
+        ctx.shadowBlur = 8; ctx.shadowColor = cl.color;
+    } else {
+        const _dr = Math.floor(r * 0.3).toString(16).padStart(2,'0');
+        const _dg = Math.floor(g * 0.3).toString(16).padStart(2,'0');
+        const _db = Math.floor(b * 0.3).toString(16).padStart(2,'0');
+        ctx.fillStyle = `#${_dr}${_dg}${_db}`;
+        ctx.shadowBlur = 0;
+    }
+    ctx.fillText("▶  SPACE 선택  ◀", CARD_CX, CARD_Y + CARD_H - 16);
+    ctx.shadowBlur = 0;
+
+    // ── 해금 오버레이 (미해금 시) ──
+    if (!isUnlocked) {
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillRect(CARD_X, CARD_Y, CARD_W, CARD_H);
+
+        const boxW = 420, boxH = 80;
+        const boxX = CARD_CX - boxW / 2;
+        const boxY = CARD_Y + (CARD_H - boxH) / 2;
+
+        ctx.fillStyle = "rgba(0,0,0,0.9)";
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+        ctx.strokeStyle = cl.color; ctx.lineWidth = 2;
+        ctx.shadowBlur = 14; ctx.shadowColor = cl.color;
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = cl.color;
+        ctx.font = "bold 14px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "center";
+        ctx.shadowBlur = 8; ctx.shadowColor = cl.color;
+        ctx.fillText("[ 해금 조건 ]", CARD_CX, boxY + 24);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = cl.color;
+        ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+        ctx.shadowBlur = 6; ctx.shadowColor = cl.color;
+        ctx.fillText(cl.unlockCond || "", CARD_CX, boxY + 46);
+        ctx.shadowBlur = 0;
+
+        const prog = _getUnlockProgress(cur);
+        if (prog) {
+            ctx.fillStyle = "rgba(255,255,255,0.55)";
+            ctx.font = "11px SkullFont, NeoDunggeunmo";
+            ctx.fillText(prog, CARD_CX, boxY + 64);
+        }
+
+        if ((Game._classLockFlash || 0) > 0) {
+            Game._classLockFlash--;
+            ctx.fillStyle = cl.color;
+            ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+            ctx.shadowBlur = 8; ctx.shadowColor = "#ff0000";
+            ctx.fillText("해금 조건을 달성하세요!", CARD_CX, CARD_Y + CARD_H - 18);
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    ctx.restore(); // translate
+
+    // ── 페이지 인디케이터 (19직업) ──
+    for (let i = 0; i < 19; i++) {
+        const dotX = CW/2 - 9*10 + i*10;
+        const dotY = CARD_Y + CARD_H + 14;
+        const ulk = (Game.unlockedClasses || Array(19).fill(0).map((v,j)=>j===0?1:0))[i] === 1;
+        ctx.fillStyle = i === cur ? "#ffcc00" : (ulk ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)");
+        ctx.beginPath(); ctx.arc(dotX, dotY, i === cur ? 5 : 3, 0, Math.PI*2); ctx.fill();
+    }
+
+    ctx.restore(); // clip
+
+    // ── ESC 돌아가기 (우측 상단) ──
+    ctx.save();
+    ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "right";
+    if (_blink) { ctx.fillStyle = "#aaaaaa"; ctx.shadowBlur = 0; }
+    else         { ctx.fillStyle = "#444444"; ctx.shadowBlur = 0; }
+    ctx.fillText("[ESC]  돌아가기", CW - 14, 20);
     ctx.restore();
 
-    ctx.restore(); // clip 해제
+    // ── 하단 힌트 ──
+    ctx.save();
+    ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "left";
+    if (_blink) { ctx.fillStyle = "#00ffee"; ctx.shadowBlur = 8; ctx.shadowColor = "#00cccc"; }
+    else         { ctx.fillStyle = "#006655"; ctx.shadowBlur = 0; }
+    ctx.fillText("← → 이동", 16, CH - 10);
+    ctx.shadowBlur = 0; ctx.restore();
+
+    ctx.save();
+    ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#445566";
+    ctx.fillText("Tab  유물 목록", CW / 2, CH - 10);
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+    ctx.textAlign = "right";
+    if (_blink) { ctx.fillStyle = "#cc66ff"; ctx.shadowBlur = 9; ctx.shadowColor = "#aa22ff"; }
+    else         { ctx.fillStyle = "#4a2266"; ctx.shadowBlur = 0; }
+    ctx.fillText("S  다크 쿼츠 시스템", CW - 14, CH - 10);
+    ctx.shadowBlur = 0; ctx.restore();
+
     ctx.textAlign = "left"; ctx.lineWidth = 1;
+}
+
+function _getUnlockProgress(classIdx) {
+    switch(classIdx) {
+        case 4: return `처치: ${Game.totalKills || 0} / 20회`;
+        case 5: return `패링: ${Game.totalParryCount || 0} / 10회`;
+        case 6: {
+            const s = (Game.permHpLvl||0)+(Game.permAtkLvl||0)+(Game.permCritLvl||0)+(Game.permSpdLvl||0)
+                    +(Game.permDefLvl||0)+(Game.permAtkSpdLvl||0)+(Game.permDashLvl||0)+(Game.permCritDmgLvl||0)+(Game.permMpLvl||0);
+            return `영구 강화 합산: ${s} / 5`;
+        }
+        case 7: return `처치: ${Game.totalKills || 0} / 30회`;
+        case 8: return `한 런에서 피해 1000 이상 받고 클리어`;
+        case 9: return `패링: ${Game.totalParryCount || 0} / 20회`;
+        case 10: return `스킬 사용: ${Game.totalSkillUses || 0} / 15회`;
+        case 11: return `엘리트 처치: ${Game.totalEliteKills || 0} / 10회`;
+        case 12: return `처치: ${Game.totalKills || 0} / 50회`;
+        case 13: {
+            const s = (Game.permHpLvl||0)+(Game.permAtkLvl||0)+(Game.permCritLvl||0)+(Game.permSpdLvl||0)
+                    +(Game.permDefLvl||0)+(Game.permAtkSpdLvl||0)+(Game.permDashLvl||0)+(Game.permCritDmgLvl||0)+(Game.permMpLvl||0);
+            return `영구 강화 합산: ${s} / 10`;
+        }
+        case 14: return `스킬 사용: ${Game.totalSkillUses || 0} / 30회`;
+        case 15: return `처치: ${Game.totalKills || 0} / 100회`;
+        case 16: return `엘리트 처치: ${Game.totalEliteKills || 0} / 30회`;
+        case 17: {
+            const s = (Game.permHpLvl||0)+(Game.permAtkLvl||0)+(Game.permCritLvl||0)+(Game.permSpdLvl||0)
+                    +(Game.permDefLvl||0)+(Game.permAtkSpdLvl||0)+(Game.permDashLvl||0)+(Game.permCritDmgLvl||0)+(Game.permMpLvl||0);
+            return `영구 강화 합산: ${s} / 15`;
+        }
+        case 18: return `영구 방어 레벨: ${Game.permDefLvl || 0} / 3`;
+        default: return null;
+    }
 }
 function drawUI() {
     if (Game.gs === "menu" || Game.gs === "class_select" || Game.gs === "shop") return;
@@ -405,141 +646,184 @@ if (
         );
         const asVal  = Math.round((Game.pBaseAtkSpd || 1) * (Game.pAtkSpdMul || 1) * 100);
         const critPct = Math.round((Game.pCritChance || 0.2) * 100);
-        const movPct  = Math.round((Game.pMoveSpdMul || 1) * 100);
-        const jmpPct  = Math.round((Game.pJmpMul || 1) * 100);
+        const _maxMovPct = Game.pClass === 1 ? 200 : 160;
+        const _maxJmpPct = Game.pClass === 1 ? 170 : 140;
+        const movPct  = Math.min(_maxMovPct, Math.round((Game.pMoveSpdMul || 1) * 100));
+        const jmpPct  = Math.min(_maxJmpPct, Math.round((Game.pJmpMul || 1) * 100));
 
-        ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.fillRect(10, 50, 120, 112);
-        ctx.font = "11px SkullFont, NeoDunggeunmo"; ctx.textAlign = "left";
+        ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.fillRect(10, 50, 138, 132);
+        ctx.font = "13px SkullFont, NeoDunggeunmo"; ctx.textAlign = "left";
 
         const rows = [
-            { label: "공격력", val: `${atkVal}`,      col: "#af1616" },
-            { label: "방어력", val: `${Game.pBaseDef}`, col: "#32b427" },
-            { label: "치명타",val: `${critPct}%`,    col: "#d6467d" },
-            { label: "공격속도", val: `${asVal}%`,      col: "#f1d13e" },
-            { label: "이동속도", val: `${movPct}%`,     col: "#2e9de7" },
-            { label: "점프력", val: `${jmpPct}%`,     col: "#661ea1" },
+            { label: "공격력",   val: `${atkVal}`       },
+            { label: "방어력",   val: `${Game.pBaseDef}` },
+            { label: "치명타",   val: `${critPct}%`     },
+            { label: "공격속도", val: `${asVal}%`       },
+            { label: "이동속도", val: `${movPct}%`      },
+            { label: "점프력",   val: `${jmpPct}%`      },
         ];
         rows.forEach((r, i) => {
-            ctx.fillStyle = "#888";
-            ctx.fillText(r.label, 16, 75 + i * 16);
-            ctx.fillStyle = r.col;
-            ctx.fillText(r.val, 66, 75 + i * 16);
+            ctx.fillStyle = "#aaaaaa";
+            ctx.fillText(r.label, 16, 75 + i * 19);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(r.val, 78, 75 + i * 19);
         });
     }
     
     // 스태미나/대시/스킬은 위의 하단 게이지 3종으로 통합
     // 체간 게이지 (스턴 가능 적 위에 표시) - drawEntities에서 처리
     if (Game.invT > 85) { ctx.fillStyle = `rgba(255, 0, 0, ${(Game.invT - 85) / 15 * 0.4})`; ctx.fillRect(0, 0, CW, CH); }
-    // 헤븐즈콜 — 하늘에서 내리꽂히는 신성 십자가
+    // 헤븐즈콜 — 하늘에서 내리꽂히는 신성 십자가 (강화판)
     if ((Game._paladinCrossT || 0) > 0) {
         Game._paladinCrossT--;
         const ct    = Game._paladinCrossT;
-        const TOTAL = 70;
+        const TOTAL = 65;
         const cx_     = (Game._paladinCrossX || CW/2) - (Game.camX || 0);
         const groundY = Game._paladinCrossY || (CH - 60);
         const prog    = 1 - ct / TOTAL;
-        const alpha   = ct < 18 ? ct / 18 : (prog < 0.08 ? prog / 0.08 : 1);
+        const alpha   = ct < 20 ? ct / 20 : (prog < 0.06 ? prog / 0.06 : 1);
         ctx.save();
 
-        // ── 낙하 단계 (prog 0→0.6): 화면 위 200px → groundY-50 ──
-        const fallP    = Math.min(prog / 0.6, 1.0);
-        const eased    = 1 - Math.pow(1 - fallP, 3); // ease-in-cubic (가속 낙하)
-        const crossTop = -200 + eased * (groundY - 50 + 200); // 십자가 상단 Y
+        // ── 낙하 단계 (prog 0→0.55): 화면 위 → groundY ──
+        const fallP  = Math.min(prog / 0.55, 1.0);
+        const eased  = 1 - Math.pow(1 - fallP, 3);
+        const crossTop = -240 + eased * (groundY - 60 + 240);
 
-        // 크기: 낙하 중 약간 커짐 (0.7→1.0)
-        const sc = 0.7 + eased * 0.3;
-        const H  = Math.round(130 * sc);
-        const W  = Math.round(18  * sc);
-        const AW = Math.round(104 * sc);
-        const AH = Math.round(18  * sc);
-        const armY = crossTop + Math.round(H * 0.28); // 가로대 위치 (위쪽 30%)
+        // 크기: 낙하 중 0.6→1.2 (더 크게)
+        const sc = 0.6 + eased * 0.6;
+        const H  = Math.round(170 * sc);
+        const W  = Math.round(22  * sc);
+        const AW = Math.round(130 * sc);
+        const AH = Math.round(22  * sc);
+        const armY = crossTop + Math.round(H * 0.3);
 
-        // ── 하늘 빛줄기 (화면 위에서 crossTop까지) ──
-        ctx.globalAlpha = alpha * 0.5;
+        // ── 배경 전체 엷은 황금빛 (낙하~착지 구간) ──
+        if (prog < 0.65) {
+            ctx.globalAlpha = alpha * eased * 0.12;
+            ctx.fillStyle = "#ffeeaa";
+            ctx.fillRect(0, 0, CW, CH);
+        }
+
+        // ── 하늘 빛기둥 (화면 전체 위에서 crossTop까지, 매우 넓고 밝게) ──
+        ctx.globalAlpha = alpha * 0.65;
+        const beamW = W * 2.5;
         const beamGrd = ctx.createLinearGradient(cx_, 0, cx_, crossTop);
-        beamGrd.addColorStop(0, "rgba(255,255,220,0)");
-        beamGrd.addColorStop(0.7, `rgba(255,240,120,0.18)`);
-        beamGrd.addColorStop(1, `rgba(255,230,50,0.55)`);
+        beamGrd.addColorStop(0, "rgba(255,255,200,0)");
+        beamGrd.addColorStop(0.5, `rgba(255,240,100,0.22)`);
+        beamGrd.addColorStop(1, `rgba(255,220,40,0.70)`);
         ctx.fillStyle = beamGrd;
-        ctx.fillRect(cx_ - W * 0.6, 0, W * 1.2, crossTop);
+        ctx.fillRect(cx_ - beamW * 1.5, 0, beamW * 3, Math.max(0, crossTop));
+        // 보조 넓은 빛기둥
+        ctx.globalAlpha = alpha * 0.25;
+        ctx.fillStyle = beamGrd;
+        ctx.fillRect(cx_ - AW * 1.2, 0, AW * 2.4, Math.max(0, crossTop));
 
-        // ── 글로우 후광 ──
+        // ── 후광 (십자가 중심부) ──
         ctx.globalAlpha = alpha;
-        const gCY = crossTop + H * 0.35;
-        const grd = ctx.createRadialGradient(cx_, gCY, 0, cx_, gCY, 100 * sc);
-        grd.addColorStop(0, `rgba(255,250,180,${alpha*0.55})`);
-        grd.addColorStop(0.5, `rgba(255,210,60,${alpha*0.2})`);
-        grd.addColorStop(1, "rgba(0,0,0,0)");
+        const gCY = crossTop + H * 0.3;
+        const glowR = 130 * sc;
+        const grd = ctx.createRadialGradient(cx_, gCY, 0, cx_, gCY, glowR);
+        grd.addColorStop(0,   `rgba(255,255,200,${alpha * 0.7})`);
+        grd.addColorStop(0.35,`rgba(255,220,60,${alpha * 0.35})`);
+        grd.addColorStop(0.7, `rgba(255,180,0,${alpha * 0.12})`);
+        grd.addColorStop(1,   "rgba(0,0,0,0)");
         ctx.fillStyle = grd;
-        ctx.beginPath(); ctx.arc(cx_, gCY, 100 * sc, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx_, gCY, glowR, 0, Math.PI*2); ctx.fill();
 
         // ── 십자가 본체 ──
-        ctx.shadowBlur = 28; ctx.shadowColor = "#fffaaa";
         ctx.globalAlpha = alpha;
-        // 세로
+        // shadowBlur 없이 먼저 본체 그리기 (shadow가 십자가 위에 네모 잔상 남기는 현상 방지)
+        ctx.shadowBlur = 0;
+        // 세로 본체
         ctx.fillStyle = `rgba(255,230,50,1)`;
         ctx.fillRect(cx_ - W/2, crossTop, W, H);
-        ctx.fillStyle = `rgba(255,255,230,0.9)`;
-        ctx.fillRect(cx_ - W*0.22, crossTop + 2, W * 0.44, H - 4);
-        // 가로
+        ctx.fillStyle = `rgba(255,255,220,0.95)`;
+        ctx.fillRect(cx_ - W*0.25, crossTop + 2, W*0.5, H - 4);
+        // 가로 본체
         ctx.fillStyle = `rgba(255,230,50,1)`;
         ctx.fillRect(cx_ - AW/2, armY, AW, AH);
-        ctx.fillStyle = `rgba(255,255,230,0.9)`;
-        ctx.fillRect(cx_ - AW/2 + 2, armY + W*0.22, AW - 4, AH * 0.55);
+        ctx.fillStyle = `rgba(255,255,220,0.95)`;
+        ctx.fillRect(cx_ - AW/2 + 2, armY + AH*0.2, AW - 4, AH*0.6);
 
-        // 끝 장식 (4방향)
-        ctx.shadowBlur = 16;
+        // 발광 테두리는 radial gradient로 (flat rect shadow 잔상 없이)
+        ctx.shadowBlur = 28; ctx.shadowColor = "#ffe060";
+        ctx.strokeStyle = `rgba(255,240,100,${alpha * 0.85})`; ctx.lineWidth = 3;
+        ctx.strokeRect(cx_ - W/2 - 1, crossTop - 1, W + 2, H + 2);
+        ctx.strokeRect(cx_ - AW/2 - 1, armY - 1, AW + 2, AH + 2);
+        ctx.shadowBlur = 0;
+
+        // 4방향 끝 보석 장식
+        ctx.shadowBlur = 18; ctx.shadowColor = "#ffe880";
         [[cx_, crossTop],[cx_, crossTop+H],[cx_-AW/2, armY+AH/2],[cx_+AW/2, armY+AH/2]].forEach(([ex,ey])=>{
-            ctx.fillStyle = `rgba(255,255,200,${alpha*0.9})`;
-            ctx.beginPath(); ctx.arc(ex, ey, 5 * sc, 0, Math.PI*2); ctx.fill();
-            // 보조 광점
-            ctx.fillStyle = `rgba(255,255,255,${alpha*0.5})`;
-            ctx.beginPath(); ctx.arc(ex, ey, 2.5 * sc, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255,255,160,${alpha})`;
+            ctx.beginPath(); ctx.arc(ex, ey, 7 * sc, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255,255,255,${alpha*0.85})`;
+            ctx.beginPath(); ctx.arc(ex, ey, 3.5 * sc, 0, Math.PI*2); ctx.fill();
         });
         ctx.shadowBlur = 0;
 
-        // ── 착지 충격파 (prog 0.58~0.82) ──
-        if (prog > 0.58 && prog < 0.82) {
-            const sp  = (prog - 0.58) / 0.24;
-            const sw  = 160 * Math.sqrt(sp);
+        // ── 착지 충격파 3중 링 (prog 0.52~0.85) ──
+        if (prog > 0.52 && prog < 0.85) {
+            const sp  = (prog - 0.52) / 0.33;
+            const sw1 = 220 * Math.sqrt(sp);
+            const sw2 = 140 * Math.sqrt(sp);
+            const sw3 =  70 * Math.sqrt(sp);
             const sa  = (1 - sp) * alpha;
-            // 바깥 링
-            ctx.strokeStyle = `rgba(255,220,80,${sa*0.95})`; ctx.lineWidth = 5;
-            ctx.beginPath(); ctx.arc(cx_, groundY, sw, 0, Math.PI*2); ctx.stroke();
-            // 안쪽 링
-            ctx.strokeStyle = `rgba(255,255,200,${sa*0.55})`; ctx.lineWidth = 2.5;
-            ctx.beginPath(); ctx.arc(cx_, groundY, sw * 0.5, 0, Math.PI*2); ctx.stroke();
-            // 지면 수평 빛
-            const hg = ctx.createLinearGradient(cx_ - sw, groundY, cx_ + sw, groundY);
+            ctx.strokeStyle = `rgba(255,220,60,${sa * 1.0})`; ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.arc(cx_, groundY, sw1, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = `rgba(255,240,140,${sa * 0.7})`; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(cx_, groundY, sw2, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = `rgba(255,255,220,${sa * 0.55})`; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx_, groundY, sw3, 0, Math.PI*2); ctx.stroke();
+            // 지면 수평 빛 (넓게)
+            const hg = ctx.createLinearGradient(cx_ - sw1, groundY, cx_ + sw1, groundY);
             hg.addColorStop(0, "rgba(255,220,80,0)");
-            hg.addColorStop(0.5, `rgba(255,230,100,${sa*0.35})`);
+            hg.addColorStop(0.5, `rgba(255,235,100,${sa * 0.5})`);
             hg.addColorStop(1, "rgba(255,220,80,0)");
             ctx.fillStyle = hg;
-            ctx.fillRect(cx_ - sw, groundY - 5, sw * 2, 10);
+            ctx.fillRect(cx_ - sw1, groundY - 7, sw1 * 2, 14);
         }
 
-        // ── 착지 섬광 (prog 0.55~0.68) ──
-        if (prog > 0.55 && prog < 0.68) {
-            const f = 1 - Math.abs(prog - 0.615) / 0.065;
-            ctx.globalAlpha = f * 0.28 * alpha;
-            ctx.fillStyle = "#ffffcc";
+        // ── 착지 섬광 (prog 0.50~0.64) — 더 강하게 ──
+        if (prog > 0.50 && prog < 0.64) {
+            const f = 1 - Math.abs(prog - 0.57) / 0.07;
+            ctx.globalAlpha = f * 0.42 * alpha;
+            ctx.fillStyle = "#fffff0";
             ctx.fillRect(0, 0, CW, CH);
             ctx.globalAlpha = alpha;
         }
 
-        // ── 착지 후 십자 광선 (prog 0.60~0.90) ──
-        if (prog > 0.60 && prog < 0.90) {
-            const rp = (prog - 0.60) / 0.30;
-            const rl = 80 * rp;
-            const ra = (1 - rp) * alpha * 0.6;
-            ctx.strokeStyle = `rgba(255,240,120,${ra})`;
-            ctx.lineWidth = 3;
+        // ── 착지 후 8방향 광선 (prog 0.55~0.92) ──
+        if (prog > 0.55 && prog < 0.92) {
+            const rp = (prog - 0.55) / 0.37;
+            const rl = 130 * rp;
+            const ra = (1 - rp) * alpha * 0.85;
+            // 4 축방향
+            ctx.strokeStyle = `rgba(255,240,100,${ra})`; ctx.lineWidth = 4;
             [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dx,dy])=>{
-                ctx.beginPath();
-                ctx.moveTo(cx_, groundY);
-                ctx.lineTo(cx_ + dx * rl, groundY + dy * rl);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx_, groundY);
+                ctx.lineTo(cx_ + dx * rl, groundY + dy * rl); ctx.stroke();
             });
+            // 4 대각선 (얇게)
+            ctx.strokeStyle = `rgba(255,230,80,${ra * 0.6})`; ctx.lineWidth = 2;
+            const d45 = rl * 0.707;
+            [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([dx,dy])=>{
+                ctx.beginPath(); ctx.moveTo(cx_, groundY);
+                ctx.lineTo(cx_ + dx * d45, groundY + dy * d45); ctx.stroke();
+            });
+        }
+
+        // ── 착지 파편 (prog 0.53~0.75): 황금 파티클 방사 ──
+        if (prog > 0.53 && prog < 0.75) {
+            const fp = (prog - 0.53) / 0.22;
+            ctx.fillStyle = `rgba(255,220,60,${(1-fp) * alpha * 0.8})`;
+            for (let fi = 0; fi < 8; fi++) {
+                const fang = fi * Math.PI / 4 + fp * 0.5;
+                const fdist = 60 * fp;
+                const fx = cx_ + Math.cos(fang) * fdist;
+                const fy = groundY + Math.sin(fang) * fdist * 0.4;
+                ctx.beginPath(); ctx.arc(fx, fy, 3 * (1-fp), 0, Math.PI*2); ctx.fill();
+            }
         }
 
         ctx.globalAlpha = 1;
@@ -573,7 +857,7 @@ if (
             ctx.font = "bold 52px SkullFont, NeoDunggeunmo";
             ctx.fillStyle = "#cc0000";
             ctx.shadowBlur = 24; ctx.shadowColor = "#ff0000";
-            ctx.fillText("YOU DIED", CW / 2, CH / 2);
+            ctx.fillText("당신은 죽었습니다", CW / 2, CH / 2);
             ctx.shadowBlur = 0;
             ctx.font = "14px SkullFont, NeoDunggeunmo";
             ctx.fillStyle = "#888";
@@ -582,99 +866,329 @@ if (
             ctx.restore();
         }
     }
-    // NPC 대화 중 어두운 배경 오버레이
+    // NPC 대화 중 어두운 배경 오버레이 (대화창은 오버레이 위에 다시 그림)
     if (Game.npcTalking) {
         ctx.fillStyle = "rgba(0,0,0,0.55)";
         ctx.fillRect(0, 0, CW, CH);
+        if (typeof renderNPCDialogsOnly === 'function') renderNPCDialogsOnly(Date.now());
     }
     
-    // 발키리 탄약 UI — 플레이어 중앙 기준으로 정렬
+    // 헌터 탄약 UI — 플레이어 중앙 기준으로 정렬
     if (Game.pClass === 4 && Game.player && !Game.player.dead) {
-        const ammo  = Game.pGunAmmo !== undefined ? Game.pGunAmmo : 8;
+        const ammo   = Game.pGunAmmo !== undefined ? Game.pGunAmmo : 8;
         const reload = Game.pGunReload || 0;
         const p = Game.player;
-        // 플레이어 중앙 x
         const pcx = Math.round(p.x + p.w / 2 - Game.camX);
         const pcy = Math.round(p.y);
+        const t = Date.now();
 
-        // 탄약 8칸: 각 5px 너비, 간격 1px → 총 너비 8*5 + 7*1 = 47px
-        const SLOT = 5, GAP = 1, SLOTS = 8;
-        const barW = SLOTS * SLOT + (SLOTS - 1) * GAP; // 47px
-        const barX = pcx - Math.floor(barW / 2);       // 중앙 정렬
-        const barY = pcy - 32;
+        // 탄약 8칸: 각 7px 너비, 간격 2px
+        const SLOT = 7, GAP = 2, SLOTS = 8;
+        const barW = SLOTS * SLOT + (SLOTS - 1) * GAP; // 69px
+        const barX = pcx - Math.floor(barW / 2);
+        const barY = pcy - 34;
 
         // 배경
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
-        ctx.fillRect(barX - 2, barY - 2, barW + 4, 12);
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(barX - 3, barY - 3, barW + 6, 14, 3);
+        else ctx.rect(barX - 3, barY - 3, barW + 6, 14);
+        ctx.fill();
 
         // 탄약 칸
         for (let a = 0; a < SLOTS; a++) {
-            ctx.fillStyle = a < ammo ? "#ffcc00" : "#333";
+            const filled = a < ammo;
+            // 마지막 2발은 주황으로 경고
+            const col = filled ? (ammo <= 2 ? "#ff8800" : "#ffcc00") : "#2a2a2a";
+            ctx.fillStyle = col;
+            if (filled && ctx.shadowBlur !== undefined) {
+                ctx.shadowBlur = ammo <= 2 ? 4 : 0;
+                ctx.shadowColor = "#ff8800";
+            }
             ctx.fillRect(barX + a * (SLOT + GAP), barY, SLOT, 8);
         }
+        ctx.shadowBlur = 0;
 
         // 재장전 게이지
         if (reload > 0) {
-            const prog = 1 - reload / 90;
-            const rgY = barY - 14;
+            const reloadMax = Game.pGunReloadMax || 90;
+            const prog = 1 - reload / reloadMax;
+            const rgY = barY - 16;
+            // 배경
             ctx.fillStyle = "rgba(0,0,0,0.8)";
-            ctx.fillRect(barX - 2, rgY - 2, barW + 4, 12);
-            ctx.fillStyle = "#555";
-            ctx.fillRect(barX, rgY, barW, 8);
-            ctx.fillStyle = "#aaa";
-            ctx.fillRect(barX, rgY, Math.floor(barW * prog), 8);
-            ctx.fillStyle = "#ccc";
-            ctx.font = "8px SkullFont, NeoDunggeunmo";
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(barX - 3, rgY - 3, barW + 6, 12, 2);
+            else ctx.rect(barX - 3, rgY - 3, barW + 6, 12);
+            ctx.fill();
+            // 트랙
+            ctx.fillStyle = "#333";
+            ctx.fillRect(barX, rgY, barW, 6);
+            // 진행
+            const progW = Math.floor(barW * prog);
+            const pulse = 0.7 + Math.sin(t * 0.015) * 0.3;
+            ctx.fillStyle = `rgba(180,180,180,${pulse})`;
+            ctx.fillRect(barX, rgY, progW, 6);
+            // 텍스트
+            ctx.fillStyle = "#888";
+            ctx.font = "9px SkullFont, NeoDunggeunmo";
             ctx.textAlign = "center";
-            ctx.fillText("재장전 중...", pcx, rgY - 3);
+            ctx.fillText("재장전", pcx, rgY - 2);
             ctx.textAlign = "left";
         }
     }
 
-    // 크루 미니언 렌더
+    // ── 소환사 UI: 소환수 수명 표시 ──
+    if (Game.pClass === 6 && Game.player && !Game.player.dead && Game.summons && Game.summons.length > 0) {
+        const p = Game.player;
+        const pcx = Math.round(p.x + p.w/2 - Game.camX);
+        const pcy = Math.round(p.y) - 36;
+        const typeIcons = { fire: '🔥', thunder: '⚡', light: '✦' };
+        const typeCols  = { fire: '#ff6600', thunder: '#ffee00', light: '#ffffff' };
+        Game.summons.forEach((s, idx) => {
+            if (s.life <= 0) return;
+            const sx = pcx + (idx - 1) * 28;
+            const lifeRatio = s.life / 600;
+            ctx.fillStyle = lifeRatio > 0.3 ? (typeCols[s.type] || '#ff8800') : '#ff2200';
+            ctx.font = "10px SkullFont, NeoDunggeunmo";
+            ctx.textAlign = "center";
+            ctx.fillText({ fire:'炎', thunder:'雷', light:'光' }[s.type] || '?', sx, pcy);
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillRect(sx - 8, pcy + 3, 16, 3);
+            ctx.fillStyle = lifeRatio > 0.3 ? (typeCols[s.type] || '#ff8800') : '#ff2200';
+            ctx.fillRect(sx - 8, pcy + 3, Math.floor(16 * lifeRatio), 3);
+        });
+        ctx.textAlign = "left";
+    }
+
+    // ── 강령술사 UI: 영혼 스택 표시 ──
+    if (Game.pClass === 7 && Game.player && !Game.player.dead) {
+        const stacks = Game.soulStacks || 0;
+        const p = Game.player;
+        const pcx = Math.round(p.x + p.w/2 - Game.camX);
+        const pcy = Math.round(p.y) - 34;
+        const maxStacks = 10;
+        const slotW = 9, slotGap = 1;
+        const totalW = maxStacks * slotW + (maxStacks - 1) * slotGap;
+        const startX = pcx - Math.floor(totalW / 2);
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillRect(startX - 2, pcy - 2, totalW + 4, 11);
+        for (let i = 0; i < maxStacks; i++) {
+            const filled = i < stacks;
+            ctx.fillStyle = filled ? (stacks >= 10 ? "#00ffaa" : "#44ff88") : "#1a1a1a";
+            if (filled && stacks >= 10) { ctx.shadowBlur = 6; ctx.shadowColor = "#00ffaa"; }
+            ctx.fillRect(startX + i * (slotW + slotGap), pcy, slotW, 7);
+            ctx.shadowBlur = 0;
+        }
+        ctx.fillStyle = stacks >= 10 ? "#00ffaa" : "#44ff88";
+        ctx.font = "9px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "center";
+        ctx.fillText(`영혼 ${stacks}/10`, pcx, pcy - 4);
+        ctx.textAlign = "left";
+    }
+
+    // ── 혈귀 UI: 분노의 피 스택 표시 ──
+    if (Game.pClass === 8 && Game.player && !Game.player.dead) {
+        const stacks = Game.soulStacks || 0;  // reuse var name — actually use _bloodFuryStacks
+        const fury  = Game._bloodFuryStacks || 0;
+        const furyT = Game._bloodFuryTimer  || 0;
+        const p = Game.player;
+        const pcx = Math.round(p.x + p.w/2 - Game.camX);
+        const pcy = Math.round(p.y) - 34;
+        const maxFury = 5;
+        const slotW = 10, slotGap = 2;
+        const totalW = maxFury * slotW + (maxFury - 1) * slotGap;
+        const startX = pcx - Math.floor(totalW / 2);
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillRect(startX - 2, pcy - 2, totalW + 4, 12);
+        for (let i = 0; i < maxFury; i++) {
+            const filled = i < fury;
+            ctx.fillStyle = filled ? "#cc2244" : "#1a1a1a";
+            if (filled) { ctx.shadowBlur = fury >= 5 ? 8 : 3; ctx.shadowColor = "#cc2244"; }
+            ctx.fillRect(startX + i * (slotW + slotGap), pcy, slotW, 8);
+            ctx.shadowBlur = 0;
+        }
+        if (fury > 0) {
+            const timerRatio = furyT / 240;
+            ctx.fillStyle = `rgba(180,0,40,${0.3 + timerRatio * 0.4})`;
+            ctx.fillRect(startX, pcy + 9, Math.floor(totalW * timerRatio), 2);
+            ctx.fillStyle = "#ff4466";
+            ctx.font = "9px SkullFont, NeoDunggeunmo";
+            ctx.textAlign = "center";
+            ctx.fillText(`분노 ${fury}`, pcx, pcy - 4);
+            ctx.textAlign = "left";
+        }
+    }
+
+    // ── 검성 UI: 카운터 준비 표시 ──
+    if (Game.pClass === 9 && Game._swordParryReady && Game.player && !Game.player.dead) {
+        const p = Game.player;
+        const pcx = Math.round(p.x + p.w/2 - Game.camX);
+        const pcy = Math.round(p.y) - 44;
+        const blink = Math.floor(Date.now() / 200) % 2 === 0;
+        if (blink) {
+            ctx.fillStyle = "#aaddff";
+            ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+            ctx.textAlign = "center";
+            ctx.shadowBlur = 10; ctx.shadowColor = "#aaddff";
+            ctx.fillText("⚔ 카운터 준비!", pcx, pcy);
+            ctx.shadowBlur = 0;
+            ctx.textAlign = "left";
+        }
+    }
+
+    // ── 도박사 UI: 치명타 강조 표시 ──
+    if (Game.pClass === 15 && Game.player && !Game.player.dead) {
+        const p = Game.player;
+        const pcx = Math.round(p.x + p.w/2 - Game.camX);
+        const pcy = Math.round(p.y) - 44;
+        ctx.fillStyle = "#ffdd00";
+        ctx.font = "10px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "center";
+        ctx.fillText(`크리 ${Math.round((Game.pCritChance||0.4)*100)}%`, pcx, pcy);
+        ctx.textAlign = "left";
+    }
+
+    // ── 선봉대 UI: 방어 강화 타이머 ──
+    if (Game.pClass === 18 && (Game._vanguardDefBuff||0) > 0 && Game.player && !Game.player.dead) {
+        const p = Game.player;
+        const pcx = Math.round(p.x + p.w/2 - Game.camX);
+        const pcy = Math.round(p.y) - 44;
+        const ratio = (Game._vanguardDefBuff || 0) / 600;
+        const barW = 36;
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(pcx - barW/2 - 1, pcy - 1, barW + 2, 7);
+        ctx.fillStyle = "#8899aa";
+        ctx.fillRect(pcx - barW/2, pcy, Math.floor(barW * ratio), 5);
+        ctx.fillStyle = "#aabbcc";
+        ctx.font = "9px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "center";
+        ctx.fillText("방어강화", pcx, pcy - 4);
+        ctx.textAlign = "left";
+    }
+
+    // 크루 미니언 렌더 (해적 픽셀아트)
     if (Game.crewMinions && Game.crewMinions.length > 0) {
         for (const cm of Game.crewMinions) {
             if (!cm.active) continue;
             const mx = cm.x - Game.camX, my = cm.y;
-            
-            // 미니언 애니메이션 (총총걸음 둥둥 떠다니는 효과)
-            const bobbing = Math.sin(Date.now() * 0.01) * 2;
-            const facing = cm.facing || 1; 
+            const t = Date.now();
+            const walk = Math.sin(t * 0.012) * 1.5;
+            const legL = Math.sin(t * 0.012) * 3;
+            const legR = -legL;
+            const facing = cm.facing || 1;
+            const lifeRatio = cm.life / 300;
+            const flicker = cm.life < 60 ? (Math.floor(t / 80) % 2 === 0 ? 0.5 : 1.0) : 1.0;
 
             ctx.save();
-            // 수명이 다해갈 때 부드럽게 깜빡임
-            ctx.globalAlpha = Math.min(1, cm.life / 30) * (0.8 + Math.sin(Date.now() * 0.02) * 0.2); 
-            ctx.translate(mx, my + bobbing);
+            ctx.globalAlpha = Math.min(1, cm.life / 40) * flicker;
+            ctx.translate(mx, my + walk);
             ctx.scale(facing, 1);
 
-            // 1. 해적 조끼와 셔츠
-            ctx.fillStyle = "#8b4513"; ctx.fillRect(-5, -6, 10, 8); // 갈색 조끼
-            ctx.fillStyle = "#eeeeee"; ctx.fillRect(-3, -6, 6, 4);  // 흰 셔츠
-            ctx.fillStyle = "#333333"; ctx.fillRect(-4, 2, 8, 4);   // 검은 바지
-            
-            // 2. 피부와 얼굴
-            ctx.fillStyle = "#ffe8d9"; ctx.fillRect(-4, -14, 8, 8); // 얼굴
-            
-            // 3. 해적 빨간 두건 & 안대
-            ctx.fillStyle = "#cc0000"; ctx.fillRect(-5, -15, 10, 4); ctx.fillRect(-6, -13, 2, 4); // 두건 매듭
-            ctx.fillStyle = "#111111"; ctx.fillRect(0, -12, 4, 2); ctx.fillRect(-4, -12, 8, 1); // 애꾸눈 안대
-            
-            // 4. 머스켓(총)을 든 팔
-            ctx.fillStyle = "#ffe8d9"; ctx.fillRect(0, -4, 4, 2); // 앞팔
-            ctx.fillStyle = "#555555"; ctx.fillRect(4, -5, 10, 2); // 총신 (길게)
-            ctx.fillStyle = "#5c3a21"; ctx.fillRect(1, -4, 4, 3); // 총 개머리판
+            // 그림자
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.beginPath(); ctx.ellipse(0, 2, 8, 2, 0, 0, Math.PI*2); ctx.fill();
+
+            // 다리 (교차 걸음)
+            ctx.fillStyle = "#1a1a2e";
+            ctx.fillRect(-4, 2, 3, 5 + legL * 0.3); // 왼다리
+            ctx.fillRect(1, 2, 3, 5 - legL * 0.3);  // 오른다리
+            // 부츠
+            ctx.fillStyle = "#3d1a00";
+            ctx.fillRect(-5, 6 + legL * 0.3, 4, 3);
+            ctx.fillRect(0, 6 - legL * 0.3, 4, 3);
+
+            // 조끼 본체
+            ctx.fillStyle = "#7a3010"; ctx.fillRect(-5, -6, 10, 9);
+            // 조끼 음영
+            ctx.fillStyle = "#5a2008"; ctx.fillRect(3, -5, 2, 8);
+            ctx.fillStyle = "#9a4020"; ctx.fillRect(-5, -6, 2, 8);
+            // 셔츠 (앞 트임)
+            ctx.fillStyle = "#e8e8e8"; ctx.fillRect(-2, -5, 4, 6);
+            ctx.fillStyle = "#cccccc"; ctx.fillRect(-1, -5, 2, 6);
+            // 벨트
+            ctx.fillStyle = "#2a1500"; ctx.fillRect(-5, 2, 10, 2);
+            ctx.fillStyle = "#d4aa00"; ctx.fillRect(-1, 2, 2, 2); // 버클
+
+            // 팔 (총 든 팔)
+            ctx.fillStyle = "#c87040"; ctx.fillRect(5, -5, 3, 6); // 앞팔
+            ctx.fillStyle = "#a85828"; ctx.fillRect(5, -4, 1, 5); // 음영
+
+            // 머스켓 총 (더 디테일하게)
+            ctx.fillStyle = "#3a2800"; ctx.fillRect(3, -5, 5, 3);  // 개머리판
+            ctx.fillStyle = "#2a2a2a"; ctx.fillRect(8, -5, 13, 2); // 총신
+            ctx.fillStyle = "#444444"; ctx.fillRect(8, -4, 12, 1); // 하이라이트
+            ctx.fillStyle = "#888888"; ctx.fillRect(20, -5, 2, 2); // 총구
+            // 총구 화염 (cm.atkT > 0 이면 발사)
+            if ((cm.atkT || 0) > 0) {
+                ctx.fillStyle = `rgba(255,200,0,${(cm.atkT || 0) / 8})`;
+                ctx.beginPath(); ctx.arc(22, -4, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "rgba(255,255,200,0.9)";
+                ctx.beginPath(); ctx.arc(22, -4, 2, 0, Math.PI*2); ctx.fill();
+            }
+
+            // 얼굴
+            ctx.fillStyle = "#c87040"; ctx.fillRect(-4, -14, 8, 8); // 피부
+            ctx.fillStyle = "#a85828"; ctx.fillRect(2, -13, 2, 6);  // 음영 (오른뺨)
+            // 눈/안대
+            ctx.fillStyle = "#111"; ctx.fillRect(-3, -11, 4, 2); // 안대 밴드
+            ctx.fillStyle = "#000"; ctx.fillRect(-3, -11, 4, 1); // 안대
+            ctx.fillStyle = "#ff3300"; ctx.fillRect(-4, -11, 1, 2); // 안대 매듭
+            ctx.fillStyle = "#222"; ctx.fillRect(2, -11, 2, 2);  // 오른눈
+            ctx.fillStyle = "#66ccff"; ctx.fillRect(2, -11, 1, 1); // 눈동자 하이라이트
+            // 입 (결연한 표정)
+            ctx.fillStyle = "#7a3010"; ctx.fillRect(-2, -7, 4, 1);
+            // 수염 (짧은 흉터)
+            ctx.fillStyle = "#5a2000"; ctx.fillRect(-3, -8, 1, 1); ctx.fillRect(1, -8, 1, 1);
+
+            // 해적 모자 (빨간 두건 + 해적 모자)
+            ctx.fillStyle = "#cc1100"; ctx.fillRect(-5, -16, 10, 4); // 두건
+            ctx.fillStyle = "#aa0000"; ctx.fillRect(-5, -16, 2, 4); // 두건 음영
+            ctx.fillStyle = "#ff2200"; ctx.fillRect(-6, -14, 2, 3); // 두건 매듭
+            // 해적 모자
+            ctx.fillStyle = "#111"; ctx.fillRect(-4, -20, 8, 5);
+            ctx.fillStyle = "#222"; ctx.fillRect(-4, -20, 2, 5);
+            ctx.fillStyle = "#333"; ctx.fillRect(-6, -16, 12, 2); // 챙
+            // 해골 마크
+            ctx.fillStyle = "#f0f0f0"; ctx.fillRect(-1, -19, 2, 2);
+            ctx.fillStyle = "#111"; ctx.fillRect(-1, -19, 1, 1); ctx.fillRect(0, -18, 1, 1);
 
             ctx.restore();
 
-            // 남은 시간 바 (머리 위로 깔끔하게 이동)
+            // 수명 바 (머리 위)
             ctx.save();
-            const lifeRatio = cm.life / 300;
-            ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(mx - 10, my - 24 + bobbing, 20, 4);
-            ctx.fillStyle = "#00ffcc"; ctx.fillRect(mx - 10, my - 24 + bobbing, 20 * lifeRatio, 4);
+            ctx.fillStyle = "rgba(0,0,0,0.65)"; ctx.fillRect(mx - 12, my - 30 + walk, 24, 4);
+            ctx.fillStyle = lifeRatio > 0.5 ? "#00ffcc" : lifeRatio > 0.25 ? "#ffdd00" : "#ff4444";
+            ctx.fillRect(mx - 12, my - 30 + walk, Math.round(24 * lifeRatio), 4);
             ctx.restore();
         }
     }
 
-    ctx.textAlign = "left"; ctx.fillStyle = "#00ccff"; ctx.font = "14px SkullFont, NeoDunggeunmo"; 
+    ctx.textAlign = "left"; ctx.fillStyle = "#00ccff"; ctx.font = "14px SkullFont, NeoDunggeunmo";
     ctx.fillText("적 수: " + Game.enemies.filter(e=>e.active && !e.dead).length, 10, 20);
+
+    // ── 해금 배너 ──
+    if (Game._unlockBanner && Game._unlockBanner.t > 0) {
+        const ub = Game._unlockBanner;
+        ub.t--;
+        const alpha = ub.t < 60 ? ub.t / 60 : (ub.t > 180 ? (240 - ub.t) / 60 : 1);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        const bw = 320, bh = 50;
+        const bx = (CW - bw) / 2, by = 50;
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeStyle = "#ffcc00"; ctx.lineWidth = 2;
+        ctx.shadowBlur = 14; ctx.shadowColor = "#ffcc00";
+        ctx.strokeRect(bx, by, bw, bh);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffcc00";
+        ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+        ctx.textAlign = "center";
+        ctx.fillText("[ 캐릭터 해금 완료! ]", CW/2, by + 18);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "13px SkullFont, NeoDunggeunmo";
+        ctx.fillText(ub.name + " 해금!!", CW/2, by + 36);
+        ctx.globalAlpha = 1;
+        ctx.restore();
+    }
 }
