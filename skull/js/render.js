@@ -145,7 +145,7 @@ function render() {
                 const row = Math.floor(idx / cols);
                 const tx = panX + padX + col * colW;
                 const ty = panY + padY + 28 + row * rowH;
-                const name = UPGRADES[id]?.name?.split(':')[0] ?? `유물 ${id}`;
+                const name = UPGRADES[id]?.name?.split(':')[0] ?? BOSS_ITEMS?.[id]?.name?.split(':')[0] ?? `유물 ${id}`;
                 ctx.fillStyle = "#dddddd";
                 ctx.fillText(`· ${name}`, tx, ty);
             });

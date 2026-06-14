@@ -101,7 +101,8 @@ function genStage(w, l) {
     Game.items.forEach(i => i.active = false);
 
     Game.kills = 0;
-    Game.invT = 0;
+    Game.invT = Game._pendingInvT || 0;
+    Game._pendingInvT = 0;
     Game.bossKillSeq = null;
     Game.hitStop = 0;
     

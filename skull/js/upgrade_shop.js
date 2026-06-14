@@ -670,7 +670,7 @@ const EVENTS = [
       }},
     { name: "강인함의 증명", color: "#ffffff",
       desc: "5초간 무적 + 치명타 확률 영구 +10%",
-      apply: g => { g.invT = 300; g.pCritChance += 0.10; }},
+      apply: g => { g._pendingInvT = (g._pendingInvT || 0) + 300; g.pCritChance += 0.10; }},
     { name: "잊혀진 지식",   color: "#66ffff",
       desc: "필살기 피해 +30%, 이동속도 +10%",
       apply: g => { g.pSkillDmgMul += 0.30; g.pMoveSpdMul += 0.10; }},
