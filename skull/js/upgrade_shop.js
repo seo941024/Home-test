@@ -17,6 +17,7 @@ const UPGRADES = {
     14: { name: "치명적인 일격: 치명타 확률 15% 증가",                       apply: g => g.pCritChance += 0.15 },
     15: { name: "암살자의 비수: 치명타 데미지 50% 증가",                      apply: g => g.pCritDmg += 0.5 },
     16: { name: "저주받은 대검: 최종 데미지 2.3배 증폭 / 공속 0.5배",         apply: g => { g.pFinalDmgMul *= 2.3; g.pAtkSpdMul *= 0.5; } },
+    17: { name: "강화의 룬: 필살기 피해 +20%",                               apply: g => { g.pSkillDmgMul += 0.20; } },
     18: { name: "명상의 투구: 패링 성공 시 마나 회복량 2배 증가",              apply: g => g.pParryMp = 40 },
     19: { name: "가시 갑옷: 피격 시 적 1초 경직 및 2초당 HP 1 회복",         apply: g => { g.pReflectDmg += 15; g.pRegenFrames = 120; } },
     20: { name: "광전사의 분노: 체력 30% 이하일 때 데미지 50% 증가",           apply: g => g.pLowHpDmg = 1.5 },
@@ -24,6 +25,7 @@ const UPGRADES = {
     22: { name: "폭군의 도끼: 공격력 50% 증폭, 최대 체력 70% 감소",           apply: g => { g.pBaseDmgMul += 0.5; g.pMaxHp = Math.max(1, Math.floor(g.pMaxHp * 0.3)); g.player.maxHp = g.pMaxHp; g.player.hp = Math.max(1, Math.floor(g.player.hp * 0.3)); } },
     23: { name: "수호자의 긍지: 방어막 +50, 이동 속도 -10%",                apply: g => { g.pShield += 50; g.pMoveSpdMul -= 0.1; } },
     24: { name: "시간의 시계태엽: 적 투사체 속도 15% 감소",                   apply: g => g.pProjSlow -= 0.15 },
+    25: { name: "황혼의 단검: 공격력 +15%, 치명타 확률 +8%",                 apply: g => { g.pBaseDmgMul += 0.15; g.pCritChance += 0.08; } },
     26: { name: "강철의 의지: 받는 피해량 15% 감소",                        apply: g => g.pDmgReduction -= 0.15 },
     27: { name: "피의 축제: 콤보 유지 시간 3배 증가, 5콤보당 공격력 대폭(15) 증가", apply: g => { g.pComboDur += 300; g.pBloodFestival = true; } },
     28: { name: "저주받은 펜던트: 공격력 40% 증가, 1초당 체력 1 감소",         apply: g => { g.pBaseDmgMul += 0.4; g.pCursedPendant = true; } },
@@ -44,6 +46,17 @@ const UPGRADES = {
     41: { name: "재생의 인장: 2초마다 HP 1씩 자동 회복",                          apply: g => { g.pRegenFrames = 120; } },
     42: { name: "상인의 손길: 아이템 드롭 확률 +8%",                              apply: g => { g.pDropRate += 0.08; } },
     43: { name: "집중의 보석: 치명타 데미지 +25%",                               apply: g => { g.pCritDmg += 0.25; } },
+
+    // ── 추가 유물 (고위험-고보상 및 유틸) ───────────────────────────────────
+    44: { name: "파괴의 문장: 최종 데미지 +25%, 최대 HP -20",                     apply: g => { g.pFinalDmgMul += 0.25; g.pMaxHp = Math.max(1, g.pMaxHp - 20); g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.player.hp, g.pMaxHp); } },
+    45: { name: "전장의 발걸음: 이동속도 +15%, 점프력 +15%",                       apply: g => { g.pMoveSpdMul += 0.15; g.pJmpMul += 0.15; } },
+    46: { name: "독수리의 눈: 사거리 +35, 치명타 확률 +8%",                        apply: g => { g.pRangeBonus += 35; g.pCritChance += 0.08; } },
+    47: { name: "철의 심장: 최대 HP +35, 방어력 +5",                              apply: g => { g.pMaxHp += 35; g.player.maxHp = g.pMaxHp; g.player.hp += 35; g.pBaseDef += 5; } },
+    48: { name: "혈투의 각오: 방어력 -10, 공격력 +20%",                            apply: g => { g.pBaseDef -= 10; g.pBaseDmgMul += 0.20; } },
+    49: { name: "회복의 성배: 스테이지 클리어 시 HP +15 회복",                      apply: g => { g.pHealOnClear += 15; } },
+    50: { name: "분노의 결정: 받는 피해 +20%, 최종 데미지 +35%",                    apply: g => { g.pDmgReduction += 0.20; g.pFinalDmgMul += 0.35; } },
+    51: { name: "광전사의 심장: 받는 피해 -5%, 공격속도 +15%",                      apply: g => { g.pDmgReduction -= 0.05; g.pBaseAtkSpd += 0.15; } },
+    52: { name: "사냥꾼의 발: 대쉬 쿨타임 -20%, 이동속도 +10%",                     apply: g => { g.pDashCDMul = Math.max(0.3, g.pDashCDMul - 0.20); g.pMoveSpdMul += 0.10; } },
 };
 
 function applyUpgrade(id) {
@@ -103,6 +116,30 @@ const SYNERGIES = [
         name: "천공의 발",
         desc: "점프력 추가 +20%, 공중 대쉬 가능",
         apply: g => { g.pJmpMul += 0.20; }
+    },
+    {
+        ids: [44, 48],  // 파괴의 문장 + 혈투의 각오
+        name: "자멸의 힘",
+        desc: "최종 데미지 추가 +25%, 체력 최대 75%로 제한",
+        apply: g => { g.pFinalDmgMul += 0.25; g.pMaxHp = Math.max(1, Math.floor(g.pMaxHp * 0.75)); g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.player.hp, g.pMaxHp); }
+    },
+    {
+        ids: [46, 2],   // 독수리의 눈 + 뼈의봉
+        name: "사거리의 군주",
+        desc: "사거리 추가 +20, 치명타 확률 +8%",
+        apply: g => { g.pRangeBonus += 20; g.pCritChance += 0.08; }
+    },
+    {
+        ids: [49, 3],   // 회복의 성배 + 전사의 피
+        name: "불사의 몸",
+        desc: "클리어 시 HP 회복 +10, 최대 HP +20",
+        apply: g => { g.pHealOnClear += 10; g.pMaxHp += 20; g.player.maxHp = g.pMaxHp; }
+    },
+    {
+        ids: [25, 15],  // 황혼의 단검 + 암살자의 비수
+        name: "죽음의 낫",
+        desc: "치명타 데미지 추가 +40%, 공격력 +8%",
+        apply: g => { g.pCritDmg += 0.40; g.pBaseDmgMul += 0.08; }
     },
 ];
 
