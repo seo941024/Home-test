@@ -775,6 +775,8 @@ function renderEventRoom() {
 
 function _exitEventRoom() {
     Game._eventOptions = null;
+    Game.gs = "play";
+    if (typeof playBGM === 'function') playBGM('play');
     if (typeof nextStageTrigger === 'function') nextStageTrigger();
 }
 

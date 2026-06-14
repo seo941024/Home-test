@@ -202,13 +202,13 @@ function updateEnemies() {
             if (e.isElite) {
                 // 난이도별 쿼츠 드롭 배율: 쉬움1x 보통1.5x 어려움2.5x 헬4x
                 const _dqMul = [1, 2, 4, 8][Game.difficulty || 0];
-                const dqAmt = Math.floor((Math.floor(Math.random() * 5) + 2) * _dqMul);
+                const dqAmt = Math.floor((Math.floor(Math.random() * 5) + 2) * _dqMul * (Game._quartzMul || 1));
                 Game.darkQuartz += dqAmt;
                 addText(e.x, e.y - 30, `다크 쿼츠 +${dqAmt} 획득!`, "#dd44ff", 60, 13);
                 if (typeof saveProgress === 'function') saveProgress();
             } else if (e.isBoss) {
                 const _dqMulB = [1, 2, 4, 8][Game.difficulty || 0];
-                const dqAmt2 = Math.floor((Math.floor(Math.random() * 15) + 20) * _dqMulB);
+                const dqAmt2 = Math.floor((Math.floor(Math.random() * 15) + 20) * _dqMulB * (Game._quartzMul || 1));
                 Game.darkQuartz += dqAmt2;
                 Game.rerollCoins += 1;
                 addText(e.x, e.y - 40, `다크 쿼츠 +${dqAmt2} 획득!`, "#dd44ff", 90, 15);

@@ -340,7 +340,7 @@ function takeDmg(dmg, eObj, unblockable=false, noParry=false) {
     if (p.hp <= 0) {
         if (Game.pRevive > 0) {
             Game.pRevive--;
-            p.hp = Math.floor(Game.pMaxHp * 0.5);
+            p.hp = Math.floor(Game.pMaxHp * (Game._reviveHpMul || 0.5));
             addText(p.x, p.y - 30, "부활!", "#ffaa00", 60, 20);
             if (typeof playSfx === 'function') playSfx('item');
             for (let i = 0; i < 30; i++) addPart(p.x + 7, p.y + 9, "#ffaa00", 30, 5);

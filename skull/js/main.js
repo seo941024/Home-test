@@ -377,6 +377,7 @@ function startGame() {
     Game.pParryBonus = 0; Game.pCursedPendant = false; Game.curseT = 0;
     Game.pDropRate = 0.35; Game.pBloodFestival = false; Game.obtainedItems = [];
     Game.pDoubleSkillChance = 0; Game._doubleCast = false; Game._showItemList = false;
+    Game._quartzMul = 1; Game._reviveHpMul = 0.5;
     Game.summons = []; Game.soulStacks = 0;
     Game._bloodFuryStacks = 0; Game._bloodFuryTimer = 0;
     Game._swordParryReady = false;                 // 검성: 패링 후 3배 카운터
