@@ -2,6 +2,7 @@
 // 보스 AI 및 패턴 모듈 (Boss AI)
 // ==========================================
 
+// 레이저 시작점에서 facing 방향으로 플랫폼까지의 거리를 계산 — 레이저 충돌 길이 결정
 function calcLaser(startX, startY, height, facing) {
     let minHitDist = Game.levelW;
     for (const t of Game.platforms) {
@@ -17,6 +18,7 @@ function calcLaser(startX, startY, height, facing) {
 // 잡몹 원거리 공격 - 경고 방향과 발사 방향 완전 일치
 // ==========================================
 
+// 잡몹 원거리 공격 실행 — warnData의 방향 정보로 경고와 발사 방향을 1:1 일치
 function fireEnemyRanged(e) {
     const wd = e.warnData;
     if (!wd) return;
@@ -578,6 +580,7 @@ const BossAI = {
     }
 };
 
+// 보스 매 프레임 업데이트 — 그로기·2페이즈 전환·패턴 쿨다운·BossAI 호출 처리
 function updateBoss(e) {
     // 씬 전환 시 잔류 큐 초기화
     if (!e.active || e.dead) {

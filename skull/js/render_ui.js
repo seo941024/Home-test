@@ -477,13 +477,6 @@ function renderClassSelect(frameNow) {
 
     ctx.save();
     ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#445566";
-    ctx.fillText("Tab  유물 목록", CW / 2, CH - 10);
-    ctx.restore();
-
-    ctx.save();
-    ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
     ctx.textAlign = "right";
     if (_blink) { ctx.fillStyle = "#cc66ff"; ctx.shadowBlur = 9; ctx.shadowColor = "#aa22ff"; }
     else         { ctx.fillStyle = "#4a2266"; ctx.shadowBlur = 0; }
@@ -942,7 +935,6 @@ if (
         const p = Game.player;
         const pcx = Math.round(p.x + p.w/2 - Game.camX);
         const pcy = Math.round(p.y) - 36;
-        const typeIcons = { fire: '🔥', thunder: '⚡', light: '✦' };
         const typeCols  = { fire: '#ff6600', thunder: '#ffee00', light: '#ffffff' };
         Game.summons.forEach((s, idx) => {
             if (s.life <= 0) return;

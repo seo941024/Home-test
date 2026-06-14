@@ -6,6 +6,7 @@
 const STAMINA_MAX        = 100;
 const STAMINA_REGEN      = 0.45;  // 프레임당 자연회복 (가드 중엔 0)
 const STAMINA_DASH       = 35;    // 대시 소모 증가 (기존 28)
+const STAMINA_GUARD      = 18;    // 가드 시작 시 일회 소모
 const STAMINA_GUARD_TICK = 0.5;   // 가드 유지 소모 증가 (기존 0.3)
 const STAMINA_ATK        = 0;     // 평타 스태미나 소모 없음 (공속 영향 차단)
 const STAMINA_SKILL      = 45;    // 필살기 소모 증가 (기존 40)

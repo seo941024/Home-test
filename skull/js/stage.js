@@ -87,6 +87,7 @@ function genTutorial() {
 // 스테이지 생성 및 진행 관리 모듈 (Stage & Progression)
 // ==========================================
 
+// 월드 w, 레벨 l의 스테이지 생성 — l=3이면 보스방
 function genStage(w, l) {
     Game.platforms = []; 
     Game.doors = []; 
@@ -158,7 +159,10 @@ function genStage(w, l) {
     }
 }
 
+// 현재 스테이지 클리어 후 다음 스테이지로 진행
+// levelN 3 클리어 시 보스 전리품 → 다음 월드, 그 외엔 30% 확률로 이벤트 방
 function nextStage() {
+    Game._showItemList = false; // 스테이지 전환 시 Tab 패널 강제 닫기
     Game.levelN++;
     if (typeof _checkRunUnlocks === 'function') _checkRunUnlocks();
 
@@ -205,8 +209,10 @@ function nextStage() {
     
 }
 
-// 💡 [신규] 화면이 완전히 까매졌을 때(Fade Out 완료) 맵을 생성하는 트리거 함수
+// 페이드아웃 완료 후 실제로 맵을 생성하고 페이드인을 시작하는 함수
+// main.js의 transState 전환 타이밍에서 호출됨
 function nextStageTrigger() {
+    Game._showItemList = false;
     document.getElementById("bossBarWrap").style.display = "none";
 
     // 튜토리얼 클리어 시 진짜 1-1로

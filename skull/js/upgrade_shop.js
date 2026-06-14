@@ -59,6 +59,7 @@ const UPGRADES = {
     52: { name: "사냥꾼의 발: 대쉬 쿨타임 -20%, 이동속도 +10%",                     apply: g => { g.pDashCDMul = Math.max(0.3, g.pDashCDMul - 0.20); g.pMoveSpdMul += 0.10; } },
 };
 
+// 유물 id를 즉시 적용하고 obtainedItems에 기록 후 시너지 체크
 function applyUpgrade(id) {
     const u = UPGRADES[id];
     if (u) u.apply(Game);
@@ -205,6 +206,7 @@ const SYNERGIES = [
 
 const _appliedSynergies = new Set();
 
+// 획득한 유물 조합이 SYNERGIES 조건을 충족하면 시너지 효과 즉시 발동
 function checkSynergy() {
     if (!Game.obtainedItems) return;
     for (const syn of SYNERGIES) {
@@ -219,6 +221,7 @@ function checkSynergy() {
     }
 }
 
+// 획득하지 않은 유물 풀에서 3개를 무작위 추출해 선택지로 제공
 function generateUpgradeOptions() {
     Game.offeredItems = [];
     // UPGRADES에 실제 정의된 id만 풀로 사용 (없는 id 뽑히는 버그 방지)
@@ -246,6 +249,7 @@ function _wrapDesc(text, maxW) {
     return [cs.slice(0, h).join(', '), cs.slice(h).join(', ')];
 }
 
+// 유물 선택 화면 전체 렌더 — 배경, 카드 3장, 키 가이드 포함
 function renderUpgrade() {
     const t = Date.now();
     const pulse = (Math.sin(t * 0.003) + 1) / 2;
@@ -440,6 +444,7 @@ function renderUpgrade() {
     }
     ctx.textAlign = "left";
 }
+// 유물 선택 완료 — 루트 선택 대기 중이면 루트 선택 화면으로, 아니면 다음 스테이지로
 function exitUpgrade() {
     // 짝수 월드 진입 전이면 루트 선택 화면으로
     if (Game._pendingRouteSelect) {
@@ -455,6 +460,7 @@ function exitUpgrade() {
     if (typeof initBloodDecals === 'function') initBloodDecals();
 }
 
+// 영구 강화 수치를 localStorage에 저장
 function saveProgress() {
     localStorage.setItem("skull_quartz",    Game.darkQuartz);
     localStorage.setItem("skull_permHp",    Game.permHpLvl);
@@ -488,6 +494,7 @@ const BOSS_ITEMS = {
     110: { name: "운명의 다이스: 아이템 드롭률 +30%, 다크쿼츠 획득 +50%", apply: g => { g.pDropRate += 0.30; g._quartzMul = (g._quartzMul || 1) * 1.5; } },
 };
 
+// 보스 클리어 후 전설 유물 선택지 2개를 무작위 추출
 function generateBossLoot() {
     const obtained = Game.obtainedItems || [];
     const pool = Object.keys(BOSS_ITEMS).map(Number).filter(id => !obtained.includes(id));
@@ -499,6 +506,7 @@ function generateBossLoot() {
     }
 }
 
+// 전설 유물 즉시 적용 및 획득 기록
 function applyBossItem(id) {
     const u = BOSS_ITEMS[id];
     if (!u) return;
@@ -510,6 +518,7 @@ function applyBossItem(id) {
     addText(CW / 2, CH / 2 - 20, `전설 유물: ${gotName}`, "#ff9900", 160, 16, 0, 0.3);
 }
 
+// 보스 전리품 선택 화면 렌더 — 전설 유물 카드 2장 표시
 function renderBossLoot() {
     const t = Date.now();
     const pulse = (Math.sin(t * 0.003) + 1) / 2;
@@ -679,16 +688,48 @@ const EVENTS = [
       apply: g => { g.pRevive += 1; g.pMaxHp += 15; g.player.maxHp = g.pMaxHp; }},
 ];
 
+// 이벤트 방 선택지 3개를 EVENTS 풀에서 무작위 추출 — 유물 지급형 이벤트는 미리 유물 결정
 function generateEventOptions() {
     const pool = [...EVENTS];
     Game._eventOptions = [];
     for (let i = 0; i < 3 && pool.length > 0; i++) {
         const r = Math.floor(Math.random() * pool.length);
-        Game._eventOptions.push(pool[r]);
+        const ev = Object.assign({}, pool[r]); // shallow copy
+
+        // 랜덤 유물 지급 이벤트: 어떤 유물 나올지 미리 결정해 설명에 표시
+        if (ev.name === "상인의 보따리") {
+            const relicPool = Object.keys(UPGRADES).map(Number)
+                .filter(id => !(Game.obtainedItems || []).includes(id));
+            if (relicPool.length > 0) {
+                const pid = relicPool[Math.floor(Math.random() * relicPool.length)];
+                const rName = UPGRADES[pid]?.name?.split(':')[0] ?? `유물 ${pid}`;
+                ev.desc = `무료 획득 → ${rName}`;
+                ev.apply = () => applyUpgrade(pid);
+            }
+        } else if (ev.name === "죽음의 도박") {
+            if (Math.random() < 0.5) {
+                const relicPool = Object.keys(UPGRADES).map(Number)
+                    .filter(id => !(Game.obtainedItems || []).includes(id));
+                const picks = [];
+                for (let j = 0; j < 2 && relicPool.length > 0; j++) {
+                    const ri = Math.floor(Math.random() * relicPool.length);
+                    picks.push(relicPool[ri]); relicPool.splice(ri, 1);
+                }
+                const names = picks.map(id => UPGRADES[id]?.name?.split(':')[0] ?? `유물 ${id}`).join(', ');
+                ev.desc = `[행운] 유물 2개 → ${names}`;
+                ev.apply = () => picks.forEach(id => applyUpgrade(id));
+            } else {
+                ev.desc = "[불운] HP 절반 감소";
+                ev.apply = g => { g.player.hp = Math.max(1, Math.floor(g.player.hp * 0.5)); };
+            }
+        }
+
+        Game._eventOptions.push(ev);
         pool.splice(r, 1);
     }
 }
 
+// 이벤트 방 선택 화면 렌더 — 카드 3장 중 하나 선택 시 효과 즉시 적용
 function renderEventRoom() {
     const t = Date.now();
     const pulse = (Math.sin(t * 0.003) + 1) / 2;
@@ -796,6 +837,7 @@ const PERM_UPGRADES = [
 let _quartzResetConfirm = false;
 let _rKeyOld = false, _confK1Old = false, _confK2Old = false;
 
+// 모든 영구 강화를 0으로 초기화하고 소모한 다크쿼츠를 환불
 function resetDarkQuartz() {
     let refund = 0;
     for (const u of PERM_UPGRADES) {
@@ -808,6 +850,7 @@ function resetDarkQuartz() {
     if (typeof playSfx === 'function') playSfx('item');
 }
 
+// 영구 상점 입력 처리 — 숫자 키로 항목 구매, R로 초기화 확인
 function updateShop() {
     // R 키: 초기화 확인창 토글
     const rKey = dn("KeyR");
@@ -848,6 +891,7 @@ function updateShop() {
     }
 }
 
+// 영구 상점 화면 렌더 — 다크쿼츠 잔액, 강화 항목 목록, 초기화 확인창 포함
 function renderShop() {
     const t = Date.now();
     const pulse = (Math.sin(t * 0.0028) + 1) / 2;

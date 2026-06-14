@@ -1840,7 +1840,7 @@ function drawEntities(frameNow) {
         }
     });
 
-    // 💡 [수정] 아래부터 플레이어 렌더링 시작 (오류 및 누락 완전 수정본)
+    // 플레이어 렌더링 — 무적 프레임 중엔 4프레임마다 깜빡임
     if (Game.player && !Game.player.dead) {
         const p = Game.player, px = Math.round(p.x - Game.camX), py = Math.round(p.y);
         if (Game.invT === 0 || Math.floor(Game.invT / 4) % 2 === 0 || p.dashT > 0) {
@@ -2204,7 +2204,7 @@ function drawEntities(frameNow) {
                 if (Game.pClass === 4) {
                     ctx.save(); ctx.translate(5, 5); ctx.rotate(Math.PI * 0.25); drawBone(false, 4); ctx.restore();
                 } else if (Game.pClass === 3 && (p.plunging || Game._berserkSlam)) {
-                    // 💡 버서커 강하/스킬 사용 시 완벽한 궤도 및 회전
+                    // 버서커 강하/슬램 중 무기 회전 각도 분기
                     let rot = (Game._berserkSlam && p.vy < 0) ? -Math.PI * 0.2 : Math.PI * 0.9;
                     ctx.save(); ctx.translate(3, 12); ctx.scale(p.facing, 1); ctx.rotate(rot); drawBone(true, 3); ctx.restore();
                 } else if (Game.pClass === 5) {

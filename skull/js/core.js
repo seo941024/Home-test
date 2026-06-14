@@ -99,6 +99,15 @@ window.addEventListener("keydown", e => { K[e.code] = true; if (e.code === "Tab"
 window.addEventListener("keyup", e => { K[e.code] = false; });
 function dn(...c) { return c.some(k => K[k]); }
 
+// Tab 오버레이 툴팁용 마우스 좌표 추적
+Game._mouseX = -1; Game._mouseY = -1;
+canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    Game._mouseX = (e.clientX - r.left) * (CW / r.width);
+    Game._mouseY = (e.clientY - r.top) * (CH / r.height);
+}, { passive: true });
+canvas.addEventListener('mouseleave', () => { Game._mouseX = -1; Game._mouseY = -1; }, { passive: true });
+
 // ==========================================
 // 해금 조건 체크
 // ==========================================

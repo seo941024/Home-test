@@ -18,7 +18,7 @@ const NPC_DATA = {
             "한 가지만 말해두지. 마왕은 힘이 아니라 절망을 먹고 산다.",
             "포기하지 마라. 그게 유일한 무기다.",
         ],
-        repeatLine: "포기하지 마라. 그게 유일한 무기다." // 💡 반복 대사
+        repeatLine: "포기하지 마라. 그게 유일한 무기다."
     },
 
     // W3-1: 저주받은 마을의 노인
@@ -99,15 +99,18 @@ const NPC_DATA = {
 
 let NPC_SEEN = {};
 
+// 런 시작 시 NPC 대화 완료 기록 초기화
 function resetNPCSeen() {
     NPC_SEEN = {};
 }
 
+// 현재 월드·레벨에 배치될 NPC 데이터 반환 (없으면 null)
 function getNPCForStage(worldN, levelN) {
     const entries = Object.values(NPC_DATA);
     return entries.find(n => n.worldN === worldN && n.levelN === levelN) || null;
 }
 
+// 해당 월드·레벨에 NPC가 있으면 eventObjects에 추가
 function spawnNPC(worldN, levelN) {
     const data = getNPCForStage(worldN, levelN);
     if (!data) return;
@@ -122,6 +125,7 @@ function spawnNPC(worldN, levelN) {
     });
 }
 
+// 매 프레임 NPC 유령 스프라이트 및 대화 UI를 렌더
 function renderNPCs(frameNow) {
     if (!Game.eventObjects) return;
     for (const ev of Game.eventObjects) {
@@ -176,9 +180,9 @@ function renderNPCs(frameNow) {
     }
 }
 
+// NPC 대화 박스 렌더 — 초회 방문 시 전체 대사, 재방문 시 repeatLine만 표시
 function _renderNPCDialog(ev, frameNow) {
     const data = ev.data;
-    // 💡 개별 반복 대사 적용 부분
     const lines = NPC_SEEN[ev.npcKey] ? [data.repeatLine || "..."] : data.lines;
     const step  = ev.dialogStep;
     if (step >= lines.length) return;
@@ -236,6 +240,7 @@ function renderNPCDialogsOnly(frameNow) {
     }
 }
 
+// C 키 입력으로 대화 진행 — 완료 시 NPC_SEEN에 기록하고 반복 대사 모드로 전환
 function updateNPCs() {
     if (!Game.eventObjects || !Game.player || Game.player.dead) return;
     const p = Game.player;

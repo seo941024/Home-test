@@ -6,6 +6,7 @@ let audioCtx = null, noiseBuffer = null, isBgmPlaying = false;
 let bgmInterval = null, bgmInterval2 = null, bgmInterval3 = null;
 let currentBgmScene = '';
 
+// AudioContext 및 노이즈 버퍼 초기화 — 최초 1회만 실행
 function initAudio() {
     if (audioCtx) return;
     try {
@@ -19,6 +20,7 @@ function initAudio() {
     } catch(e) {}
 }
 
+// 브라우저 자동재생 정책 해제 — 첫 유저 인터랙션 시 AudioContext 재개
 function unlockAudio() {
     if (!audioCtx) initAudio();
     if (audioCtx && audioCtx.state === 'suspended') {
@@ -33,10 +35,12 @@ if (typeof document !== 'undefined') {
     document.addEventListener('touchstart',  _unlock, { once: true });
 }
 
+// 매 프레임 호출 — suspended 상태를 감지해 AudioContext를 자동 재개
 function ensureAudioRunning() {
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
 }
 
+// 현재 재생 중인 BGM 인터벌을 모두 종료하고 상태 초기화
 function stopBGM() {
     if (bgmInterval)  clearInterval(bgmInterval);
     if (bgmInterval2) clearInterval(bgmInterval2);
@@ -57,6 +61,7 @@ function _makeDistortion(amount) {
 
 // ── SFX ──────────────────────────────────────
 
+// type 문자열에 따라 Web Audio API로 즉시 음향 효과를 합성 재생
 function playSfx(type) {
     if (!audioCtx) unlockAudio(); if (!audioCtx) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -519,6 +524,7 @@ function playSfx(type) {
 
 // ── BGM ──────────────────────────────────────
 
+// scene에 맞는 BGM 인터벌을 시작 — 이미 재생 중이면 중복 실행 방지
 function playBGM(scene = 'play') {
     if (!audioCtx) unlockAudio(); if (!audioCtx) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -834,86 +840,170 @@ function playBGM(scene = 'play') {
         return;
     }
 
-    // ── 엔딩 브라이트 BGM: 꽃밭 발견 — 감성적 뮤직박스 + 부드러운 패드 ──
+    // ── 엔딩 브라이트 BGM: 안식의 화원 — C Major 4성부 풀 화성 ──
     if (scene === 'ending_bright') {
-        // G major 느린 멜로디 (~76BPM 8분음표=395ms)
-        // G4=392, A4=440, B4=494, D5=587, E5=659, G5=784
-        const boxMel = [
-            392, 0,   440, 494,  // G A B
-            587, 0,   494, 0,    // D B
-            494, 440, 392, 0,    // B A G
-            440, 0,   0,   0,    // A (hold)
-            494, 0,   587, 659,  // B D E
-            784, 0,   659, 0,    // G5 E
-            587, 494, 440, 0,    // D B A
-            392, 0,   0,   0,    // G (resolve)
+        const STEP = 430; // ~70 BPM 8분음표
+
+        // 주선율 (C major 32스텝 — 상승→안식 구조)
+        const mel = [
+            523, 659, 784, 659,   // C5 E5 G5 E5
+            587, 523, 440, 392,   // D5 C5 A4 G4
+            440, 523, 659, 784,   // A4 C5 E5 G5
+            880, 784, 659, 0,     // A5 G5 E5 —
+            523, 494, 440, 392,   // C5 B4 A4 G4
+            440, 523, 494, 440,   // A4 C5 B4 A4
+            392, 494, 587, 659,   // G4 B4 D5 E5
+            523, 0,   0,   0,     // C5 — — —
         ];
-        let bs = 0;
+
+        // 화음성부 (멜로디 3도 아래 — 대위 내성)
+        const harm = [
+            440, 523, 659, 523,   // A4 C5 E5 C5
+            494, 440, 349, 329,   // B4 A4 F4 E4
+            349, 440, 523, 659,   // F4 A4 C5 E5
+            698, 659, 523, 0,     // F5 E5 C5 —
+            440, 392, 349, 329,   // A4 G4 F4 E4
+            349, 440, 392, 349,   // F4 A4 G4 F4
+            329, 392, 494, 523,   // E4 G4 B4 C5
+            440, 0,   0,   0,     // A4 — — —
+        ];
+
+        let ms = 0;
         bgmInterval = setInterval(() => {
-            if (!isBgmPlaying || Game.isMuted) { bs++; return; }
+            if (!isBgmPlaying || Game.isMuted) { ms++; return; }
             const now = audioCtx.currentTime;
-            const freq = boxMel[bs % boxMel.length];
-            if (freq > 0) {
-                // 뮤직박스 음색: sine + 빠른 decay + 고음 배음
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = 'sine'; o.frequency.value = freq;
+            const mf = mel[ms % mel.length];
+            const hf = harm[ms % harm.length];
+
+            if (mf > 0) {
+                // 주선율: sine 뮤직박스 + 5도 triangle + 2옥타브 반짝임
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = 'sine'; o.frequency.value = mf;
                 g.gain.setValueAtTime(0, now);
-                g.gain.linearRampToValueAtTime(0.20, now + 0.01);
-                g.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                g.gain.linearRampToValueAtTime(0.22, now + 0.015);
+                g.gain.setValueAtTime(0.18, now + 0.30);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
                 o.connect(g); g.connect(audioCtx.destination);
-                o.start(now); o.stop(now + 1.0);
-                // 배음 1 (5도 위 — 맑은 울림)
-                const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
-                o2.type = 'sine'; o2.frequency.value = freq * 1.5;
-                g2.gain.setValueAtTime(0.05, now + 0.005);
-                g2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                o.start(now); o.stop(now + 1.4);
+
+                const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
+                o2.type = 'triangle'; o2.frequency.value = mf * 1.5;
+                g2.gain.setValueAtTime(0, now + 0.005);
+                g2.gain.linearRampToValueAtTime(0.055, now + 0.015);
+                g2.gain.exponentialRampToValueAtTime(0.001, now + 0.70);
                 o2.connect(g2); g2.connect(audioCtx.destination);
-                o2.start(now + 0.005); o2.stop(now + 0.5);
-                // 배음 2 (2옥타브 위 — 은은한 반짝임)
-                const o3 = audioCtx.createOscillator(); const g3 = audioCtx.createGain();
-                o3.type = 'sine'; o3.frequency.value = freq * 4;
+                o2.start(now + 0.005); o2.stop(now + 0.70);
+
+                const o3 = audioCtx.createOscillator(), g3 = audioCtx.createGain();
+                o3.type = 'sine'; o3.frequency.value = mf * 4;
                 g3.gain.setValueAtTime(0.018, now);
                 g3.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
                 o3.connect(g3); g3.connect(audioCtx.destination);
                 o3.start(now); o3.stop(now + 0.18);
             }
-            bs++;
-        }, 395);
-        // 따뜻한 패드 화음 — G/Em/C/D (3성부 + 옥타브 보강)
-        const padChords = [
-            [196, 247, 294, 392],   // G: G3 B3 D4 G4
-            [165, 220, 262, 330],   // Em: E3 A3 C4 E4
-            [130, 196, 261, 392],   // C: C3 G3 C4 G4
-            [147, 220, 294, 440],   // D: D3 A3 D4 A4
+
+            if (hf > 0) {
+                // 3도 내성: 부드러운 triangle
+                const oh = audioCtx.createOscillator(), gh = audioCtx.createGain();
+                oh.type = 'triangle'; oh.frequency.value = hf;
+                gh.gain.setValueAtTime(0, now + 0.04);
+                gh.gain.linearRampToValueAtTime(0.09, now + 0.14);
+                gh.gain.setValueAtTime(0.07, now + 0.35);
+                gh.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+                oh.connect(gh); gh.connect(audioCtx.destination);
+                oh.start(now + 0.04); oh.stop(now + 1.1);
+
+                // 내성 옥타브 위 (투명한 공기감)
+                const oh2 = audioCtx.createOscillator(), gh2 = audioCtx.createGain();
+                oh2.type = 'sine'; oh2.frequency.value = hf * 2;
+                gh2.gain.setValueAtTime(0, now + 0.06);
+                gh2.gain.linearRampToValueAtTime(0.030, now + 0.16);
+                gh2.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+                oh2.connect(gh2); gh2.connect(audioCtx.destination);
+                oh2.start(now + 0.06); oh2.stop(now + 0.65);
+            }
+
+            ms++;
+        }, STEP);
+
+        // 패드 코드 — C / Am / C / G (각 8스텝 = 3440ms, 5성부)
+        const pads = [
+            [130, 196, 261, 329, 392],   // C: C3 G3 C4 E4 G4
+            [110, 165, 220, 329, 440],   // Am: A2 E3 A3 E4 A4
+            [130, 196, 261, 329, 392],   // C: C3 G3 C4 E4 G4
+            [98,  147, 196, 294, 392],   // G: G2 D3 G3 D4 G4
         ];
+        const padVols = [0.09, 0.08, 0.07, 0.06, 0.05];
         let pc = 0;
         bgmInterval2 = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) { pc++; return; }
             const now = audioCtx.currentTime;
-            const chord = padChords[pc % padChords.length];
+            const chord = pads[pc % pads.length];
+            const dur = STEP * 8 / 1000;
+
+            // 5성부 패드 (긴 어택, 따뜻한 sine/triangle 혼합)
             chord.forEach((f, ci) => {
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.type = ci < 2 ? 'sine' : 'triangle'; o.frequency.value = f;
-                const vol = ci === 0 ? 0.10 : ci === 3 ? 0.05 : 0.07;
+                const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                o.type = ci < 2 ? 'sine' : 'triangle';
+                o.frequency.value = f;
                 g.gain.setValueAtTime(0, now);
-                g.gain.linearRampToValueAtTime(vol, now + 0.5);
-                g.gain.setValueAtTime(vol, now + 2.8);
-                g.gain.exponentialRampToValueAtTime(0.001, now + 3.6);
+                g.gain.linearRampToValueAtTime(padVols[ci], now + 0.65);
+                g.gain.setValueAtTime(padVols[ci], now + dur - 0.75);
+                g.gain.exponentialRampToValueAtTime(0.001, now + dur);
                 o.connect(g); g.connect(audioCtx.destination);
-                o.start(now); o.stop(now + 3.6);
+                o.start(now); o.stop(now + dur);
             });
-            // 아르페지오 빛 (뮤직박스 반짝임)
-            chord.slice(1, 3).forEach((f, ai) => {
-                const oa = audioCtx.createOscillator(); const ga = audioCtx.createGain();
+
+            // 하프 아르페지오 (코드 교체 시 5성부 순차 글리산도)
+            chord.forEach((f, ai) => {
+                const oa = audioCtx.createOscillator(), ga = audioCtx.createGain();
                 oa.type = 'sine'; oa.frequency.value = f * 2;
-                ga.gain.setValueAtTime(0, now + ai * 0.18);
-                ga.gain.linearRampToValueAtTime(0.025, now + ai * 0.18 + 0.01);
-                ga.gain.exponentialRampToValueAtTime(0.001, now + ai * 0.18 + 0.55);
+                const delay = ai * 0.09;
+                ga.gain.setValueAtTime(0, now + delay);
+                ga.gain.linearRampToValueAtTime(0.016, now + delay + 0.008);
+                ga.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.55);
                 oa.connect(ga); ga.connect(audioCtx.destination);
-                oa.start(now + ai * 0.18); oa.stop(now + ai * 0.18 + 0.55);
+                oa.start(now + delay); oa.stop(now + delay + 0.55);
             });
+
             pc++;
-        }, 3160);
+        }, STEP * 8);
+
+        // 베이스 라인 — 코드 루트 저음 (4스텝 = 1720ms, 2박자 간격)
+        const bassFreqs = [
+            65, 65,   // C: C2
+            55, 55,   // Am: A1
+            65, 65,   // C: C2
+            49, 49,   // G: G1
+        ];
+        let bs = 0;
+        bgmInterval3 = setInterval(() => {
+            if (!isBgmPlaying || Game.isMuted) { bs++; return; }
+            const now = audioCtx.currentTime;
+            const f = bassFreqs[bs % bassFreqs.length];
+            const dur = STEP * 4 / 1000;
+
+            const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+            o.type = 'sine'; o.frequency.value = f;
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(0.18, now + 0.10);
+            g.gain.setValueAtTime(0.12, now + dur - 0.20);
+            g.gain.exponentialRampToValueAtTime(0.001, now + dur + 0.10);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(now); o.stop(now + dur + 0.10);
+
+            // 베이스 2배음 (따뜻한 보디감)
+            const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
+            o2.type = 'triangle'; o2.frequency.value = f * 2;
+            g2.gain.setValueAtTime(0, now);
+            g2.gain.linearRampToValueAtTime(0.07, now + 0.08);
+            g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.7);
+            o2.connect(g2); g2.connect(audioCtx.destination);
+            o2.start(now); o2.stop(now + dur * 0.7);
+
+            bs++;
+        }, STEP * 4);
+
         return;
     }
 
@@ -1036,59 +1126,99 @@ function playBGM(scene = 'play') {
         return;
     }
 
-    // ── 일반 보스 BGM: 일렉기타 + 중금속 드럼 ──────────────────────────
+    // ── 보스 BGM: wg별 고유 메탈 트랙 ──────────────────────────────────
     if (isBoss) {
-        // wg별 기타 루트 (wg1=A2=110Hz → wg6=A1=55Hz)
-        const bRoots = [110, 98, 82, 73, 65, 55];
-        const root = bRoots[Math.min(wg - 1, 5)];
-        // BPM: wg1=168(공격적) → wg6=148(무거운)
-        const BPM = 168 - (wg - 1) * 4;
-        const T   = Math.round(60000 / BPM / 2); // 8분음표 ms
+        const wgI  = Math.min(wg - 1, 4); // 0..4
+        // wg별 루트음 (저→고)
+        const roots = [220, 82, 110, 156, 65];
+        const bpms  = [200, 150, 130, 185, 140];
+        const root  = roots[wgI];
+        const BPM   = bpms[wgI];
+        const T     = Math.round(60000 / BPM / 2);
 
-        // wg별 16스텝 기타 리프 (1.0=root, 1.498=5th, 1.25=4th, 1.335=4도♭, 0=쉼)
-        const gRiffs = [
-            [1,0,1,0, 1.498,0,1,1,   0,1,0,1.498, 1.25,1,1,0],
-            [1,0,0,1, 1.498,0,1,0,   1,0,1,0,     1.498,1,1.25,0],
-            [1,0,1,0, 1.25,0,1,0,    1,0,0,1.498, 1.25,1,1,0],
-            [1,0,1,1, 0,1,1.25,0,    1,0,1,0,     1.498,1.25,1,0],
-            [1,0,0,1, 0,1,0,1.25,    1,0,0,0,     1,0,1,0],
-            [1,0,0,0, 1,0,0,1.25,    0,0,1,0,     1,0,0,0],
+        // wg별 16스텝 기타 리프
+        const riffs = [
+            // wg1: 공격적 파워메탈 — 갤럽+5도 돌진
+            [1,0.75,1,0, 1.498,0,1.498,0, 1,0.75,0.89,0, 1.335,0,1,0],
+            // wg2: 고딕 둠 — 무겁고 불협화
+            [1,0,0,0, 0.75,0,0,0, 1,0,0,0, 0.89,0,0.75,0],
+            // wg3: 헤비 둠 — 5도 으스러짐
+            [1,0,0,1.498, 0,0,0,0, 1,0,0,0, 1.25,0,1.498,0],
+            // wg4: 테크니컬 메탈 — 싱코페이션
+            [1,0,1,0.75, 0,1.498,0,1, 0.89,0,1,0, 1.335,1,0,0.75],
+            // wg5: 에픽 파워 — 웅장한 화음 진행
+            [1,0,0,0, 1.498,0,1.25,0, 1,0,0,1.335, 1.498,0,1,0],
         ];
-        // 킥 패턴 (16스텝)
-        const kPats = [
-            [1,0,0,0, 0,0,1,0, 1,0,0,1, 0,0,1,0],
-            [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0],
-            [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0],
-            [1,0,1,0, 0,0,1,0, 1,0,1,0, 0,0,1,0],
-            [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0],
-            [1,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0],
+        // wg별 킥 패턴
+        const kicks = [
+            [1,0,1,0, 0,0,1,0, 1,0,1,0, 0,0,1,0], // wg1: 갤럽
+            [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0], // wg2: half-time 둠
+            [1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,0], // wg3: sparse
+            [1,0,1,0, 0,1,0,0, 1,0,0,1, 0,0,1,0], // wg4: complex
+            [1,0,0,1, 0,0,1,0, 1,0,0,0, 0,1,0,0], // wg5: epic
         ];
-        const riff = gRiffs[Math.min(wg - 1, 5)];
-        const kpat = kPats[Math.min(wg - 1, 5)];
+        const riff = riffs[wgI];
+        const kpat = kicks[wgI];
+        const bSeqs = [
+            [1,1.498,1.335,1],
+            [1,0.89,1,0.75],
+            [1,1.498,1,1.25],
+            [1,1.335,1.498,1.189],
+            [1,1,1.498,1.335],
+        ];
 
         let bi = 0;
         bgmInterval = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) { bi++; return; }
             const b = bi % 16;
-            if (kpat[b]) _kick(b === 0 ? 0.45 : 0.30);
-            if (b === 4 || b === 12) _snare(0.33);
-            if (bi % 2 === 0 && wg <= 4) _hihat(0.09);
+            if (kpat[b]) _kick(b === 0 ? 0.52 : 0.33);
+            if (b === 4 || b === 12) _snare(0.40);
+            if (wgI === 0 && bi % 2 === 1) _hihat(0.10);
+            if (wgI === 3 && bi % 4 === 2) _hihat(0.08);
             const gm = riff[b];
             if (gm > 0) {
                 let next = 1;
-                for (let k = 1; k < 5; k++) { if (riff[(b + k) % 16] > 0) { next = k; break; } }
-                _guitar(root * gm, 0.14, Math.max(0.07, T * next * 1.5 / 1000));
+                for (let k = 1; k < 5; k++) { if (riff[(b+k)%16] > 0) { next = k; break; } }
+                const gVol = wgI === 1 ? 0.22 : wgI === 2 ? 0.24 : 0.16;
+                _guitar(root * gm, gVol, Math.max(0.07, T * next * 1.6 / 1000));
             }
             bi++;
         }, T);
-        // 베이스라인 (4분음표)
-        const bSeq = [1, 1.498, 1.335, 1.189];
+
         let bpi = 0;
         bgmInterval2 = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) { bpi++; return; }
-            _bassNote(root * 0.5 * bSeq[bpi % 4], 0.16, T * 3.5 / 1000);
+            _bassNote(root * 0.5 * bSeqs[wgI][bpi % 4], 0.20, T * 3.5 / 1000);
             bpi++;
         }, T * 2);
+
+        // 불타는 보스 전용: 카오틱 크로매틱 슬라이드 레이어
+        const _isBurningBoss = Game.worldN % 2 === 0 && Game.worldN >= 2 && Game.worldN <= 6;
+        if (_isBurningBoss) {
+            bgmInterval3 = setInterval(() => {
+                if (!isBgmPlaying || Game.isMuted) return;
+                const now = audioCtx.currentTime;
+                const chaos = [root * 1.189, root * 0.943, root * 1.414];
+                const cf = chaos[Math.floor(Math.random() * chaos.length)];
+                [cf, cf * 1.498].forEach(f => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    const dw = audioCtx.createWaveShaper(); dw.curve = _makeDistortion(900);
+                    o.type = 'sawtooth';
+                    o.frequency.setValueAtTime(f * 1.05, now);
+                    o.frequency.exponentialRampToValueAtTime(f * 0.96, now + T * 3 / 1000);
+                    g.gain.setValueAtTime(0.10, now); g.gain.exponentialRampToValueAtTime(0.001, now + T * 3 / 1000);
+                    o.connect(dw); dw.connect(g); g.connect(audioCtx.destination);
+                    o.start(now); o.stop(now + T * 3 / 1000);
+                });
+                if (noiseBuffer) {
+                    const src = audioCtx.createBufferSource(); src.buffer = noiseBuffer;
+                    const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500;
+                    const gn = audioCtx.createGain();
+                    gn.gain.setValueAtTime(0.13, now); gn.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+                    src.connect(hp); hp.connect(gn); gn.connect(audioCtx.destination); src.start(now);
+                }
+            }, T * 5);
+        }
         return;
     }
 
@@ -1226,51 +1356,28 @@ function playBGM(scene = 'play') {
         },
     };
     const p = profiles[Math.min(wg, 6)] || profiles[1];
-    // 파괴된 스테이지(2,4,6): 기괴 역재생 효과
-    const _isDest = Game.worldN % 2 === 0 && Game.worldN >= 2 && Game.worldN <= 6;
+    const _isBurning = Game.worldN % 2 === 0 && Game.worldN >= 2 && Game.worldN <= 6; // 불타는(파괴된) 월드 wg1-3
     let si = 0;
 
     bgmInterval = setInterval(() => {
         if (!isBgmPlaying || Game.isMuted) { si++; return; }
         const now = audioCtx.currentTime;
         const b   = si % p.mel.length;
-        // _isDest: 멜로디/베이스를 역순으로 읽어 거꾸로 도는 느낌
-        const rB  = _isDest ? p.mel.length - 1 - b : b;
+        const rB  = b;
         const nd  = p.spd * 0.88 / 1000;
 
         const mf = p.mel[rB];
         if (mf > 0) {
             const om = audioCtx.createOscillator(); const gm = audioCtx.createGain();
             om.type = p.melType;
-            if (_isDest) {
-                // 역재생 포락선: 느린 어택+빠른 감쇠, 음정이 높→낮으로 끌림
-                om.frequency.setValueAtTime(mf * 1.014, now);
-                om.frequency.linearRampToValueAtTime(mf * 0.985, now + nd * 0.82);
-                if (p.distMel) { const dw = audioCtx.createWaveShaper(); dw.curve = _makeDistortion(p.distMel); om.connect(dw); dw.connect(gm); } else { om.connect(gm); }
-                gm.gain.setValueAtTime(0, now);
-                gm.gain.linearRampToValueAtTime(p.melVol * 0.90, now + nd * 0.68);
-                gm.gain.exponentialRampToValueAtTime(0.001, now + nd * 0.87);
-                gm.connect(audioCtx.destination); om.start(now); om.stop(now + nd * 0.88);
-                // 유령 코러스 레이어 (+12센트 디튠)
-                const og = audioCtx.createOscillator(); const gg = audioCtx.createGain();
-                og.type = p.melType;
-                og.frequency.setValueAtTime(mf * 1.014 * 1.007, now);
-                og.frequency.linearRampToValueAtTime(mf * 0.985 * 0.993, now + nd * 0.82);
-                if (p.distMel) { const dw2 = audioCtx.createWaveShaper(); dw2.curve = _makeDistortion(p.distMel); og.connect(dw2); dw2.connect(gg); } else { og.connect(gg); }
-                gg.gain.setValueAtTime(0, now);
-                gg.gain.linearRampToValueAtTime(p.melVol * 0.28, now + nd * 0.68);
-                gg.gain.exponentialRampToValueAtTime(0.001, now + nd * 0.87);
-                gg.connect(audioCtx.destination); og.start(now); og.stop(now + nd * 0.88);
-            } else {
-                om.frequency.value = mf;
-                if (p.distMel) {
-                    const dw = audioCtx.createWaveShaper(); dw.curve = _makeDistortion(p.distMel);
-                    om.connect(dw); dw.connect(gm);
-                } else { om.connect(gm); }
-                gm.gain.setValueAtTime(0, now); gm.gain.linearRampToValueAtTime(p.melVol, now + 0.03);
-                gm.gain.exponentialRampToValueAtTime(0.001, now + nd);
-                gm.connect(audioCtx.destination); om.start(now); om.stop(now + nd);
-            }
+            om.frequency.value = mf;
+            if (p.distMel) {
+                const dw = audioCtx.createWaveShaper(); dw.curve = _makeDistortion(p.distMel);
+                om.connect(dw); dw.connect(gm);
+            } else { om.connect(gm); }
+            gm.gain.setValueAtTime(0, now); gm.gain.linearRampToValueAtTime(p.melVol, now + 0.03);
+            gm.gain.exponentialRampToValueAtTime(0.001, now + nd);
+            gm.connect(audioCtx.destination); om.start(now); om.stop(now + nd);
             if (p.organ) {
                 [[2,0.50],[3,0.25],[4,0.12]].forEach(([r,v]) => {
                     const oo = audioCtx.createOscillator(); const gg = audioCtx.createGain();
@@ -1443,6 +1550,18 @@ function playBGM(scene = 'play') {
             });
             ci++;
         }, p.spd * 8);
+        // worldN 2(불타는): 메탈 기타 오버레이
+        if (_isBurning) {
+            const bRiff = [1,0,1.498,0, 1,0,1.335,1.498, 1,0,0.89,0, 1.498,0,1,0];
+            const bRoot = 110; const bT = Math.round(p.spd * 1.5); let bri = 0;
+            bgmInterval3 = setInterval(() => {
+                if (!isBgmPlaying || Game.isMuted) { bri++; return; }
+                const b2 = bri % bRiff.length; bri++;
+                if (bRiff[b2] > 0) _guitar(bRoot * bRiff[b2], 0.11, bT * 1.2 / 1000);
+                if (b2 === 0 || b2 === 8) _kick(0.28);
+                if (b2 === 4 || b2 === 12) _snare(0.22);
+            }, bT);
+        }
     } else if (wg === 2) {
         // 언데드: 현악기풍 서스테인 패드 (Am/G/F/E 진행)
         const strChords = [[220,261,330],[196,247,294],[175,220,262],[165,220,247]];
@@ -1461,21 +1580,34 @@ function playBGM(scene = 'play') {
             });
             sc++;
         }, p.spd * 16);
-        // 3차: 카운터 멜로디 (한 옥타브 위 피아노풍)
-        const cMel = [440,0,494,0, 523,494,0,0, 440,0,392,440, 494,0,0,0];
-        let cmi = 0;
-        bgmInterval3 = setInterval(() => {
-            if (!isBgmPlaying || Game.isMuted) { cmi++; return; }
-            const now = audioCtx.currentTime;
-            const cf = cMel[cmi % cMel.length]; cmi++;
-            if (cf > 0) {
-                const oc = audioCtx.createOscillator(); const gc = audioCtx.createGain();
-                oc.type = 'triangle'; oc.frequency.value = cf;
-                gc.gain.setValueAtTime(0, now); gc.gain.linearRampToValueAtTime(0.07, now + 0.02);
-                gc.gain.exponentialRampToValueAtTime(0.001, now + p.spd * 1.4 / 1000);
-                oc.connect(gc); gc.connect(audioCtx.destination); oc.start(now); oc.stop(now + p.spd * 1.4 / 1000);
-            }
-        }, p.spd);
+        if (_isBurning) {
+            // worldN 4(불타는): 메탈 기타 오버레이
+            const bRiff = [1,0,1.498,0, 1,0,1.335,1.498, 1,0,0.89,0, 1.498,0,1,0];
+            const bRoot = 98; const bT = Math.round(p.spd * 1.5); let bri = 0;
+            bgmInterval3 = setInterval(() => {
+                if (!isBgmPlaying || Game.isMuted) { bri++; return; }
+                const b2 = bri % bRiff.length; bri++;
+                if (bRiff[b2] > 0) _guitar(bRoot * bRiff[b2], 0.12, bT * 1.2 / 1000);
+                if (b2 === 0 || b2 === 8) _kick(0.30);
+                if (b2 === 4 || b2 === 12) _snare(0.24);
+            }, bT);
+        } else {
+            // 3차: 카운터 멜로디 (한 옥타브 위 피아노풍)
+            const cMel = [440,0,494,0, 523,494,0,0, 440,0,392,440, 494,0,0,0];
+            let cmi = 0;
+            bgmInterval3 = setInterval(() => {
+                if (!isBgmPlaying || Game.isMuted) { cmi++; return; }
+                const now = audioCtx.currentTime;
+                const cf = cMel[cmi % cMel.length]; cmi++;
+                if (cf > 0) {
+                    const oc = audioCtx.createOscillator(); const gc = audioCtx.createGain();
+                    oc.type = 'triangle'; oc.frequency.value = cf;
+                    gc.gain.setValueAtTime(0, now); gc.gain.linearRampToValueAtTime(0.07, now + 0.02);
+                    gc.gain.exponentialRampToValueAtTime(0.001, now + p.spd * 1.4 / 1000);
+                    oc.connect(gc); gc.connect(audioCtx.destination); oc.start(now); oc.stop(now + p.spd * 1.4 / 1000);
+                }
+            }, p.spd);
+        }
     } else if (wg === 3) {
         // 고딕 성당: 합창 + 타종
         const choirNotes = [[165,220,262],[131,165,196],[147,196,247],[110,165,220]];
@@ -1501,19 +1633,32 @@ function playBGM(scene = 'play') {
             });
             chi++;
         }, p.spd * 14);
-        // 3차: 저음 타종 (교회 종소리)
-        bgmInterval3 = setInterval(() => {
-            if (!isBgmPlaying || Game.isMuted) return;
-            const now = audioCtx.currentTime;
-            [82, 110].forEach((f, i) => {
-                const ob = audioCtx.createOscillator(); const gb = audioCtx.createGain();
-                ob.type = 'sine'; ob.frequency.value = f;
-                gb.gain.setValueAtTime(0.18, now + i * 0.04);
-                gb.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
-                ob.connect(gb); gb.connect(audioCtx.destination);
-                ob.start(now + i * 0.04); ob.stop(now + 3.5);
-            });
-        }, p.spd * 28);
+        if (_isBurning) {
+            // worldN 6(불타는): 메탈 기타 오버레이
+            const bRiff = [1,0,1.498,0, 1,0,1.335,1.498, 1,0,0.89,0, 1.498,0,1,0];
+            const bRoot = 82; const bT = Math.round(p.spd * 1.5); let bri = 0;
+            bgmInterval3 = setInterval(() => {
+                if (!isBgmPlaying || Game.isMuted) { bri++; return; }
+                const b2 = bri % bRiff.length; bri++;
+                if (bRiff[b2] > 0) _guitar(bRoot * bRiff[b2], 0.13, bT * 1.2 / 1000);
+                if (b2 === 0 || b2 === 8) _kick(0.32);
+                if (b2 === 4 || b2 === 12) _snare(0.25);
+            }, bT);
+        } else {
+            // 3차: 저음 타종 (교회 종소리)
+            bgmInterval3 = setInterval(() => {
+                if (!isBgmPlaying || Game.isMuted) return;
+                const now = audioCtx.currentTime;
+                [82, 110].forEach((f, i) => {
+                    const ob = audioCtx.createOscillator(); const gb = audioCtx.createGain();
+                    ob.type = 'sine'; ob.frequency.value = f;
+                    gb.gain.setValueAtTime(0.18, now + i * 0.04);
+                    gb.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
+                    ob.connect(gb); gb.connect(audioCtx.destination);
+                    ob.start(now + i * 0.04); ob.stop(now + 3.5);
+                });
+            }, p.spd * 28);
+        }
     } else if (wg === 4) {
         // 마족 성채: 왜곡 리듬 기타 + 저음 패드
         const riffSeq = [247,0,247,0, 311,0,294,247, 220,0,261,0, 247,0,0,0];

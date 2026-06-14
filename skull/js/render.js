@@ -100,24 +100,68 @@ function render() {
         }
     }
 
-    // ── Layer 4: 유물 목록 오버레이 (Tab) ──────────
+    // ── Layer 4: 유물 목록 오버레이 (Tab) — 키보드 네비게이션 지원 ──────────
     if (Game._showItemList) {
         const items = (Game.obtainedItems || []);
-        // 활성 시너지 계산
         const activeSyn = (typeof SYNERGIES !== 'undefined') ? SYNERGIES.filter(s =>
             s.ids.every(id => items.includes(id))
         ) : [];
 
-        const panW = 300, panX = CW / 2 - panW / 2;
-        const rowH = 17, padX = 12, padY = 10;
+        const panW = 324, panX = CW / 2 - panW / 2;
+        const rowH = 18, padX = 10, padY = 8;
         const cols = 2, colW = panW / cols;
-        const rows = Math.ceil(items.length / cols);
-        const synH = activeSyn.length > 0 ? (22 + activeSyn.length * 28) : 0;
-        const panH = padY * 2 + 20 + rows * rowH + (items.length === 0 ? rowH : 0) + synH;
+        const MAX_ROWS = 9; // 최대 표시 행 — 초과 시 스크롤
+        const STATS_H = 66;
+        const totalRows = Math.ceil(items.length / cols);
+        const needsScroll = totalRows > MAX_ROWS;
+
+        // ── 키보드 네비게이션 처리 ──
+        if (items.length > 0) {
+            let si = Game._tabSelIdx || 0;
+            if (dn("ArrowRight") && !K.rDirOld) si = Math.min(items.length - 1, si + 1);
+            if (dn("ArrowLeft")  && !K.lOld)    si = Math.max(0, si - 1);
+            if (dn("ArrowDown")  && !K.dwnOld)  si = Math.min(items.length - 1, si + cols);
+            if (dn("ArrowUp")    && !K.upOld)   si = Math.max(0, si - cols);
+            Game._tabSelIdx = si;
+
+            // 선택 행이 뷰포트 밖으로 나가면 자동 스크롤
+            const selRow = Math.floor(si / cols);
+            let sr = Game._tabScrollRow || 0;
+            if (selRow < sr) sr = selRow;
+            if (selRow >= sr + MAX_ROWS) sr = selRow - MAX_ROWS + 1;
+            Game._tabScrollRow = Math.max(0, sr);
+        }
+
+        // 현재 보이는 아이템 슬라이스
+        const scrollRow = Game._tabScrollRow || 0;
+        const visStart  = scrollRow * cols;
+        const visEnd    = Math.min(items.length, visStart + MAX_ROWS * cols);
+        const visItems  = items.slice(visStart, visEnd);
+        const visRows   = items.length === 0 ? 1 : Math.ceil(visItems.length / cols);
+
+        // 선택된 아이템 설명 준비
+        const selIdx  = Game._tabSelIdx || 0;
+        const selId   = items[selIdx];
+        const selRaw  = selId != null ? (UPGRADES[selId]?.name ?? BOSS_ITEMS?.[selId]?.name ?? '') : '';
+        const selCI   = selRaw.indexOf(': ');
+        const selTitle = selCI >= 0 ? selRaw.slice(0, selCI) : selRaw;
+        const selDesc  = selCI >= 0 ? selRaw.slice(selCI + 2) : '';
+        const hasDesc  = items.length > 0 && selDesc.length > 0;
+
+        // 패널 높이 계산 (최대 CH-8 이내)
+        const synLine  = activeSyn.length > 0 ? 14 : 0;
+        const rawPanH  = padY + 20              // 헤더
+            + STATS_H + 4                        // 스탯 + 구분선
+            + visRows * rowH                     // 아이템 행
+            + (needsScroll ? 12 : 0)             // 스크롤 힌트
+            + (hasDesc ? 40 : 0)                 // 선택 유물 설명
+            + synLine                             // 시너지 요약
+            + padY + 16;                         // 푸터
+        const panH = Math.min(rawPanH, CH - 8);
         const panY = Math.max(4, CH / 2 - panH / 2);
 
         ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.92)";
+        ctx.fillStyle = "rgba(0,0,0,0.93)";
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(panX, panY, panW, panH, 8);
         else ctx.rect(panX, panY, panW, panH);
@@ -125,66 +169,118 @@ function render() {
         ctx.strokeStyle = "#555555"; ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // 유물 타이틀
+        // 헤더
         ctx.textAlign = "center";
-        ctx.fillStyle = "#ffcc00";
-        ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
+        ctx.fillStyle = "#ffcc00"; ctx.font = "bold 13px SkullFont, NeoDunggeunmo";
         ctx.fillText(`획득 유물 (${items.length})`, CW / 2, panY + padY + 11);
-        ctx.strokeStyle = "#444"; ctx.lineWidth = 1;
+        ctx.strokeStyle = "#333"; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(panX + 8, panY + padY + 17); ctx.lineTo(panX + panW - 8, panY + padY + 17); ctx.stroke();
 
-        // 아이템 목록
-        ctx.textAlign = "left";
-        ctx.font = "11px SkullFont, NeoDunggeunmo";
+        // ── 스탯 섹션 ──
+        const statsY = panY + padY + 22;
+        const p    = Game.player;
+        const hp   = p ? Math.ceil(p.hp) : 0;
+        const maxHp = Game.pMaxHp;
+        const shield = Game.pShield | 0;
+        const atk  = Math.floor((Game.pBaseDmg || 0) * (Game.pBaseDmgMul || 1) * (Game.pFinalDmgMul || 1));
+        const def  = Game.pBaseDef | 0;
+        const critPct = Math.round((Game.pCritChance || 0) * 100);
+        const critMul = Math.round((Game.pCritDmg || 1.5) * 10) / 10;
+        const spdPct  = Math.round((Game.pMoveSpdMul || 1) * 100);
+        const dr      = Game.pDmgReduction ?? 1.0;
+        const drStr   = dr < 0.999 ? `-${Math.round((1 - dr) * 100)}%` : dr > 1.001 ? `+${Math.round((dr - 1) * 100)}%` : '0%';
+
+        const hpBarX = panX + padX, hpBarW = panW - padX * 2, hpBarH = 8;
+        ctx.fillStyle = "#2a0808";
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(hpBarX, statsY, hpBarW, hpBarH, 3); else ctx.rect(hpBarX, statsY, hpBarW, hpBarH); ctx.fill();
+        const hpR = maxHp > 0 ? Math.min(1, hp / maxHp) : 0;
+        ctx.fillStyle = hpR > 0.5 ? "#22bb44" : hpR > 0.25 ? "#ddaa00" : "#cc2222";
+        if (hpR > 0) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(hpBarX, statsY, hpBarW * hpR, hpBarH, 3); else ctx.rect(hpBarX, statsY, hpBarW * hpR, hpBarH); ctx.fill(); }
+        ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.font = "bold 9px SkullFont, NeoDunggeunmo";
+        ctx.fillText(`HP  ${hp} / ${maxHp}${shield > 0 ? `  +${shield}방막` : ''}`, CW / 2, statsY + 7);
+
+        const statDefs = [
+            [`공격 ${atk}`, `방어 ${def}`],
+            [`치명 ${critPct}%`, `치명피해 ×${critMul}`],
+            [`이속 ${spdPct}%`, `피해감소 ${drStr}`],
+        ];
+        ctx.textAlign = "left"; ctx.font = "10px SkullFont, NeoDunggeunmo";
+        statDefs.forEach((row, ri) => {
+            const sy = statsY + 14 + ri * 15;
+            row.forEach((cell, ci) => {
+                const sp = cell.indexOf(' ');
+                const label = cell.slice(0, sp), value = cell.slice(sp + 1);
+                const sx = panX + padX + ci * (panW / 2);
+                ctx.fillStyle = "#6677aa"; ctx.fillText(label, sx, sy);
+                ctx.fillStyle = "#e8eaf0"; ctx.fillText(value, sx + ctx.measureText(label).width + 3, sy);
+            });
+        });
+
+        // 스탯-아이템 구분선
+        const statSepY = statsY + STATS_H - 4;
+        ctx.strokeStyle = "#333"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(panX + 8, statSepY); ctx.lineTo(panX + panW - 8, statSepY); ctx.stroke();
+
+        // ── 아이템 목록 ──
+        const itemsStartY = statSepY + 8;
+        ctx.font = "11px SkullFont, NeoDunggeunmo"; ctx.textAlign = "left";
+
         if (items.length === 0) {
-            ctx.fillStyle = "#666666"; ctx.textAlign = "center";
-            ctx.fillText("없음", CW / 2, panY + padY + 34);
+            ctx.fillStyle = "#555566"; ctx.textAlign = "center";
+            ctx.fillText("없음", CW / 2, itemsStartY + rowH - 4);
         } else {
-            items.forEach((id, idx) => {
-                const col = idx % cols;
-                const row = Math.floor(idx / cols);
-                const tx = panX + padX + col * colW;
-                const ty = panY + padY + 28 + row * rowH;
+            visItems.forEach((id, vi) => {
+                const globalIdx = visStart + vi;
+                const col  = vi % cols;
+                const row2 = Math.floor(vi / cols);
+                const tx   = panX + padX + col * colW;
+                const ty   = itemsStartY + row2 * rowH + rowH - 5;
+                const isSelected = globalIdx === selIdx;
+                const isBoss = id >= 101;
+
+                if (isSelected) {
+                    ctx.fillStyle = "rgba(80,80,0,0.5)";
+                    ctx.fillRect(tx - 3, itemsStartY + row2 * rowH, colW - 2, rowH - 1);
+                }
+                ctx.fillStyle = isBoss ? "#cc88ff" : (isSelected ? "#ffee44" : "#dddddd");
                 const name = UPGRADES[id]?.name?.split(':')[0] ?? BOSS_ITEMS?.[id]?.name?.split(':')[0] ?? `유물 ${id}`;
-                ctx.fillStyle = "#dddddd";
                 ctx.fillText(`· ${name}`, tx, ty);
             });
         }
 
-        // 활성 시너지 섹션
-        if (activeSyn.length > 0) {
-            const synStartY = panY + padY + 24 + rows * rowH;
-            ctx.strokeStyle = "#aa7700"; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(panX + 8, synStartY); ctx.lineTo(panX + panW - 8, synStartY); ctx.stroke();
-
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#ffaa00";
-            ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
-            ctx.fillText(`✦ 활성 시너지 (${activeSyn.length}) ✦`, CW / 2, synStartY + 12);
-
-            activeSyn.forEach((s, i) => {
-                const sy = synStartY + 24 + i * 28;
-                // 시너지 배경
-                ctx.fillStyle = "rgba(80,50,0,0.6)";
-                if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(panX + 6, sy - 12, panW - 12, 26, 4); ctx.fill(); }
-                ctx.strokeStyle = "rgba(200,140,0,0.5)"; ctx.lineWidth = 0.8;
-                if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(panX + 6, sy - 12, panW - 12, 26, 4); ctx.stroke(); }
-
-                ctx.textAlign = "center";
-                ctx.fillStyle = "#ffe066";
-                ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
-                ctx.fillText(s.name, CW / 2, sy);
-                ctx.fillStyle = "#aabbdd";
-                ctx.font = "10px SkullFont, NeoDunggeunmo";
-                ctx.fillText(s.desc, CW / 2, sy + 12);
-            });
+        // 스크롤 힌트
+        let curY = itemsStartY + visRows * rowH;
+        if (needsScroll) {
+            ctx.textAlign = "center"; ctx.fillStyle = "#555566"; ctx.font = "9px SkullFont, NeoDunggeunmo";
+            const showing = `${visStart + 1}–${Math.min(visEnd, items.length)} / ${items.length}`;
+            ctx.fillText(`[↑↓] 스크롤  ${showing}`, CW / 2, curY + 9);
+            curY += 12;
         }
 
-        // 닫기 힌트
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#555555";
-        ctx.font = "10px SkullFont, NeoDunggeunmo";
-        ctx.fillText("[Tab] 닫기", CW / 2, panY + panH - 5);
+        // ── 선택 유물 설명 ──
+        if (hasDesc) {
+            ctx.strokeStyle = "#333"; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(panX + 8, curY + 2); ctx.lineTo(panX + panW - 8, curY + 2); ctx.stroke();
+            curY += 6;
+            const isBossSel = selId >= 101;
+            ctx.textAlign = "center";
+            ctx.fillStyle = isBossSel ? "#cc88ff" : "#ffe066"; ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
+            ctx.fillText(selTitle, CW / 2, curY + 11);
+            ctx.fillStyle = "#99bbdd"; ctx.font = "10px SkullFont, NeoDunggeunmo";
+            const descLines = (typeof _wrapDesc === 'function') ? _wrapDesc(selDesc, panW - padX * 2 - 4) : [selDesc];
+            descLines.slice(0, 2).forEach((ln, li) => ctx.fillText(ln, CW / 2, curY + 24 + li * 13));
+            curY += 40;
+        }
+
+        // 시너지 요약 라인
+        if (activeSyn.length > 0) {
+            ctx.textAlign = "center"; ctx.fillStyle = "#ffaa00"; ctx.font = "10px SkullFont, NeoDunggeunmo";
+            ctx.fillText(`✦ 활성 시너지 ${activeSyn.length}개`, CW / 2, curY + 10);
+        }
+
+        // 푸터
+        ctx.textAlign = "center"; ctx.fillStyle = "#555555"; ctx.font = "10px SkullFont, NeoDunggeunmo";
+        ctx.fillText("[Tab] 닫기  ·  [←→↑↓] 탐색", CW / 2, panY + panH - 4);
 
         ctx.restore();
     }

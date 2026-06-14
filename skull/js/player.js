@@ -3,12 +3,13 @@
 // 메인 게임 로직 및 업데이트 루프 (Main Logic & Loop)
 // ==========================================
 
+// 이동 발판(vx) 이동 및 낙하 발판(drop) 타이머 처리
 function updateEnvironment() {
-    Game.platforms.forEach(t => { 
-        if (t.vx) { 
-            t.x += t.vx; 
-            if (t.x < t.boundL || t.x > t.boundR) t.vx *= -1; 
-        } 
+    Game.platforms.forEach(t => {
+        if (t.vx) {
+            t.x += t.vx;
+            if (t.x < t.boundL || t.x > t.boundR) t.vx *= -1;
+        }
         if (t.drop) {
             if (Game.player && Game.player.onGround && Game.player.riding === t && Game.gs !== "dead") { 
                 t.fallActive = true; 
@@ -21,6 +22,7 @@ function updateEnvironment() {
     });
 }
 
+// 플레이어 입력·이동·공격·사망 등 매 프레임 전체 처리
 function updatePlayer() {
     const p = Game.player;
     if (Game.gs === "dead" || Game.gs === "gameover") {
@@ -94,9 +96,11 @@ function updatePlayer() {
                 addText(p17.x, p17.y - 25, `포션! +${heal}HP`, "#88ff44", 60, 14);
                 for(let i=0;i<15;i++) addPart(p17.x+7, p17.y+9, "#88ff44", 25, 4);
             } else if (roll < 0.66) {
-                Game.pFinalDmgMul = Math.min(3.0, (Game.pFinalDmgMul||1.0) * 1.25);
+                const _prevMul = Game.pFinalDmgMul || 1.0;
+                Game.pFinalDmgMul = Math.min(3.0, _prevMul * 1.25);
+                const _addedMul = Game.pFinalDmgMul - _prevMul;
                 addText(p17.x, p17.y - 25, "공격 포션!", "#ffee44", 70, 14);
-                setTimeout(() => { if(Game.pClass===17) Game.pFinalDmgMul = Math.max(1.0, (Game.pFinalDmgMul||1.25)/1.25); }, 5000);
+                setTimeout(() => { if(Game.pClass===17) Game.pFinalDmgMul = Math.max(1.0, (Game.pFinalDmgMul||1.0) - _addedMul); }, 5000);
             } else {
                 Game.invT = Math.max(Game.invT||0, 180);
                 addText(p17.x, p17.y - 25, "무적 포션!", "#ff8844", 70, 14);
@@ -439,6 +443,7 @@ function updatePlayer() {
     if (p.atkT > 0) p.atkT--; if (p.atkAnim > 0) p.atkAnim--; if (Game.invT > 0) Game.invT--;
 }
 
+// 평타(C)·스킬(Shift)·강하공격(↓+C) 입력 처리 및 히트박스 판정
 function updatePlayerCombat() {
     const p = Game.player;
     if (p.dead) return;
@@ -491,7 +496,7 @@ function updatePlayerCombat() {
         if (Game.pClass === 6 && Game.summons && Game.summons.length > 0) dmg = Math.floor(dmg * 1.3);
         // 강령술사 패시브: 영혼 스택당 공격력 +5%
         if (Game.pClass === 7 && (Game.soulStacks || 0) > 0) dmg = Math.floor(dmg * (1 + Game.soulStacks * 0.05));
-        if (p.hp / p.maxHp < 0.3) dmg = Math.floor(dmg * Game.pLowHpDmg);
+        if (p.hp / Game.pMaxHp < 0.3) dmg = Math.floor(dmg * Game.pLowHpDmg);
 
         let isCrit = false;
         if (Math.random() < Game.pCritChance) { dmg = Math.floor(dmg * Game.pCritDmg); isCrit = true; }
@@ -531,8 +536,8 @@ function updatePlayerCombat() {
                     if(typeof playSfx === 'function') playSfx('gun_shot');
                     Game.pMp = Math.min(Game.pMaxMp, Game.pMp + 1);
                     if (Game.pGunAmmo <= 0) {
-                        Game.pGunReload = 90;
-                        Game.pGunAmmo = 8;
+                        Game.pGunReload = Math.max(30, Math.floor(90/((Game.pBaseAtkSpd||1)*(Game.pAtkSpdMul||1))));
+                        Game.pGunReloadMax = Game.pGunReload;
                         if (!Game._reloadTextShown) {
                             addText(p.x, p.y - 22, "재장전 중...", "#aaaaaa", 90, 12);
                             Game._reloadTextShown = true;

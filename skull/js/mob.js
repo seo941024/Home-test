@@ -63,7 +63,7 @@ function mkEnemy(x, y, w) {
     
     let e = getObj(Game.enemies); 
     
-    // 난이도별 엘리트 확률: 쉬움5% 보통10% 어려움20% 헬100%
+    // 난이도별 엘리트 확률: 쉬움5% 보통20% 어려움40% 헬100%
     const _diff = Game.difficulty || 0;
     const _eliteChance = [0.05, 0.20, 0.40, 1.0][_diff];
     const isElite = (_diff === 3) ? true : (w >= 2 && Math.random() < _eliteChance);
@@ -72,7 +72,7 @@ function mkEnemy(x, y, w) {
     const baseHp = Math.floor((60 + w * 70 + (type === "melee" ? 20 : 0)) * 5 * 2 / 3 * _statMul);
     // 헬 난이도 엘리트는 *_statMul이 이미 15배라 ×3이면 45배 → 렉 원인
     // 헬일 때 ×1.5, 나머지 난이도는 ×3 유지
-    const eliteHpMul = (_diff === 3) ? 0.5 : 3;
+    const eliteHpMul = (_diff === 3) ? 1.5 : 3;
     const hp = isElite ? Math.floor(baseHp * eliteHpMul) : baseHp;
     
     e.x = x; e.y = y;
@@ -130,6 +130,7 @@ function _snapToNearestPlatform(e) {
     }
 }
 
+// 보스 생성 — 월드 w에 맞는 HP·크기·공격력 설정 후 enemies 풀에 등록
 function mkBoss(x, y, w) {
     const hps = [0, 2000, 3000, 4500, 6250, 8750, 12000, 17000, 21000, 26000, 35000];
     const _bdiff = Game.difficulty || 0;
@@ -173,6 +174,7 @@ function mkBoss(x, y, w) {
     return e;
 }
 
+// 매 프레임 모든 적 이동·공격·사망 처리 (보스는 updateBoss로 분기)
 function updateEnemies() {
     Game.enemies.forEach(e => {
         if (!e.active) return;
@@ -228,7 +230,6 @@ function updateEnemies() {
                     if (roll < 0.35) randType = "hp"; else if (roll < 0.5) randType = "atk_drop"; else if (roll < 0.65) randType = "def_drop"; else if (roll < 0.8) randType = "atk_spd_drop"; else if (roll < 0.9) randType = "move_spd_drop"; else randType = "jump_drop"; 
                 }
                 
-                // 💡 [패치] 아이템(구슬) 스폰 높이를 낮추고 위로 튀는 힘(vy)을 -4에서 -2로 감소!
                 if(typeof addItem === 'function') {
                     addItem(e.x + e.w/2 - 5, e.y + e.h - 15, 10, 10, -2, 600, randType);
                 }
@@ -495,7 +496,7 @@ function updateEnemies() {
         if (typeof resolveAABB === 'function') resolveAABB(e); 
         e.x = Math.max(0, Math.min(Game.levelW - e.w, e.x));
         
-        // 💡 [패치] 스턴(stun) 뿐만 아니라 넉백 경직(kbT) 중일 때도 유저에게 데미지를 주지 않음!
+        // 스턴·넉백 경직 중엔 몸박 데미지 없음 — kbT 중 피격 방지
         // 몸박: 패링 차단(noParry=true), 가드는 허용
         if (!e.stun && e.kbT <= 0 && Game.invT === 0 && typeof overlap === 'function' && overlap(Game.player, { x: e.x, y: e.y, w: e.w, h: e.h }) && !Game.player.dead) {
             if(typeof takeDmg === 'function') takeDmg(e.atk, e, false, true);

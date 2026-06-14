@@ -59,8 +59,10 @@ function update() {
 }
 
 // ==========================================
-// 업그레이드 데이터 테이블 (이름 + 효과 함수 통합)
+// HUD 및 기타 업데이트
 // ==========================================
+
+// DOM 기반 HUD(HP/MP/DASH/스테이지 표시) 매 프레임 갱신
 function updateHUD() {
     const inGame = ["play", "dead", "gameover", "win", "upgrade", "boss_intro"].includes(Game.gs);
     const inPlay = ["play", "dead", "boss_intro"].includes(Game.gs); // 게이지는 실제 플레이 중에만
@@ -197,11 +199,10 @@ function updateHUD() {
     if(killLabel) killLabel.textContent = "처치: " + Game.kills;
 }
 
-// 💡 [패치] innerHTML을 사용하여 <br /> 태그가 정상적으로 줄바꿈되도록 수정
+// 오버레이(overlay) 제목·설명·버튼 텍스트를 갱신하고 표시
 function showOv(t, s1, s2, btn) {
     const overlay = document.getElementById("overlay");
     if (overlay) {
-        // 💡 [수정] UI 박스(content)의 너비를 강제로 650px로 키우고 여백을 늘림
         const contentBox = overlay.querySelector("div") || overlay.firstElementChild;
         if (contentBox) {
             contentBox.style.width = "650px"; 
@@ -221,7 +222,7 @@ function showOv(t, s1, s2, btn) {
     }
 }
 
-// 💡 [패치] 로비 화면(메뉴) 복구 전용 함수 - innerHTML 사용으로 태그 깨짐 방지
+// 로비(메뉴) 화면으로 복귀 — BGM 전환 및 overlay 내용 초기화
 function restoreLobbyUI() {
     if (typeof stopBGM === 'function') stopBGM();
     // 로비 복귀 시 로비 BGM 재생
@@ -240,6 +241,7 @@ function restoreLobbyUI() {
     }
 }
 
+// 새 게임 시작 — 스탯·스코어·월드 초기화 후 직업별 기본값 적용 및 첫 스테이지 진입
 function startGame() {
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     // 사망 BGM 등 이전 BGM을 완전히 끊음 — worldN/levelN 리셋 전에 play 호출 시 보스 BGM 재생되는 버그 방지
@@ -248,6 +250,13 @@ function startGame() {
     Game.score = 0; Game.kills = 0; Game.worldN = 1; Game.levelN = 1; 
     Game.pMp = 0; Game.comboCount = 0; Game.pRangeBonus = 0; Game.pBaseDef = 0; Game.pShield = 0;
     Game.pMaxMp = 15;
+
+    // ── 공통 기본값 (직업별 설정보다 먼저 초기화해야 덮어쓰지 않음) ──
+    Game.pAtkSpdMul = 1.0; Game.pParryMp = 3;
+    Game.pSkillDmgMul = 1.0; Game.pExtraDmg = 0.0; Game.pHealOnHit = false;
+    Game.pLifestealChance = 0.05; Game.pCritDmg = 1.5;
+    Game.pReflectDmg = 0; Game.pLowHpDmg = 1.0; Game.pDashInv = 0;
+    Game.pProjSlow = 1.0; Game.pSkillWidth = 1.0; Game.pDmgReduction = 1.0; Game.pComboDur = 0; Game.pComboDmg = 0; Game.pRevive = 0;
 
     // ── 직업별 기본 스탯 ──
     if (Game.pClass === 0) {
@@ -356,11 +365,6 @@ function startGame() {
     // 사거리 역비례 보정: 근거리=높음, 원거리=낮음
     const CLASS_DMG_MUL = [1.5,1.3,0.7,1.5,0.7,1.2,0.5,0.8,1.0, 1.4,1.3,1.1,2.0,0.75,1.2,1.0,1.3,1.0,1.5];
     Game.pBaseDmgMul = CLASS_DMG_MUL[Game.pClass] || 1.0;
-    Game.pAtkSpdMul = 1.0; Game.pParryMp = 3;
-    Game.pSkillDmgMul = 1.0; Game.pExtraDmg = 0.0; Game.pHealOnHit = false;
-    Game.pLifestealChance = 0.05; Game.pCritDmg = 1.5;
-    Game.pReflectDmg = 0; Game.pLowHpDmg = 1.0; Game.pDashInv = 0;
-    Game.pProjSlow = 1.0; Game.pSkillWidth = 1.0; Game.pDmgReduction = 1.0; Game.pComboDur = 0; Game.pComboDmg = 0; Game.pRevive = 0;
     // 영구 강화: 초기화 이후에 적용 (덮어씌워지지 않도록)
     Game.pMaxHp       += (Game.permHpLvl     || 0) * 10;
     Game.pBaseDmg     += (Game.permAtkLvl    || 0) * 2;
@@ -394,7 +398,6 @@ function startGame() {
     Game.bloodDecals = [];
     // 런 결과 기록 초기화
     Game.runStats = { startTime: Date.now(), totalDmgDealt: 0, totalDmgTaken: 0, bossesKilled: 0, maxCombo: 0, itemsObtained: 0 };
-    _appliedSynergies.clear(); 
 
     const bbw = document.getElementById("bossBarWrap");
     if(bbw) bbw.style.display = "none";
@@ -681,6 +684,7 @@ function tickRouteSelect(frameNow) {
     }
 }
 
+// 메뉴 상태 매 프레임 처리 — 배경 렌더 + Space/Enter 입력으로 게임 시작
 function tickMenu() {
     const bgGrd = ctx.createRadialGradient(CW/2, CH/2, 0, CW/2, CH/2, CW);
     bgGrd.addColorStop(0, "#2a0b4e");
@@ -703,16 +707,19 @@ function tickMenu() {
     }
 }
 
+// 직업 선택 화면 업데이트 + 렌더
 function tickClassSelect(frameNow) {
     updateClassSelect();
     if (typeof renderClassSelect === 'function') renderClassSelect(frameNow);
 }
 
+// 영구 상점 업데이트 + 렌더
 function tickShop() {
     updateShop();
     renderShop();
 }
 
+// 업그레이드 선택 화면 — R 키로 리롤, 나머지는 renderUpgrade에서 처리
 function tickUpgrade() {
     if (dn("KeyR") && !K.rOld && Game.rerollCoins > 0) {
         Game.rerollCoins--;
@@ -722,6 +729,7 @@ function tickUpgrade() {
     renderUpgrade();
 }
 
+// 플레이·사망·게임오버·클리어 상태를 매 프레임 처리하는 메인 플레이 틱
 function tickPlay() {
     // 사망 → 게임오버 전환
     if (Game.gs === "dead" && Game.deadTimer <= 0) {
@@ -810,8 +818,8 @@ function tickPlay() {
         }
     }
 
-    // 로직 업데이트
-    if ((Game.gs === "play" || Game.gs === "dead" || Game.gs === "boss_intro") && !Game.isPaused) {
+    // 로직 업데이트 — Tab 오버레이 열려있으면 물리/AI도 멈춤
+    if ((Game.gs === "play" || Game.gs === "dead" || Game.gs === "boss_intro") && !Game.isPaused && !Game._showItemList) {
         if (typeof update === 'function') update();
     }
 
@@ -841,6 +849,7 @@ function tickPlay() {
     ctx.textAlign = "left";
 }}
 
+// M 키 음소거 토글 및 화면 좌상단 음소거 상태 표시
 function tickMuteOverlay() {
     if (dn("KeyM") && !K.mOld) Game.isMuted = !Game.isMuted;
     
@@ -969,6 +978,7 @@ function _renderTutorialIntro(frameNow) {
     Game._tutPageOld.back = backNow;
 }
 
+// requestAnimationFrame 메인 루프 — 60fps 프레임 제한 후 게임 상태별 틱 디스패치
 function loop(currentTime) {
     if (typeof ensureAudioRunning === 'function') ensureAudioRunning();
     requestAnimationFrame(loop);
@@ -983,10 +993,11 @@ function loop(currentTime) {
         if (Game.gs === "play" || Game.gs === "boss_intro") { Game.isPaused = !Game.isPaused; playSfx('item'); }
     }
 
-    // Tab: 유물 목록 토글
+    // Tab: 유물 목록 토글 + 열릴 때 선택 초기화
     if (dn("Tab") && !K.tabOld) {
         if (Game.gs === "play" || Game.gs === "boss_intro") {
             Game._showItemList = !Game._showItemList;
+            if (Game._showItemList) { Game._tabSelIdx = 0; Game._tabScrollRow = 0; }
             playSfx('menu_select');
         }
     }
@@ -1063,8 +1074,8 @@ function loop(currentTime) {
     K.rDirOld  = dn("ArrowRight");
     K.pOld     = dn("KeyP");
     K.spcOld   = dn("Space");
-    // 🔥 [버그 수정] 상호작용 키(ArrowUp) 엣지 감지 추가
     K.upOld    = dn("ArrowUp");
+    K.dwnOld   = dn("ArrowDown");
     K.tabOld   = dn("Tab");
 
     if (typeof updateHUD === 'function') updateHUD();

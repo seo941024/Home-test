@@ -2,6 +2,7 @@
 // 전투 물리 엔진 및 오브젝트 풀링 (Combat & Physics)
 // ==========================================
 
+// 오브젝트 풀에서 비활성 슬롯을 재사용하거나 없으면 새로 추가
 function getObj(arr) {
     let o = arr.find(x => !x.active);
     if (!o) { o = { active: false }; arr.push(o); }
@@ -9,6 +10,7 @@ function getObj(arr) {
     return o;
 }
 
+// AABB 충돌 판정 — 두 직사각형이 겹치면 true
 function overlap(a, b) {
     return a.x < b.x + b.w && a.x + a.w > b.x &&
            a.y < b.y + b.h && a.y + a.h > b.y;
@@ -66,15 +68,17 @@ function resolveAABB(e) {
     }
 }
 
+// 플레이어 투사체 생성 — sk: 관통 여부(Night Hollow 등에서 nhHitCount 추적)
 function spawnBullet(x, y, vx, vy, life, r, sk, dmg, col) {
     const b = getObj(Game.bullets);
     b.x = x; b.y = y; b.vx = vx; b.vy = vy;
     b.life = life; b.maxLife = life; b.r = r; b.sk = sk; b.dmg = dmg;
     b.col = col || null;
     b.nhHitCount = 0; b.nhLastHit = {};
-    return b; // Night Hollow 등에서 참조 가능
+    return b;
 }
 
+// 적 투사체 생성 — grav:중력 여부, unblockable:가드 불가, isArrow:화살형, isBomb:낙하 폭탄
 function spawnEBullet(x, y, vx, vy, life, r, dmg, grav=false, unblockable=false, isArrow=false, isBomb=false) {
     const b = getObj(Game.eBullets);
     b.x = x; b.y = y; b.vx = vx; b.vy = vy;
@@ -82,6 +86,7 @@ function spawnEBullet(x, y, vx, vy, life, r, dmg, grav=false, unblockable=false,
     b.grav = grav; b.unblockable = unblockable; b.isArrow = isArrow; b.isBomb = isBomb;
 }
 
+// 레이저 생성 — life 동안 유지, hitTargets로 동일 대상 중복 피격 방지
 function spawnLaser(x, y, w, h, life, color, dmg, isPlayer=false, unblockable=false) {
     const l = getObj(Game.lasers);
     l.x = x; l.y = y; l.w = w; l.h = h;
@@ -90,6 +95,7 @@ function spawnLaser(x, y, w, h, life, color, dmg, isPlayer=false, unblockable=fa
     l.hitTargets = new Set();
 }
 
+// 파티클 생성 — 무작위 방향으로 튀어나감
 function addPart(x, y, col, life, size=3) {
     const p = getObj(Game.parts);
     p.x = x; p.y = y;
@@ -98,12 +104,14 @@ function addPart(x, y, col, life, size=3) {
     p.col = col; p.life = life; p.ml = life; p.size = size;
 }
 
+// 위로 떠오르는 플로팅 텍스트 생성 (데미지 숫자, 상태 표시 등)
 function addText(x, y, text, color, life, size=14, vx=0, vy=1.5) {
     const t = getObj(Game.texts);
     t.x = x; t.y = y; t.text = text; t.color = color;
     t.life = life; t.size = size; t.vx = vx; t.vy = vy;
 }
 
+// 아이템 드롭 생성 (hp, atk_drop 등)
 function addItem(x, y, w, h, vy, life, type) {
     const i = getObj(Game.items);
     i.x = x; i.y = y; i.w = w; i.h = h;
