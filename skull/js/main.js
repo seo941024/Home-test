@@ -382,7 +382,7 @@ function startGame() {
     Game.summons = []; Game.soulStacks = 0;
     Game._bloodFuryStacks = 0; Game._bloodFuryTimer = 0;
     Game._swordParryReady = false;                 // 검성: 패링 후 3배 카운터
-    Game._ghostDashInvT = 0;                       // 귀신병: 대시 후 반투명
+    Game._ghostDashInvT = 0; Game._ghostPreDmgReduction = 1.0; // 귀신병: 대시 후 반투명
     Game._alchemistTimer = 600;                    // 연금술사: 포션 타이머
     Game._vanguardDefBuff = 0;                     // 선봉대: 피격 방어력 버프 타이머
     Game._cursedEnemies = new Set();               // 무당: 저주 적 추적

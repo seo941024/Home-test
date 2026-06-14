@@ -79,7 +79,7 @@ function updatePlayer() {
     // 귀신병 패시브 타이머
     if (Game.pClass === 11 && (Game._ghostDashInvT || 0) > 0) {
         Game._ghostDashInvT--;
-        if (Game._ghostDashInvT <= 0) Game.pDmgReduction = 1.0;
+        if (Game._ghostDashInvT <= 0) Game.pDmgReduction = Game._ghostPreDmgReduction ?? 1.0;
     }
     // 연금술사 패시브 포션 타이머
     if (Game.pClass === 17) {
@@ -337,7 +337,11 @@ function updatePlayer() {
         const dashCols = ["#ffffff","#cc00ff","#00ccff","#ff2200","#aaaaaa","#ffe040","#ff8800","#44ff88","#cc2244","#aaddff","#dd44ff","#88ccff","#ff6600","#44eeff","#cc55ff","#ffdd00","#9988aa","#88ff44","#8899aa"];
         const trailCol = dashCols[Game.pClass] || "#ffffff";
         // 귀신병 패시브: 대시 후 50프레임 반투명 (피해 50% 감소)
-        if (Game.pClass === 11) { Game._ghostDashInvT = 50; Game.pDmgReduction = 0.5; }
+        if (Game.pClass === 11) {
+            if (Game._ghostDashInvT <= 0) Game._ghostPreDmgReduction = Game.pDmgReduction;
+            Game._ghostDashInvT = 50;
+            Game.pDmgReduction = Math.min(Game._ghostPreDmgReduction, 0.5);
+        }
         const partSz = Game.pClass === 3 ? 5 : 3;
         const partCnt = Game.pClass === 3 ? 5 : 3;
         for (let i = 0; i < partCnt; i++) if(typeof addPart === 'function') addPart(p.x + Math.random() * p.w, p.y + Math.random() * p.h, trailCol, 12, partSz);
