@@ -60,25 +60,14 @@ const Game = {
 
     // 해금 시스템
     unlockedClasses: [
-        1, // 검사 (기본)
-        1, // 도적 (기본)
-        1, // 마법사 (기본)
-        parseInt(localStorage.getItem("skull_unlock_3")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_4")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_5")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_6")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_7")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_8")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_9")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_10")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_11")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_12")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_13")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_14")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_15")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_16")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_17")) || 0,
-        parseInt(localStorage.getItem("skull_unlock_18")) || 0,
+        1, // 0: 검사 (기본)
+        1, // 1: 도적 (기본)
+        1, // 2: 마법사 (기본)
+        parseInt(localStorage.getItem("skull_unlock_3")) || 0, // 3: 버서커
+        parseInt(localStorage.getItem("skull_unlock_4")) || 0, // 4: 발키리
+        parseInt(localStorage.getItem("skull_unlock_5")) || 0, // 5: 성기사
+        parseInt(localStorage.getItem("skull_unlock_6")) || 0, // 6: 혈귀
+        parseInt(localStorage.getItem("skull_unlock_7")) || 0, // 7: 조커
     ],
     totalSkillUses:  parseInt(localStorage.getItem("skull_skillUses"))  || 0,
     totalEliteKills: parseInt(localStorage.getItem("skull_eliteKills")) || 0,
@@ -129,66 +118,12 @@ function _checkUnlocks() {
         uc[5] = 1; localStorage.setItem("skull_unlock_5", 1); changed = true;
         _showUnlockBanner("성기사");
     }
-    // 소환사 (6): 영구 강화 합산 5
-    if (!uc[6] && _permSum >= 5) {
-        uc[6] = 1; localStorage.setItem("skull_unlock_6", 1); changed = true;
-        _showUnlockBanner("소환사");
-    }
-    // 강령술사 (7): 누적 처치 30회
-    if (!uc[7] && (Game.totalKills || 0) >= 30) {
+    // 조커 (7): 나머지 모든 직업(3,4,5,6) 해금 시
+    if (!uc[7] && uc[3] && uc[4] && uc[5] && uc[6]) {
         uc[7] = 1; localStorage.setItem("skull_unlock_7", 1); changed = true;
-        _showUnlockBanner("강령술사");
+        _showUnlockBanner("조커");
     }
-    // 검성 (9): 패링 20회
-    if (!uc[9] && (Game.totalParryCount || 0) >= 20) {
-        uc[9] = 1; localStorage.setItem("skull_unlock_9", 1); changed = true;
-        _showUnlockBanner("검성");
-    }
-    // 마창사 (10): 스킬 15회
-    if (!uc[10] && (Game.totalSkillUses || 0) >= 15) {
-        uc[10] = 1; localStorage.setItem("skull_unlock_10", 1); changed = true;
-        _showUnlockBanner("마창사");
-    }
-    // 귀신병 (11): 엘리트 처치 10회
-    if (!uc[11] && (Game.totalEliteKills || 0) >= 10) {
-        uc[11] = 1; localStorage.setItem("skull_unlock_11", 1); changed = true;
-        _showUnlockBanner("귀신병");
-    }
-    // 폭탄병 (12): 누적 처치 50회
-    if (!uc[12] && (Game.totalKills || 0) >= 50) {
-        uc[12] = 1; localStorage.setItem("skull_unlock_12", 1); changed = true;
-        _showUnlockBanner("폭탄병");
-    }
-    // 빙술사 (13): 영구 강화 합산 10
-    if (!uc[13] && _permSum2 >= 10) {
-        uc[13] = 1; localStorage.setItem("skull_unlock_13", 1); changed = true;
-        _showUnlockBanner("빙술사");
-    }
-    // 무당 (14): 스킬 30회
-    if (!uc[14] && (Game.totalSkillUses || 0) >= 30) {
-        uc[14] = 1; localStorage.setItem("skull_unlock_14", 1); changed = true;
-        _showUnlockBanner("무당");
-    }
-    // 도박사 (15): 누적 처치 100회 (사기급)
-    if (!uc[15] && (Game.totalKills || 0) >= 100) {
-        uc[15] = 1; localStorage.setItem("skull_unlock_15", 1); changed = true;
-        _showUnlockBanner("도박사");
-    }
-    // 분신술사 (16): 엘리트 처치 30회
-    if (!uc[16] && (Game.totalEliteKills || 0) >= 30) {
-        uc[16] = 1; localStorage.setItem("skull_unlock_16", 1); changed = true;
-        _showUnlockBanner("분신술사");
-    }
-    // 연금술사 (17): 영구 강화 합산 15
-    if (!uc[17] && _permSum2 >= 15) {
-        uc[17] = 1; localStorage.setItem("skull_unlock_17", 1); changed = true;
-        _showUnlockBanner("연금술사");
-    }
-    // 선봉대 (18): 영구 방어 레벨 3
-    if (!uc[18] && (Game.permDefLvl || 0) >= 3) {
-        uc[18] = 1; localStorage.setItem("skull_unlock_18", 1); changed = true;
-        _showUnlockBanner("선봉대");
-    }
+
 }
 
 // 도적/버서커는 런 내 스탯 달성 조건 — stage 클리어 시 호출
@@ -211,9 +146,9 @@ function _checkRunUnlocks() {
         uc[3] = 1; localStorage.setItem("skull_unlock_3", 1);
         _showUnlockBanner("버서커");
     }
-    // 혈귀 (8): 한 런에서 1000 이상 피해 받고 클리어
-    if (!uc[8] && (Game.runStats && (Game.runStats.totalDmgTaken || 0) >= 1000)) {
-        uc[8] = 1; localStorage.setItem("skull_unlock_8", 1);
+    // 혈귀 (6): 한 런에서 1000 이상 피해 받고 클리어
+    if (!uc[6] && (Game.runStats && (Game.runStats.totalDmgTaken || 0) >= 1000)) {
+        uc[6] = 1; localStorage.setItem("skull_unlock_6", 1);
         _showUnlockBanner("혈귀");
     }
 }
@@ -237,3 +172,13 @@ function getWg() {
     if (w === 10) return 6;
     return 1;
 }
+
+// 콘솔에서 unlock() 명령어로 전체 해금
+window.unlock = function() {
+    const ids = [3, 4, 5, 6, 7];
+    ids.forEach(i => {
+        Game.unlockedClasses[i] = 1;
+        localStorage.setItem(`skull_unlock_${i}`, 1);
+    });
+    console.log('모든 직업 해금 완료');
+};

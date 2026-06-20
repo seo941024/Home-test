@@ -251,9 +251,7 @@ function takeDmg(dmg, eObj, unblockable=false, noParry=false) {
         Game.totalParryCount = (Game.totalParryCount || 0) + 1;
         localStorage.setItem("skull_parryCount", Game.totalParryCount);
         _checkUnlocks();
-        // 검성 패시브: 패링 후 다음 공격 3배
-        if (Game.pClass === 9) { Game._swordParryReady = true; addText(p.x, p.y-30, "카운터!", "#aaddff", 40, 13); }
-        // 보스: 체간 50 / 일반몹: 현재HP 30% + 즉시 기절
+// 보스: 체간 50 / 일반몹: 현재HP 30% + 즉시 기절
         if (eObj) {
             if (eObj.isBoss && typeof applyPoiseHit === 'function') {
                 applyPoiseHit(eObj, 50);
@@ -327,18 +325,6 @@ function takeDmg(dmg, eObj, unblockable=false, noParry=false) {
         p.hp -= dmg;
         addText(p.x, p.y - 20, `-${dmg}`, "#ff0000", 40, 22);
         for (let i = 0; i < 20; i++) addPart(p.x + 7, p.y + 9, "#ff0000", 25, 4);
-        // 혈귀 패시브: 분노의 피 — 피격 시 스택 +1 (최대 5, 4초 유지)
-        if (Game.pClass === 8) {
-            Game._bloodFuryStacks = Math.min(5, (Game._bloodFuryStacks || 0) + 1);
-            Game._bloodFuryTimer = 240;
-            addText(p.x + 20, p.y - 30, `분노 ${Game._bloodFuryStacks}`, "#cc2244", 40, 12);
-        }
-        // 선봉대 패시브: 피격 시 10초간 방어력 +10
-        if (Game.pClass === 18) {
-            if ((Game._vanguardDefBuff || 0) <= 0) Game.pBaseDef += 10;
-            Game._vanguardDefBuff = 600;
-            addText(p.x + 20, p.y - 30, "방어 강화!", "#8899aa", 40, 11);
-        }
         if (Game.runStats) Game.runStats.totalDmgTaken = (Game.runStats.totalDmgTaken || 0) + dmg;
     }
 

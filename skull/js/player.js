@@ -74,59 +74,7 @@ function updatePlayer() {
         }
     }
     Game._breathT = ((Game._breathT || 0) + 1) % 180;
-    if (Game.pClass === 8 && (Game._bloodFuryTimer || 0) > 0) {
-        Game._bloodFuryTimer--;
-        if (Game._bloodFuryTimer <= 0) Game._bloodFuryStacks = 0;
-    }
-    // 귀신병 패시브 타이머
-    if (Game.pClass === 11 && (Game._ghostDashInvT || 0) > 0) {
-        Game._ghostDashInvT--;
-        if (Game._ghostDashInvT <= 0) Game.pDmgReduction = Game._ghostPreDmgReduction ?? 1.0;
-    }
-    // 연금술사 패시브 포션 타이머
-    if (Game.pClass === 17) {
-        Game._alchemistTimer = (Game._alchemistTimer || 600) - 1;
-        if (Game._alchemistTimer <= 0) {
-            Game._alchemistTimer = 600;
-            const roll = Math.random();
-            const p17 = Game.player;
-            if (roll < 0.33) {
-                const heal = Math.floor(Game.pMaxHp * 0.15);
-                p17.hp = Math.min(Game.pMaxHp, p17.hp + heal);
-                addText(p17.x, p17.y - 25, `포션! +${heal}HP`, "#88ff44", 60, 14);
-                for(let i=0;i<15;i++) addPart(p17.x+7, p17.y+9, "#88ff44", 25, 4);
-            } else if (roll < 0.66) {
-                const _prevMul = Game.pFinalDmgMul || 1.0;
-                Game.pFinalDmgMul = Math.min(3.0, _prevMul * 1.25);
-                const _addedMul = Game.pFinalDmgMul - _prevMul;
-                addText(p17.x, p17.y - 25, "공격 포션!", "#ffee44", 70, 14);
-                setTimeout(() => { if(Game.pClass===17) Game.pFinalDmgMul = Math.max(1.0, (Game.pFinalDmgMul||1.0) - _addedMul); }, 5000);
-            } else {
-                Game.invT = Math.max(Game.invT||0, 180);
-                addText(p17.x, p17.y - 25, "무적 포션!", "#ff8844", 70, 14);
-            }
-            if(typeof playSfx === 'function') playSfx('item');
-        }
-    }
-    // 선봉대 방어 버프 타이머
-    if (Game.pClass === 18 && (Game._vanguardDefBuff || 0) > 0) {
-        Game._vanguardDefBuff--;
-        if (Game._vanguardDefBuff <= 0) Game.pBaseDef = Math.max(20, Game.pBaseDef - 10);
-    }
-    // 분신술사 패시브: 분신 1기 항상 유지
-    if (Game.pClass === 16 && !Game._shadowCloneSpawned) {
-        const currentBaseDmg16 = Game.pBaseDmg * (Game.pBaseDmgMul || 1.0);
-        const p16 = Game.player;
-        if (p16 && (!Game.crewMinions || Game.crewMinions.length === 0)) {
-            Game.crewMinions = Game.crewMinions || [];
-            Game.crewMinions.push({ active: true, x: p16.x - 35, y: p16.y, sideOffset: -35, hp: 999, atk: Math.floor(currentBaseDmg16 * 0.7), life: 99999, atkT: 0, facing: p16.facing, isShadow: true });
-            Game._shadowCloneSpawned = true;
-        }
-    }
-    if (Game.pClass === 16 && Game._shadowCloneSpawned) {
-        const aliveClones = (Game.crewMinions||[]).filter(c => c.active && c.life > 0);
-        if (aliveClones.length === 0) Game._shadowCloneSpawned = false;
-    }
+
     if (Game.runStats && Game.comboCount > (Game.runStats.maxCombo || 0)) Game.runStats.maxCombo = Game.comboCount;
 
     if (p.onGround && p.riding && p.riding.vx) p.x += p.riding.vx;
@@ -323,10 +271,6 @@ function updatePlayer() {
         } else if (Game.pClass === 5) {
             p.vy = 13; p.vx = 0; if(typeof addPart === 'function') addPart(p.x+7, p.y+9, "#ffdd00", 5);
         } else if (Game.pClass === 6) {
-            p.vy = 12; p.vx = 0; if(typeof addPart === 'function') addPart(p.x+7, p.y+9, "#ff8800", 5);
-        } else if (Game.pClass === 7) {
-            p.vy = 12; p.vx = 0; if(typeof addPart === 'function') addPart(p.x+7, p.y+9, "#44ff88", 5);
-        } else if (Game.pClass === 8) {
             p.vy = 13; p.vx = 0; if(typeof addPart === 'function') addPart(p.x+7, p.y+9, "#cc2244", 5);
         } else {
             p.vy = 12; p.vx = 0; if(typeof addPart === 'function') addPart(p.x+7, p.y+9, "#ffaa00", 5);
@@ -340,15 +284,10 @@ function updatePlayer() {
     if (p.dashT > 0) {
         const dashCols = ["#ffffff","#cc00ff","#00ccff","#ff2200","#aaaaaa","#ffe040","#ff8800","#44ff88","#cc2244","#aaddff","#dd44ff","#88ccff","#ff6600","#44eeff","#cc55ff","#ffdd00","#9988aa","#88ff44","#8899aa"];
         const trailCol = dashCols[Game.pClass] || "#ffffff";
-        // 귀신병 패시브: 대시 후 50프레임 반투명 (피해 50% 감소)
-        if (Game.pClass === 11) {
-            if (Game._ghostDashInvT <= 0) Game._ghostPreDmgReduction = Game.pDmgReduction;
-            Game._ghostDashInvT = 50;
-            Game.pDmgReduction = Math.min(Game._ghostPreDmgReduction, 0.5);
-        }
         const partSz = Game.pClass === 3 ? 5 : 3;
         const partCnt = Game.pClass === 3 ? 5 : 3;
         for (let i = 0; i < partCnt; i++) if(typeof addPart === 'function') addPart(p.x + Math.random() * p.w, p.y + Math.random() * p.h, trailCol, 12, partSz);
+
     }
 
     p.x += p.vx;
@@ -488,14 +427,6 @@ function updatePlayerCombat() {
         let dmg = Math.floor(baseRoll + comboBon);
         // 성기사 패시브: 방어력 1당 공격력 +0.5
         if (Game.pClass === 5) dmg += Math.floor((Game.pBaseDef || 0) * 0.5);
-        // 혈귀 패시브: 분노의 피 — 스택당 공격력 +15%
-        if (Game.pClass === 8 && (Game._bloodFuryStacks || 0) > 0) dmg = Math.floor(dmg * (1 + Game._bloodFuryStacks * 0.15));
-        // 검성 패시브: 패링 후 3배 강타
-        if (Game.pClass === 9 && Game._swordParryReady) { dmg *= 3; Game._swordParryReady = false; addText(p.x, p.y - 42, "검성 일격!", "#aaddff", 45, 15); }
-        // 소환사 패시브: 소환수 활성화 시 공격력 +30%
-        if (Game.pClass === 6 && Game.summons && Game.summons.length > 0) dmg = Math.floor(dmg * 1.3);
-        // 강령술사 패시브: 영혼 스택당 공격력 +5%
-        if (Game.pClass === 7 && (Game.soulStacks || 0) > 0) dmg = Math.floor(dmg * (1 + Game.soulStacks * 0.05));
         if (p.hp / Game.pMaxHp < 0.3) dmg = Math.floor(dmg * Game.pLowHpDmg);
 
         let isCrit = false;
@@ -546,6 +477,26 @@ function updatePlayerCombat() {
                     }
                 }
             }
+        } else if (Game.pClass === 7) {
+            // 조커: 카드 투척 — 빨강(강타)/검정(기본)/파랑(MP 회복)
+            const _cards = [
+                { col: "#ff4444", dmgMul: 1.6, mpGain: 1 },
+                { col: "#222222", dmgMul: 1.0, mpGain: 2 },
+                { col: "#4488ff", dmgMul: 0.75, mpGain: 4 },
+            ];
+            const _card = _cards[Math.floor(Math.random() * 3)];
+            const _cardDmg = Math.floor(dmg * _card.dmgMul);
+            const _cRange = 70 + (Game.pRangeBonus || 0);
+            const _vy0 = (Math.random() - 0.5) * 1.5;
+            // 플레이어 앞쪽 끝에서 발사 — 근거리 적도 즉시 판정
+            const _spawnX = p.x + (p.facing > 0 ? p.w + 2 : -2);
+            const _b = typeof spawnBullet === 'function' && spawnBullet(_spawnX, cy, p.facing * 13, _vy0, _cRange, 10, 0, _cardDmg, _card.col);
+            if (_b) { _b.isCard = true; _b.cardCol = _card.col; }
+            Game.pMp = Math.min(Game.pMaxMp, Game.pMp + _card.mpGain);
+            for (let _i = 0; _i < 5; _i++) if(typeof addPart === 'function') addPart(_spawnX, cy + (Math.random()-0.5)*10, _card.col, 10, 2);
+            Game.comboCount++;
+            Game.comboTimer = 150 + Game.pComboDur;
+
         } else {
             let hitTarget = false;
             Game.enemies.forEach((e) => {
@@ -559,9 +510,9 @@ function updatePlayerCombat() {
                 }
             });
 
-            if (isLastHit) Game.camShake = 8; 
-            if (hitTarget) { 
-                Game.pMp = Math.min(Game.pMaxMp, Game.pMp + 2); 
+            if (isLastHit) Game.camShake = 8;
+            if (hitTarget) {
+                Game.pMp = Math.min(Game.pMaxMp, Game.pMp + 2);
                 if (isLastHit) Game.hitStop = 6;
                 Game.comboCount++;
                 Game.comboTimer = 150 + Game.pComboDur;
@@ -577,7 +528,7 @@ function updatePlayerCombat() {
         const _isDC = !!Game._doubleCast;
         if (_isDC) Game._doubleCast = false;
         const skillMpCost = 15;
-        const _bloodClass = Game.pClass === 8; // 혈귀는 HP 소모, MP 불필요
+        const _bloodClass = Game.pClass === 6; // 혈귀는 HP 소모, MP 불필요
         if (!_isDC && !_bloodClass && Game.pMp < skillMpCost) {
             if (!Game._skillWarnT || Game._skillWarnT <= 0) {
                 addText(p.x, p.y - 30, "마나 부족!", "#8888ff", 40, 13);
@@ -589,7 +540,7 @@ function updatePlayerCombat() {
             Game.totalSkillUses = (Game.totalSkillUses || 0) + 1;
             localStorage.setItem("skull_skillUses", Game.totalSkillUses);
             if (typeof _checkUnlocks === 'function') _checkUnlocks();
-            p.atkT = Game.pClass === 3 ? 40 : (Game.pClass === 5 ? 30 : (Game.pClass === 8 ? 25 : 20));
+            p.atkT = Game.pClass === 3 ? 40 : (Game.pClass === 5 ? 30 : (Game.pClass === 6 ? 25 : 20));
             // 스킬 시전 중 무적 (시전시간 + 60프레임 = 1초~1.5초)
             Game.invT = Math.max(Game.invT || 0, p.atkT + 60);
             if(typeof playSfx === 'function') playSfx('skill');
@@ -744,43 +695,6 @@ function updatePlayerCombat() {
                 Game.skillFlashCol = "rgba(120,120,120,0.28)"; Game.skillFlashT = 15; Game.camShake = 6;
 
             } else if (Game.pClass === 6) {
-                // 소환 삼령: 불/번개/빛 정령 3체 소환 (10초)
-                Game.summons = Game.summons || [];
-                const existCount = Game.summons.filter(s => s.life > 0).length;
-                if (existCount > 0) {
-                    addText(p.x, p.y - 30, "소환 중!", "#ff8800", 35, 13);
-                    Game.pMp = Math.min(Game.pMaxMp, Game.pMp + skillMpCost); // MP 환불
-                    p.atkT = 0;
-                } else {
-                    const types = ['fire', 'thunder', 'light'];
-                    const xOffs = [-55, 0, 55];
-                    const yOffs = [0, -20, 0];
-                    const cols  = ["#ff4400", "#ffee00", "#ffffff"];
-                    for (let si = 0; si < 3; si++) {
-                        Game.summons.push({ type: types[si], x: p.x + xOffs[si], y: p.y + yOffs[si], life: 600, atkT: 10 + si * 20, facing: p.facing });
-                    }
-                    for (let i = 0; i < 40; i++) if(typeof addPart === 'function') addPart(cx + (Math.random()-0.5)*60, cy + (Math.random()-0.5)*30, i<15?"#ff8800":i<28?"#ffee00":"#ffffff", 40, i<20?6:3);
-                    addText(p.x, p.y - 35, "소환 삼령!", "#ff8800", 65, 22);
-                    Game.skillFlashCol = "rgba(200,100,0,0.35)"; Game.skillFlashT = 18; Game.camShake = 10;
-                }
-
-            } else if (Game.pClass === 7) {
-                // 영혼 작열: 현재 영혼 스택 수만큼 소울 탄환 발사 (최소 3)
-                const shots = Math.max(3, Math.min(10, Game.soulStacks || 3));
-                const sDmg = Math.floor(skillDmg * 0.6 * (1 + (Game.soulStacks || 0) * 0.1));
-                const spreadAngles = [];
-                for (let si = 0; si < shots; si++) spreadAngles.push(-Math.PI*0.3 + (Math.PI*0.6 / Math.max(1, shots-1)) * si);
-                for (const ang of spreadAngles) {
-                    const bvx = Math.cos(ang) * 11 * p.facing;
-                    const bvy = Math.sin(ang) * 11;
-                    if(typeof spawnBullet === 'function') spawnBullet(cx, cy, bvx, bvy, 280, 7, 6, sDmg, "#44ff88");
-                }
-                Game.soulStacks = 0;
-                for (let i = 0; i < 35; i++) if(typeof addPart === 'function') addPart(cx + p.facing*(5+Math.random()*40), cy+(Math.random()-0.5)*25, i<15?"#44ff88":i<28?"#00ffaa":"#aaffcc", 38, i<18?5:3);
-                addText(p.x, p.y - 35, "영혼 작열!", "#44ff88", 65, 22);
-                Game.skillFlashCol = "rgba(0,180,80,0.30)"; Game.skillFlashT = 18; Game.camShake = 8;
-
-            } else if (Game.pClass === 8) {
                 // 혈기격: 현재 HP 20% 소모 → 전방 광역 대혈창 + 강력 흡혈
                 const hpCost = Math.max(5, Math.floor(p.hp * 0.20));
                 if (p.hp <= hpCost) {
@@ -810,180 +724,25 @@ function updatePlayerCombat() {
                     Game.skillFlashCol = "rgba(160,0,30,0.40)"; Game.skillFlashT = 22; Game.camShake = 25;
                 }
 
-            } else if (Game.pClass === 9) {
-                // 십자검기: 8방향 검기 발사
-                const dirs8 = [[1,0],[-1,0],[0,-1],[0,1],[1,-1],[1,1],[-1,-1],[-1,1]];
-                dirs8.forEach(([dx,dy]) => {
-                    if(typeof spawnBullet==='function') spawnBullet(cx, cy, dx*10, dy*10, 260, 7, 3, Math.floor(skillDmg*0.6), "#aaddff");
-                });
-                for(let i=0;i<50;i++) addPart(cx+(Math.random()-0.5)*40, cy+(Math.random()-0.5)*40, i<25?"#aaddff":"#ffffff", 35, i<20?5:3);
-                addText(p.x, p.y-35, "십자검기!", "#aaddff", 60, 22);
-                Game.skillFlashCol="rgba(160,200,255,0.35)"; Game.skillFlashT=18; Game.camShake=12;
-
-            } else if (Game.pClass === 10) {
-                // 마력 대창: 관통 레이저 창
-                if(typeof spawnLaser==='function') spawnLaser(laserX, cy-4, laserW, 8, 35, "#dd44ff", 0, false);
-                if(typeof spawnLaser==='function') spawnLaser(laserX+p.facing*20, cy-2, laserW-30, 4, 25, "#ffffff", 0, false);
-                Game.enemies.forEach(e => {
-                    if(!e.active||e.dead) return;
-                    if(Math.abs(e.x+e.w/2-cx) < laserW/2+e.w/2 && Math.abs(e.y+e.h/2-cy) < 45) {
-                        if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*1.4), p.facing, false);
-                        if(typeof applyPoiseHit==='function') applyPoiseHit(e, 35);
-                    }
-                });
-                for(let i=0;i<35;i++) addPart(cx+p.facing*(10+Math.random()*140), cy+(Math.random()-0.5)*20, i<18?"#dd44ff":"#aa00ff", 30, i<18?5:3);
-                addText(p.x, p.y-35, "마력 대창!", "#dd44ff", 60, 22);
-                Game.skillFlashCol="rgba(180,0,255,0.30)"; Game.skillFlashT=16; Game.camShake=10;
-
-            } else if (Game.pClass === 11) {
-                // 망령 강습: 빠르게 적 관통 후 폭발
-                const ghostRange=320, startX11=p.x;
-                const hitList11=[];
-                Game.enemies.forEach(e => {
-                    if(!e.active||e.dead) return;
-                    const edx=(e.x+e.w/2)-(p.x+p.w/2);
-                    if(Math.sign(edx)===p.facing && Math.abs(edx)<ghostRange && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<50) hitList11.push(e);
-                });
-                p.x = Math.max(0, Math.min(Game.levelW-p.w, p.x+p.facing*ghostRange));
-                p.vx = p.facing*12; Game.invT = Math.max(Game.invT||0, 35);
-                for(let i=0;i<20;i++) addPart(startX11+p.facing*(Math.random()*ghostRange), cy+(Math.random()-0.5)*16, "#88ccff", 20, 3);
-                hitList11.forEach(e => {
-                    if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*0.9), p.facing, false);
-                    for(let j=0;j<8;j++) addPart(e.x+e.w/2, e.y+e.h/2, "#88ccff", 20, 4);
-                });
-                for(let i=0;i<40;i++) addPart(p.x+p.w/2+(Math.random()-0.5)*30, cy+(Math.random()-0.5)*30, i<20?"#88ccff":"#ffffff", 30, i<20?5:3);
-                addText(p.x, p.y-35, "망령 강습!", "#88ccff", 60, 22);
-                Game.skillFlashCol="rgba(100,180,255,0.28)"; Game.skillFlashT=14; Game.camShake=8;
-
-            } else if (Game.pClass === 12) {
-                // 폭탄 투척: 포물선 대폭발 (gravity bullet sk=true)
-                if(typeof spawnBullet==='function') spawnBullet(cx, cy-5, p.facing*9, -8, 200, 14, true, Math.floor(skillDmg*2.2), "#ff6600");
-                setTimeout(() => {
-                    if(!Game.player) return;
-                    const bx12=p.x+p.facing*180, by12=p.y+30;
-                    Game.enemies.forEach(e => {
-                        if(!e.active||e.dead) return;
-                        if(Math.abs(e.x+e.w/2-bx12)<100 && Math.abs(e.y+e.h/2-by12)<60) {
-                            if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*2.0), p.facing, false);
-                            if(typeof applyPoiseHit==='function') applyPoiseHit(e, 50);
-                        }
-                    });
-                    for(let i=0;i<80;i++) { const ang=Math.random()*Math.PI*2, d=Math.random()*90; addPart(bx12+Math.cos(ang)*d, by12+Math.sin(ang)*d, i<40?"#ff6600":i<65?"#ffaa00":"#ff2200", 50, i<35?8:i<60?5:3); }
-                    if(typeof playSfx==='function') playSfx('boss_atk');
-                    if(typeof spawnLaser==='function') spawnLaser(bx12-60, by12-5, 120, 6, 20, "#ff4400", 0, true);
-                    Game.camShake=30;
-                }, 700);
-                addText(p.x, p.y-35, "폭탄 투척!", "#ff6600", 60, 22);
-                Game.skillFlashCol="rgba(220,80,0,0.35)"; Game.skillFlashT=18;
-
-            } else if (Game.pClass === 13) {
-                // 빙하 폭발: 전방 광역 빙결 + 피해
-                const iceRange=200+(Game.pRangeBonus||0);
-                Game.enemies.forEach(e => {
-                    if(!e.active||e.dead) return;
-                    const edx=(e.x+e.w/2)-(p.x+p.w/2);
-                    if(Math.sign(edx)===p.facing && Math.abs(edx)<iceRange && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<70) {
-                        if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*0.9), p.facing, false);
-                        e.stun=true; e.stunT=90; e.vx=0; e.kbT=90; // 빙결
-                        if(typeof applyPoiseHit==='function') applyPoiseHit(e, 60);
-                        for(let j=0;j<10;j++) addPart(e.x+e.w/2+(Math.random()-0.5)*16, e.y+(Math.random()-0.5)*16, "#44eeff", 25, 4);
-                    }
-                });
-                for(let i=0;i<50;i++) addPart(cx+p.facing*(10+Math.random()*iceRange*0.9), cy+(Math.random()-0.5)*40, i<25?"#44eeff":i<40?"#aaffff":"#ffffff", 40, i<20?6:4);
-                if(typeof spawnLaser==='function') spawnLaser(laserX, cy-3, iceRange, 6, 20, "#44eeff", 0, false);
-                addText(p.x, p.y-35, "빙하 폭발!", "#44eeff", 60, 22);
-                Game.skillFlashCol="rgba(0,200,240,0.35)"; Game.skillFlashT=20; Game.camShake=12;
-
-            } else if (Game.pClass === 14) {
-                // 저주의 환: 전방 적들 저주 + 독
-                const curseRange=180+(Game.pRangeBonus||0);
-                Game.enemies.forEach(e => {
-                    if(!e.active||e.dead) return;
-                    const edx=(e.x+e.w/2)-(p.x+p.w/2);
-                    if(Math.abs(edx)<curseRange && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<80) {
-                        if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*0.7), p.facing, false);
-                        e._cursed = 300; // 저주 타이머 (5초)
-                        e._curseDmg = Math.floor(currentBaseDmg * 0.15); // 매 30프레임 피해
-                        for(let j=0;j<8;j++) addPart(e.x+e.w/2+(Math.random()-0.5)*12, e.y+(Math.random()-0.5)*16, "#cc55ff", 22, 3);
-                    }
-                });
-                for(let i=0;i<40;i++) { const ang=Math.random()*Math.PI*2, d=30+Math.random()*curseRange*0.7; addPart(cx+Math.cos(ang)*d, cy+Math.sin(ang)*d*0.4, i<20?"#cc55ff":"#880099", 35, i<20?5:3); }
-                addText(p.x, p.y-35, "저주의 환!", "#cc55ff", 60, 22);
-                Game.skillFlashCol="rgba(180,0,220,0.30)"; Game.skillFlashT=18; Game.camShake=8;
-
-            } else if (Game.pClass === 15) {
-                // 올인: 50% 확률 초폭딜 or 자해
-                const jackpot = Math.random() < 0.5;
-                if(jackpot) {
-                    const jackDmg = Math.floor(skillDmg * 4.0);
-                    Game.enemies.forEach(e => {
-                        if(!e.active||e.dead) return;
-                        const edx=(e.x+e.w/2)-(p.x+p.w/2);
-                        if(Math.sign(edx)===p.facing && Math.abs(edx)<250 && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<80) {
-                            if(typeof hitE==='function') hitE(e, jackDmg, p.facing, false);
-                        }
-                    });
-                    for(let i=0;i<80;i++) { const ang=Math.random()*Math.PI*2, d=Math.random()*120; addPart(cx+Math.cos(ang)*d, cy+Math.sin(ang)*d*0.5, i<40?"#ffdd00":i<65?"#ff8800":"#ffffff", 55, i<30?8:i<55?5:3); }
-                    addText(p.x, p.y-35, "JACKPOT!!!", "#ffdd00", 90, 26);
-                    Game.skillFlashCol="rgba(220,180,0,0.50)"; Game.skillFlashT=25; Game.camShake=30;
-                } else {
-                    const selfDmg = Math.floor(p.hp * 0.25);
-                    p.hp = Math.max(1, p.hp - selfDmg);
-                    addText(p.x, p.y-35, `꽝... -${selfDmg}`, "#ff4444", 70, 20);
-                    Game.camShake = 20;
-                    for(let i=0;i<25;i++) addPart(p.x+7, p.y+9, "#ff4444", 20, 4);
+            } else if (Game.pClass === 7) {
+                // 와일드카드: 7장 카드 연속 투척 (일직선, 색 무작위)
+                const _wcCols = ["#ff4444","#222222","#4488ff","#ff4444","#222222","#4488ff","#ffdd00"];
+                const _wcRange = 55 + (Game.pRangeBonus || 0);
+                const _wcDmg = Math.floor(skillDmg * 0.55);
+                for (let _wi = 0; _wi < 7; _wi++) {
+                    const _vy2 = (Math.random() - 0.5) * 1.2;
+                    const _wCol = _wcCols[_wi];
+                    setTimeout(() => {
+                        if (!Game.player || Game.player.dead) return;
+                        const pp = Game.player;
+                        const _sx = pp.x + (pp.facing > 0 ? pp.w + 2 : -2);
+                        const _sb = typeof spawnBullet === 'function' && spawnBullet(_sx, pp.y + pp.h/2, pp.facing * 13, _vy2, _wcRange, 10, 0, _wcDmg, _wCol);
+                        if (_sb) { _sb.isCard = true; _sb.cardCol = _wCol; }
+                        for (let _pi = 0; _pi < 3; _pi++) if(typeof addPart === 'function') addPart(_sx, pp.y+pp.h/2, _wCol, 15, 2);
+                    }, _wi * 60);
                 }
-
-            } else if (Game.pClass === 16) {
-                // 삼체분신: 강화 분신 3개 소환
-                Game.crewMinions = Game.crewMinions || [];
-                Game.crewMinions = Game.crewMinions.filter(c => c.active && c.life > 0 && !c.isShadow);
-                for(let s=-2;s<=2;s++) {
-                    if(s===0) continue;
-                    const cm16 = { active:true, x:p.x+s*45, y:p.y, sideOffset:s*45, hp:999, atk:Math.floor(currentBaseDmg*0.8), life:480, atkT:0, facing:p.facing, isShadow:true };
-                    Game.crewMinions.push(cm16);
-                }
-                Game._shadowCloneSpawned = false;
-                for(let i=0;i<30;i++) addPart(cx+(Math.random()-0.5)*50, cy+(Math.random()-0.5)*25, i<15?"#9988aa":"#553366", 28, i<15?5:3);
-                addText(p.x, p.y-35, "삼체분신!", "#9988aa", 60, 22);
-                Game.skillFlashCol="rgba(100,80,140,0.30)"; Game.skillFlashT=16; Game.camShake=8;
-
-            } else if (Game.pClass === 17) {
-                // 폭발 포션: 전방 독 폭탄
-                const potRange=160+(Game.pRangeBonus||0);
-                Game.enemies.forEach(e => {
-                    if(!e.active||e.dead) return;
-                    const edx=(e.x+e.w/2)-(p.x+p.w/2);
-                    if(Math.sign(edx)===p.facing && Math.abs(edx)<potRange && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<60) {
-                        if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*0.8), p.facing, false);
-                        e._cursed = 180; e._curseDmg = Math.floor(currentBaseDmg * 0.12); // 독 DoT
-                    }
-                });
-                for(let i=0;i<40;i++) addPart(cx+p.facing*(10+Math.random()*potRange*0.8), cy+(Math.random()-0.5)*35, i<20?"#88ff44":i<32?"#44aa22":"#00ff88", 35, i<20?5:3);
-                addText(p.x, p.y-35, "폭발 포션!", "#88ff44", 60, 22);
-                Game.skillFlashCol="rgba(60,200,0,0.28)"; Game.skillFlashT=16; Game.camShake=8;
-
-            } else if (Game.pClass === 18) {
-                // 방패 돌진: 전방 돌격 + 적 기절
-                const vgRange=200+(Game.pRangeBonus||0);
-                const startX18=p.x;
-                const hitList18=[];
-                Game.enemies.forEach(e => {
-                    if(!e.active||e.dead) return;
-                    const edx=(e.x+e.w/2)-(p.x+p.w/2);
-                    if(Math.sign(edx)===p.facing && Math.abs(edx)<vgRange && Math.abs((e.y+e.h/2)-(p.y+p.h/2))<55) hitList18.push(e);
-                });
-                p.x=Math.max(0, Math.min(Game.levelW-p.w, p.x+p.facing*vgRange));
-                p.vx=p.facing*8; Game.invT=Math.max(Game.invT||0, 30);
-                hitList18.forEach(e => {
-                    if(typeof hitE==='function') hitE(e, Math.floor(skillDmg*1.2), p.facing, false);
-                    e.stun=true; e.stunT=120; e.vx=p.facing*5; e.vy=-3; e.kbT=120;
-                    if(typeof applyPoiseHit==='function') applyPoiseHit(e, 80);
-                });
-                for(let i=0;i<20;i++) addPart(startX18+p.facing*(Math.random()*vgRange), cy+(Math.random()-0.5)*20, "#8899aa", 22, 4);
-                for(let i=0;i<30;i++) addPart(p.x+p.w/2+(Math.random()-0.5)*25, cy+(Math.random()-0.5)*25, i<15?"#8899aa":"#ccddee", 28, i<15?5:3);
-                addText(p.x, p.y-35, "방패 돌진!", "#8899aa", 60, 22);
-                Game.skillFlashCol="rgba(120,140,160,0.35)"; Game.skillFlashT=18; Game.camShake=20;
+                addText(p.x, p.y - 35, "와일드카드!", "#ffdd00", 65, 22);
+                Game.skillFlashCol = "rgba(200,160,0,0.40)"; Game.skillFlashT = 20; Game.camShake = 10;
 
             } else if (Game.pClass === 5) {
                 // 헤븐즈콜: 망치 들어올리고 내리찍기 + 하늘에서 거대 십자가 강하
@@ -1094,77 +853,7 @@ function updateCrewMinions() {
     }
 }
 
-function updateCurseDoT() {
-    // 무당(14)/연금술사(17) 저주 DoT 처리
-    if (!Game.enemies) return;
-    Game.enemies.forEach(e => {
-        if (!e.active || e.dead || !(e._cursed > 0)) return;
-        e._cursed--;
-        if (e._cursed % 30 === 0 && e._curseDmg > 0) {
-            if(typeof hitE === 'function') hitE(e, e._curseDmg, 0, false);
-            if(typeof addPart === 'function') addPart(e.x+e.w/2+(Math.random()-0.5)*8, e.y+(Math.random()-0.5)*8, "#cc55ff", 15, 3);
-        }
-    });
-}
 
-function updateSummons() {
-    if (!Game.summons || !Game.player) return;
-    if (Game.pClass !== 6) { Game.summons = []; return; }
-    const p = Game.player;
-    Game.summons = Game.summons.filter(s => s.life > 0);
-    const currentBaseDmg = Game.pBaseDmg * (Game.pBaseDmgMul || 1.0);
-
-    const typeConf = {
-        fire:    { xOff: -55, yOff:   0, interval: 38, range:  95, dmgMul: 1.8, col: "#ff6600" },
-        thunder: { xOff:   0, yOff: -20, interval: 52, range: 180, dmgMul: 2.0, col: "#ffee00" },
-        light:   { xOff:  55, yOff:   0, interval: 68, range: 260, dmgMul: 1.6, col: "#ffffcc" },
-    };
-
-    for (const s of Game.summons) {
-        s.life--;
-        const conf = typeConf[s.type];
-        if (!conf) continue;
-
-        const targetX = p.x + conf.xOff;
-        const targetY = p.y + conf.yOff;
-        s.x += (targetX - s.x) * 0.14;
-        s.y += (targetY - s.y) * 0.14;
-        s.facing = p.facing;
-        s.atkT = (s.atkT || 0) - 1;
-
-        if (s.atkT <= 0) {
-            let closest = null, minDist = conf.range;
-            for (const e of Game.enemies) {
-                if (!e.active || e.dead) continue;
-                const dx = e.x + e.w/2 - s.x, dy = e.y + e.h/2 - s.y;
-                const d = Math.sqrt(dx*dx + dy*dy*0.5);
-                if (d < minDist) { minDist = d; closest = e; }
-            }
-            if (closest) {
-                const sDmg = Math.floor(currentBaseDmg * conf.dmgMul * (Game.pSkillDmgMul || 1) * (Game.pFinalDmgMul || 1));
-                if (s.type === 'fire') {
-                    if (typeof hitE === 'function') hitE(closest, sDmg, s.facing, false);
-                    for (let i = 0; i < 10; i++) if(typeof addPart === 'function') addPart(closest.x+closest.w/2+(Math.random()-0.5)*12, closest.y+closest.h/2+(Math.random()-0.5)*12, i<6?"#ff6600":"#ff3300", 22, 4);
-                } else if (s.type === 'thunder') {
-                    Game.enemies.forEach(e => {
-                        if (!e.active || e.dead) return;
-                        if (Math.abs(e.x+e.w/2 - (closest.x+closest.w/2)) < 85) {
-                            if (typeof hitE === 'function') hitE(e, sDmg, s.facing, false);
-                        }
-                    });
-                    for (let i = 0; i < 14; i++) if(typeof addPart === 'function') addPart(closest.x+closest.w/2+(Math.random()-0.5)*14, closest.y+(Math.random()-0.5)*20, i<9?"#ffff00":"#ffaa00", 20, 3);
-                } else if (s.type === 'light') {
-                    const dx = closest.x+closest.w/2 - s.x, dy = closest.y+closest.h/2 - s.y;
-                    const len = Math.sqrt(dx*dx+dy*dy) || 1;
-                    if(typeof spawnBullet === 'function') spawnBullet(s.x, s.y, dx/len*14, dy/len*10, 280, 5, 0, sDmg, "#ffffcc");
-                }
-                s.atkT = conf.interval;
-            } else {
-                s.atkT = 15;
-            }
-        }
-    }
-}
 
 function updateProjectiles() {
     Game.bullets.forEach((b) => { 

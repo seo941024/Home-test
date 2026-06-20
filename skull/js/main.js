@@ -36,8 +36,6 @@ function update() {
     updateProjectiles();
     if (typeof updateTraps === 'function') updateTraps();
     updateCrewMinions();
-    if (typeof updateSummons === 'function') updateSummons();
-    if (typeof updateCurseDoT === 'function') updateCurseDoT();
     updateItemsAndMisc();
 
     // 보스 처치 대사 시퀀스 틱 (비차단 — 게임플레이 유지)
@@ -289,81 +287,22 @@ function startGame() {
         Game.pMoveSpdMul = 0.9; Game.pDashCDMul = 1.1; Game.pJmpMul = 0.95; Game.pBaseAtkSpd = 0.9;
         Game.pRangeBonus = 30; Game.pCritChance = 0.10; Game.pBaseDef = 15;
     } else if (Game.pClass === 6) {
-        // 소환사: 저체력, 소환수가 메인 딜, 기본 공격 약
-        Game.pMaxHp = 45 + (Game.permHpLvl * 10); Game.pBaseDmg = 40 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.0; Game.pDashCDMul = 1.0; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 0.7;
-        Game.pRangeBonus = 20; Game.pCritChance = 0.15; Game.pBaseDef = 0;
-    } else if (Game.pClass === 7) {
-        // 강령술사: 영혼 스택으로 강화, 중거리 마법탄
-        Game.pMaxHp = 55 + (Game.permHpLvl * 10); Game.pBaseDmg = 35 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 0.95; Game.pDashCDMul = 1.0; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 0.8;
-        Game.pRangeBonus = 25; Game.pCritChance = 0.20; Game.pBaseDef = 0;
-    } else if (Game.pClass === 8) {
         // 혈귀: 피해 받을수록 강해지는 근거리 흡혈귀
         Game.pMaxHp = 70 + (Game.permHpLvl * 10); Game.pBaseDmg = 60 + (Game.permAtkLvl * 2);
         Game.pMoveSpdMul = 1.05; Game.pDashCDMul = 0.9; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 1.1;
         Game.pRangeBonus = 10; Game.pCritChance = 0.25; Game.pBaseDef = -5;
         Game.pLifestealChance = 0.40;
-    } else if (Game.pClass === 9) {
-        // 검성: 패링 카운터 폭딜, 균형형
-        Game.pMaxHp = 65 + (Game.permHpLvl * 10); Game.pBaseDmg = 55 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.0; Game.pDashCDMul = 0.95; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 1.1;
-        Game.pRangeBonus = 20; Game.pCritChance = 0.20; Game.pBaseDef = 5;
-    } else if (Game.pClass === 10) {
-        // 마창사: 관통 장거리 창술
-        Game.pMaxHp = 60 + (Game.permHpLvl * 10); Game.pBaseDmg = 65 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.0; Game.pDashCDMul = 0.85; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 0.85;
-        Game.pRangeBonus = 40; Game.pCritChance = 0.15; Game.pBaseDef = 0;
-    } else if (Game.pClass === 11) {
-        // 귀신병: 대시 후 반투명, 고속 근거리
-        Game.pMaxHp = 50 + (Game.permHpLvl * 10); Game.pBaseDmg = 45 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.15; Game.pDashCDMul = 0.7; Game.pJmpMul = 1.1; Game.pBaseAtkSpd = 1.3;
-        Game.pRangeBonus = 10; Game.pCritChance = 0.30; Game.pBaseDef = 0;
-    } else if (Game.pClass === 12) {
-        // 폭탄병 [사기]: 처치 1000회 — 한방 폭발 극대화
-        Game.pMaxHp = 90 + (Game.permHpLvl * 10); Game.pBaseDmg = 90 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 0.88; Game.pDashCDMul = 1.3; Game.pJmpMul = 0.92; Game.pBaseAtkSpd = 0.55;
-        Game.pRangeBonus = 40; Game.pCritChance = 0.15; Game.pBaseDef = 8;
-        Game.pSkillDmgMul = 3.0;
-    } else if (Game.pClass === 13) {
-        // 빙술사: 빙결 제어, 원거리 저딜
-        Game.pMaxHp = 40 + (Game.permHpLvl * 10); Game.pBaseDmg = 45 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.0; Game.pDashCDMul = 1.0; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 0.65;
-        Game.pRangeBonus = 35; Game.pCritChance = 0.18; Game.pBaseDef = -5;
-    } else if (Game.pClass === 14) {
-        // 무당 [사기급]: 스킬 200회 — 저주가 극단적으로 강함
-        Game.pMaxHp = 55 + (Game.permHpLvl * 10); Game.pBaseDmg = 50 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.0; Game.pDashCDMul = 0.9; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 0.85;
-        Game.pRangeBonus = 30; Game.pCritChance = 0.28; Game.pBaseDef = 0;
-        Game.pSkillDmgMul = 2.5;
-    } else if (Game.pClass === 15) {
-        // 도박사 [사기]: 처치 2000회 — 크리 터지면 게임 끝
-        Game.pMaxHp = 60 + (Game.permHpLvl * 10); Game.pBaseDmg = 55 + (Game.permAtkLvl * 2);
+    } else if (Game.pClass === 7) {
+        // 조커: 원거리 카드 투척 — 빠른 이동, 높은 치명타
+        Game.pMaxHp = 55 + (Game.permHpLvl * 10); Game.pBaseDmg = 42 + (Game.permAtkLvl * 2);
         Game.pMoveSpdMul = 1.15; Game.pDashCDMul = 0.85; Game.pJmpMul = 1.08; Game.pBaseAtkSpd = 1.1;
-        Game.pRangeBonus = 15; Game.pCritChance = 0.50; Game.pCritDmg = 7.0;
+        Game.pRangeBonus = 45; Game.pCritChance = 0.45; Game.pCritDmg = 5.0;
         Game.pBaseDef = 0;
-    } else if (Game.pClass === 16) {
-        // 분신술사 [사기]: 엘리트 200회 — 분신들이 진짜 강함
-        Game.pMaxHp = 55 + (Game.permHpLvl * 10); Game.pBaseDmg = 60 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.25; Game.pDashCDMul = 0.6; Game.pJmpMul = 1.15; Game.pBaseAtkSpd = 1.5;
-        Game.pRangeBonus = 10; Game.pCritChance = 0.40; Game.pBaseDef = -5;
-    } else if (Game.pClass === 17) {
-        // 연금술사 [사기]: 영구 합산 30 — 포션이 5초마다, 독 극강
-        Game.pMaxHp = 70 + (Game.permHpLvl * 10); Game.pBaseDmg = 60 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 1.0; Game.pDashCDMul = 0.95; Game.pJmpMul = 1.0; Game.pBaseAtkSpd = 1.0;
-        Game.pRangeBonus = 25; Game.pCritChance = 0.22; Game.pBaseDef = 8;
-        Game.pSkillDmgMul = 2.0; Game.pHealOnHit = true;
-        Game._alchemistTimer = 300; // 5초 쿨
-    } else if (Game.pClass === 18) {
-        // 선봉대 [사기]: 영구 방어 레벨 5 — 진짜 무적 탱커
-        Game.pMaxHp = 130 + (Game.permHpLvl * 12); Game.pBaseDmg = 50 + (Game.permAtkLvl * 2);
-        Game.pMoveSpdMul = 0.88; Game.pDashCDMul = 1.0; Game.pJmpMul = 0.92; Game.pBaseAtkSpd = 0.85;
-        Game.pRangeBonus = 20; Game.pCritChance = 0.12; Game.pBaseDef = 35;
-        Game.pSkillDmgMul = 1.8;
     }
 
     // 사거리 역비례 보정: 근거리=높음, 원거리=낮음
-    const CLASS_DMG_MUL = [1.5,1.3,0.7,1.5,0.7,1.2,0.5,0.8,1.0, 1.4,1.3,1.1,2.0,0.75,1.2,1.0,1.3,1.0,1.5];
+    // [0검사, 1도적, 2마법사, 3버서커, 4발키리, 5성기사, 6혈귀, 7조커]
+    const CLASS_DMG_MUL = [1.5, 1.3, 0.7, 1.5, 0.7, 1.2, 1.0, 1.0];
     Game.pBaseDmgMul = CLASS_DMG_MUL[Game.pClass] || 1.0;
     // 영구 강화: 초기화 이후에 적용 (덮어씌워지지 않도록)
     Game.pMaxHp       += (Game.permHpLvl     || 0) * 10;
@@ -385,12 +324,6 @@ function startGame() {
     if (typeof _appliedSynergies !== 'undefined') _appliedSynergies.clear();
     Game.summons = []; Game.soulStacks = 0;
     Game._bloodFuryStacks = 0; Game._bloodFuryTimer = 0;
-    Game._swordParryReady = false;                 // 검성: 패링 후 3배 카운터
-    Game._ghostDashInvT = 0; Game._ghostPreDmgReduction = 1.0; // 귀신병: 대시 후 반투명
-    Game._alchemistTimer = 600;                    // 연금술사: 포션 타이머
-    Game._vanguardDefBuff = 0;                     // 선봉대: 피격 방어력 버프 타이머
-    Game._cursedEnemies = new Set();               // 무당: 저주 적 추적
-    Game._shadowCloneSpawned = false;              // 분신술사: 패시브 분신
     
     Game.player = null; 
     Game.isPaused = false;
@@ -523,18 +456,22 @@ function tickDifficultySelect(frameNow) {
     ctx.textAlign = "left";
 }
 
+const VALID_CLASSES = [0, 1, 2, 3, 4, 5, 6, 7];
+
 function updateClassSelect() {
-    // ← → 로 6직업 순환 + 슬라이드 애니메이션 트리거
+    // ← → 로 직업 순환 + 슬라이드 애니메이션 트리거
     if (dn("ArrowRight") && !K.rDirOld) {
-        Game._classSlideDir = 1;   // 오른쪽으로 슬라이드
+        Game._classSlideDir = 1;
         Game._classSlideT   = 0;
-        Game.pClass = (Game.pClass + 1) % 19;
+        const idx = VALID_CLASSES.indexOf(Game.pClass);
+        Game.pClass = VALID_CLASSES[(idx + 1) % VALID_CLASSES.length];
         playSfx('item');
     }
     if (dn("ArrowLeft") && !K.lOld) {
-        Game._classSlideDir = -1;  // 왼쪽으로 슬라이드
+        Game._classSlideDir = -1;
         Game._classSlideT   = 0;
-        Game.pClass = (Game.pClass + 18) % 19;
+        const idx = VALID_CLASSES.indexOf(Game.pClass);
+        Game.pClass = VALID_CLASSES[(idx + VALID_CLASSES.length - 1) % VALID_CLASSES.length];
         playSfx('item');
     }
     // 슬라이드 타이머 진행
@@ -601,7 +538,7 @@ function tickRouteSelect(frameNow) {
     // ── 옵션 카드 ──
     const opts = [
         { key:"1", label:"치유의 은혜", lines:["HP 50% 즉시 회복","체력이 위험할 때"], rgb:[255,80,80], icon:"♥", dim:"rgba(52,0,0," },
-        { key:"2", label:"마나의 샘",   lines:["마나 100% 즉시 회복","필살기 연계 시"], rgb:[60,150,255], icon:"✦", dim:"rgba(0,8,50," },
+        { key:"2", label:"다크쿼츠 광맥",   lines:["다크쿼츠 +8 획득","영구 강화에 사용"], rgb:[140,80,255], icon:"✦", dim:"rgba(10,0,50," },
         { key:"3", label:"유물의 현현", lines:["패시브 유물 하나 선택","강한 빌드를 원할 때"], rgb:[255,200,50], icon:"◆", dim:"rgba(40,26,0," },
     ];
     const bw = 172, bh = 168, gap = 12;
@@ -672,8 +609,9 @@ function tickRouteSelect(frameNow) {
         Game.transState = 2; Game.transT = 255; Game.gs = "play"; playBGM('play');
         if (typeof genStage === 'function') genStage(Game.worldN, Game.levelN);
     } else if (dn("Digit2","Numpad2") && !K.u2Old) {
-        Game.pMp = Game.pMaxMp;
-        addText(320, 160, "MP 100% 회복!", "#44aaff", 80, 18, 0, 0.5); playSfx('item');
+        Game.darkQuartz += 8;
+        if (typeof saveProgress === 'function') saveProgress();
+        addText(320, 160, "다크쿼츠 +8!", "#aa66ff", 80, 18, 0, 0.5); playSfx('item');
         Game.transState = 2; Game.transT = 255; Game.gs = "play"; playBGM('play');
         if (typeof genStage === 'function') genStage(Game.worldN, Game.levelN);
     } else if (dn("Digit3","Numpad3") && !K.u3Old) {

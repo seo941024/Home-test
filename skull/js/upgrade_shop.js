@@ -482,7 +482,7 @@ function _shopCost(base, lvl) { return Math.floor(base * (1 + lvl * 0.6)); }
 // 보스 전리품 시스템
 // ==========================================
 const BOSS_ITEMS = {
-    101: { name: "마왕의 심장: 최대 HP +80, 공격력 +20%",           apply: g => { g.pMaxHp += 80; g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.pMaxHp, g.player.hp + 80); g.pBaseDmgMul += 0.20; } },
+    101: { name: "타락한 핵심: 최대 HP +80, 공격력 +20%",           apply: g => { g.pMaxHp += 80; g.player.maxHp = g.pMaxHp; g.player.hp = Math.min(g.pMaxHp, g.player.hp + 80); g.pBaseDmgMul += 0.20; } },
     102: { name: "불사의 갑옷: 받는 피해 -30%, 저체력 시 데미지 +50%", apply: g => { g.pDmgReduction -= 0.30; g.pLowHpDmg += 0.50; } },
     103: { name: "사신의 낫: 공격력 +30%, 치명타 확률 +20%, 치명타 피해 +60%", apply: g => { g.pBaseDmgMul += 0.30; g.pCritChance += 0.20; g.pCritDmg += 0.60; } },
     104: { name: "공허의 룬석: 스킬 피해 +60%, 재시전 확률 +20%",    apply: g => { g.pSkillDmgMul += 0.60; g.pDoubleSkillChance = (g.pDoubleSkillChance||0) + 0.20; } },
@@ -665,7 +665,7 @@ const EVENTS = [
       desc: "방어막 +50 획득",
       apply: g => { g.pShield += 50; }},
     { name: "죽음의 도박",   color: "#ff8800",
-      desc: "50% 확률: 랜덤 유물 2개 / 50%: HP 절반",
+      desc: "[행운 50%] 유물 2개 획득 / [불운 50%] 현재 HP가 절반으로 감소",
       apply: g => {
           if (Math.random() < 0.5) {
               const pool = Object.keys(UPGRADES).map(Number).filter(id => !(g.obtainedItems||[]).includes(id));

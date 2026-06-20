@@ -195,12 +195,6 @@ function updateEnemies() {
             Game.totalKills = (Game.totalKills || 0) + 1;
             localStorage.setItem("skull_totalKills", Game.totalKills);
             if (typeof _checkUnlocks === 'function') _checkUnlocks();
-            // 강령술사: 처치 시 영혼 스택 +1 (최대 10)
-            if (Game.pClass === 7 && !e.isBoss) {
-                Game.soulStacks = Math.min(10, (Game.soulStacks || 0) + 1);
-                if (Game.soulStacks >= 10) addText(e.x, e.y - 20, "영혼 포화!", "#44ff88", 45, 14);
-            }
-            
             if (e.isElite) {
                 // 난이도별 쿼츠 드롭 배율: 쉬움1x 보통1.5x 어려움2.5x 헬4x
                 const _dqMul = [1, 2, 4, 8][Game.difficulty || 0];

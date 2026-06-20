@@ -111,7 +111,7 @@ function render() {
         const rowH = 18, padX = 10, padY = 8;
         const cols = 2, colW = panW / cols;
         const MAX_ROWS = 9; // 최대 표시 행 — 초과 시 스크롤
-        const STATS_H = 66;
+        const STATS_H = 80;
         const totalRows = Math.ceil(items.length / cols);
         const needsScroll = totalRows > MAX_ROWS;
 
@@ -206,7 +206,7 @@ function render() {
         ];
         ctx.textAlign = "left"; ctx.font = "10px SkullFont, NeoDunggeunmo";
         statDefs.forEach((row, ri) => {
-            const sy = statsY + 14 + ri * 15;
+            const sy = statsY + 20 + ri * 18;
             row.forEach((cell, ci) => {
                 const sp = cell.indexOf(' ');
                 const label = cell.slice(0, sp), value = cell.slice(sp + 1);

@@ -155,7 +155,7 @@ function playSfx(type) {
             sweep('sine', 220, 80, 0.28, 0.20);
             noise(0.45, 0.15, 'bandpass', 400);
             osc('sine', 160, 0.20, 0.18);
-        } else if (cls === 8) {
+        } else if (cls === 6) {
             // 혈귀: 날카로운 혈창 — 금속 베임 + 젖은 충격
             sweep('sawtooth', 2800, 120, 0.35, 0.08, 300);
             noise(0.55, 0.06, 'lowpass', 600);
@@ -186,8 +186,8 @@ function playSfx(type) {
             // 무당: 저주 접촉 — 오싹한 공명
             sweep('sine', 180, 60, 0.30, 0.20);
             noise(0.40, 0.12, 'bandpass', 400);
-        } else if (cls === 15) {
-            // 도박사: 경쾌한 손장난 — 카드 슬랩
+        } else if (cls === 7) {
+            // 조커: 경쾌한 손장난 — 카드 슬랩
             noise(0.55, 0.04, 'highpass', 3000);
             sweep('sawtooth', 1200, 80, 0.28, 0.08, 200);
         } else if (cls === 16) {
@@ -282,65 +282,13 @@ function playSfx(type) {
             osc('sine', 220, 0.30, 0.50);
             osc('sine', 440, 0.20, 0.40);
         } else if (cls === 6) {
-            // 소환사: 삼령 소환 — 신비로운 소환 울림
-            osc('sine', 330, 0.35, 0.40);
-            osc('sine', 440, 0.28, 0.55);
-            osc('sine', 550, 0.22, 0.45);
-            noise(0.30, 0.35, 'bandpass', 800);
-            setTimeout(() => { if (audioCtx) { osc('sine', 660, 0.18, 0.30); } }, 150);
-            setTimeout(() => { if (audioCtx) { osc('sine', 880, 0.15, 0.25); } }, 300);
-        } else if (cls === 7) {
-            // 강령술사: 영혼 작열 — 으스스한 방출
-            sweep('sine', 60, 180, 0.40, 0.50);
-            noise(0.55, 0.45, 'bandpass', 350);
-            osc('sine', 120, 0.35, 0.55);
-            setTimeout(() => { if (audioCtx) { noise(0.35, 0.25, 'highpass', 2000); } }, 100);
-        } else if (cls === 8) {
             // 혈귀: 혈기격 — 폭발적 혈창 해방
             sweep('sawtooth', 80, 20, 1.0, 0.55, 600);
             noise(0.70, 0.35, 'lowpass', 600);
             noise(0.45, 0.20, 'bandpass', 1200);
             setTimeout(() => { if (audioCtx) { sweep('sawtooth', 400, 40, 0.50, 0.30, 400); } }, 80);
-        } else if (cls === 9) {
-            // 검성: 팔방참 — 검기 8방향 폭발
-            sweep('sawtooth', 200, 3200, 0.55, 0.25);
-            noise(0.65, 0.20, 'highpass', 4000);
-            [0, 60, 120].forEach((d, i) => setTimeout(() => { if (audioCtx) osc('sine', 1760 - i*200, 0.18, 0.15); }, d));
-        } else if (cls === 10) {
-            // 마창사: 마창 폭격 — 전방 레이저 굉음
-            sweep('sawtooth', 60, 12, 0.90, 0.70, 800);
-            noise(0.70, 0.45, 'lowpass', 500);
-            sweep('sine', 3000, 100, 0.40, 0.30, 400);
-            setTimeout(() => { if (audioCtx) noise(0.40, 0.25, 'highpass', 3000); }, 100);
-        } else if (cls === 11) {
-            // 귀신병: 귀신 강습 — 순간이동 + 착지 폭발
-            noise(0.75, 0.04, 'highpass', 5500);
-            sweep('sine', 2000, 40, 0.40, 0.10, 200);
-            setTimeout(() => { if (audioCtx) { sweep('sawtooth', 100, 15, 0.80, 0.45, 500); noise(0.60, 0.20, 'lowpass', 500); } }, 200);
-        } else if (cls === 12) {
-            // 폭탄병: 초대형 폭발 — 심층 충격파
-            setTimeout(() => {
-                if (!audioCtx) return;
-                sweep('sawtooth', 40, 8, 1.0, 0.80, 900);
-                noise(0.90, 0.60, 'lowpass', 250);
-                [50, 70, 95].forEach((f, i) => setTimeout(() => { if (audioCtx) osc('sine', f, 0.50, 0.70); }, i * 60));
-            }, 700);
-            noise(0.50, 0.10, 'bandpass', 1500);
-        } else if (cls === 13) {
-            // 빙술사: 빙결 폭풍 — 얼음 폭발 + 냉기 흡수
-            sweep('sine', 1400, 80, 0.50, 0.50, 600);
-            noise(0.60, 0.40, 'bandpass', 600);
-            osc('sine', 120, 0.30, 0.60);
-            noise(0.35, 0.30, 'highpass', 3500);
-            setTimeout(() => { if (audioCtx) { noise(0.40, 0.25, 'lowpass', 350); } }, 150);
-        } else if (cls === 14) {
-            // 무당: 저주 의식 — 어두운 공명 + 이상한 울림
-            sweep('sine', 80, 200, 0.45, 0.60);
-            noise(0.55, 0.45, 'bandpass', 250);
-            osc('sine', 110, 0.35, 0.65);
-            setTimeout(() => { if (audioCtx) { noise(0.35, 0.30, 'lowpass', 300); osc('sine', 165, 0.20, 0.50); } }, 120);
-        } else if (cls === 15) {
-            // 도박사: 도박 일격 — 긴장감 + 폭발(혹은 자멸)
+        } else if (cls === 7) {
+            // 조커: 와일드카드 — 카드 7장 연속 투척
             osc('square', 880, 0.25, 0.08);
             setTimeout(() => { if (audioCtx) osc('square', 660, 0.20, 0.06); }, 80);
             setTimeout(() => {
@@ -351,24 +299,6 @@ function playSfx(type) {
                     sweep('sine', 400, 40, 0.60, 0.40); noise(0.50, 0.20, 'highpass', 2000);
                 }
             }, 180);
-        } else if (cls === 16) {
-            // 분신술사: 분신 소환 — 그림자 폭발
-            noise(0.70, 0.05, 'highpass', 5000);
-            [0, 80, 160, 240].forEach((d, i) => {
-                setTimeout(() => { if (audioCtx) { sweep('sawtooth', 800 + i*200, 60, 0.30, 0.15, 200); } }, d);
-            });
-        } else if (cls === 17) {
-            // 연금술사: 독 폭탄 — 거품 끓는 소리 + 가스 방출
-            noise(0.65, 0.06, 'bandpass', 800);
-            sweep('sine', 600, 100, 0.35, 0.40);
-            setTimeout(() => { if (audioCtx) { noise(0.50, 0.35, 'lowpass', 350); } }, 80);
-            setTimeout(() => { if (audioCtx) { noise(0.35, 0.25, 'bandpass', 500); } }, 180);
-        } else if (cls === 18) {
-            // 선봉대: 전방 돌격 — 중장갑 돌진 + 충격
-            sweep('sawtooth', 120, 18, 0.90, 0.55, 700);
-            noise(0.70, 0.35, 'lowpass', 500);
-            noise(0.40, 0.15, 'bandpass', 1000);
-            setTimeout(() => { if (audioCtx) { sweep('sawtooth', 200, 25, 0.60, 0.30, 400); } }, 150);
         } else {
             sweep('sine', 440, 880, 0.35, 0.40);
             noise(0.40, 0.25, 'highpass', 2500);
@@ -1171,15 +1101,15 @@ function playBGM(scene = 'play') {
         bgmInterval = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) { bi++; return; }
             const b = bi % 16;
-            if (kpat[b]) _kick(b === 0 ? 0.52 : 0.33);
-            if (b === 4 || b === 12) _snare(0.40);
+            if (kpat[b]) _kick(b === 0 ? 0.34 : 0.22);
+            if (b === 4 || b === 12) _snare(0.26);
             if (wgI === 0 && bi % 2 === 1) _hihat(0.10);
             if (wgI === 3 && bi % 4 === 2) _hihat(0.08);
             const gm = riff[b];
             if (gm > 0) {
                 let next = 1;
                 for (let k = 1; k < 5; k++) { if (riff[(b+k)%16] > 0) { next = k; break; } }
-                const gVol = wgI === 1 ? 0.22 : wgI === 2 ? 0.24 : 0.16;
+                const gVol = wgI === 1 ? 0.14 : wgI === 2 ? 0.15 : 0.10;
                 _guitar(root * gm, gVol, Math.max(0.07, T * next * 1.6 / 1000));
             }
             bi++;
@@ -1188,7 +1118,7 @@ function playBGM(scene = 'play') {
         let bpi = 0;
         bgmInterval2 = setInterval(() => {
             if (!isBgmPlaying || Game.isMuted) { bpi++; return; }
-            _bassNote(root * 0.5 * bSeqs[wgI][bpi % 4], 0.20, T * 3.5 / 1000);
+            _bassNote(root * 0.5 * bSeqs[wgI][bpi % 4], 0.13, T * 3.5 / 1000);
             bpi++;
         }, T * 2);
 
@@ -1356,7 +1286,35 @@ function playBGM(scene = 'play') {
         },
     };
     const p = profiles[Math.min(wg, 6)] || profiles[1];
-    const _isBurning = Game.worldN % 2 === 0 && Game.worldN >= 2 && Game.worldN <= 6; // 불타는(파괴된) 월드 wg1-3
+    const _isBurning = Game.worldN % 2 === 0 && Game.worldN >= 2 && Game.worldN <= 6;
+
+    // 불타는 월드: 메탈 전용 BGM (일반 BGM 없이 기타+드럼만)
+    if (_isBurning) {
+        const bRoots = [0, 110, 98, 82];
+        const bBPMs  = [0, 188, 168, 148];
+        const bRoot  = bRoots[Math.min(wg, 3)] || 110;
+        const bBPM   = bBPMs[Math.min(wg, 3)] || 168;
+        const bT     = Math.round(60000 / bBPM / 2);
+        const bRiff  = [1,0,1.498,0, 1,0,1.335,1.498, 1,0,0.89,0, 1.498,0,1,0];
+        let bri = 0;
+        bgmInterval = setInterval(() => {
+            if (!isBgmPlaying || Game.isMuted) { bri++; return; }
+            const b2 = bri % bRiff.length;
+            if (bRiff[b2] > 0) _guitar(bRoot * bRiff[b2], 0.14, bT * 1.2 / 1000);
+            if (b2 === 0 || b2 === 8) _kick(0.34);
+            if (b2 === 4 || b2 === 12) _snare(0.24);
+            bri++;
+        }, bT);
+        const bSeq = [1, 0.75, 0.89, 0.75];
+        let bsi = 0;
+        bgmInterval2 = setInterval(() => {
+            if (!isBgmPlaying || Game.isMuted) { bsi++; return; }
+            _bassNote(bRoot * 0.5 * bSeq[bsi % 4], 0.13, bT * 3.0 / 1000);
+            bsi++;
+        }, bT * 2);
+        return;
+    }
+
     let si = 0;
 
     bgmInterval = setInterval(() => {

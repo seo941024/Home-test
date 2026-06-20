@@ -75,97 +75,20 @@ function renderClassSelect(frameNow) {
           passive:"신성방패", passiveDesc:"패링 성공 시 3초간 피해 30% 감소",
           charDesc:"신성력을 이용해 싸우는 수호자\n패링 능력이 매우 탁월하며\n방어력이 올라갈수록 강해진다.",
           unlockCond: "패링 10회" },
-        { name:"소환사", color:"#ff8800", diffStars:2,
-          hp:45,  atk:40,  def:0,   crit:15, atkSpd:70,  movSpd:100,
-          ratings:[["체력","최하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","보통"],["치명타","중하"]],
-          skill:"소환 삼령", skillDesc:"불·번개·빛 속성 정령 3체를 소환해 함께 싸운다.",
-          passive:"영체결속", passiveDesc:"소환수 활성 시 공격력 +30%",
-          charDesc:"3체의 속성 정령을 다루는 소환사\n자신은 약하지만 소환수들이\n강력한 공격을 대신 수행한다.",
-          unlockCond: "영구 강화 합산 5" },
-        { name:"강령술사", color:"#44ff88", diffStars:3,
-          hp:55,  atk:35,  def:0,   crit:20, atkSpd:80,  movSpd:95,
-          ratings:[["체력","중하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","중하"],["치명타","중상"]],
-          skill:"영혼 작열", skillDesc:"저장된 영혼을 탄환으로 변환해 일제 발사한다.",
-          passive:"영혼 수집", passiveDesc:"적 처치 시 영혼 +1 (최대 10), 스택당 공격력 +5%",
-          charDesc:"죽은 자의 영혼을 수집해 무기로\n삼는 강령술사. 처치할수록\n강해지는 후반형 직업이다.",
-          unlockCond: "누적 처치 30회" },
         { name:"혈귀", color:"#cc2244", diffStars:4,
           hp:70,  atk:60,  def:-5,  crit:25, atkSpd:110, movSpd:105,
           ratings:[["체력","중상"],["공격력","상"],["방어","최하"],["공격속도","상"],["이동속도","중상"],["치명타","상"]],
           skill:"혈기격", skillDesc:"HP 20% 소모, 전방 광역 흡혈 대참격을 날린다.",
-          passive:"분노의 피", passiveDesc:"피격 시 4초간 공격력 +15% 스택 (최대 5중첩)",
-          charDesc:"피를 마시며 싸우는 저주받은 존재\n피해를 받을수록 광분하여\n더욱 강력한 공격을 날린다.",
+          passive:"흡혈", passiveDesc:"공격 시 40% 확률로 피해량의 일부를 HP로 회복",
+          charDesc:"피를 마시며 싸우는 저주받은 존재\n높은 흡혈로 적을 쓰러뜨릴수록\n자신의 생존력이 올라가는 공세형 직업.",
           unlockCond: "한 런에서 피해 1000 이상 받고 클리어" },
-        { name:"검성",   color:"#aaddff", diffStars:4,
-          hp:75,  atk:80,  def:8,   crit:20, atkSpd:95,  movSpd:95,
-          ratings:[["체력","중상"],["공격력","상"],["방어","중상"],["공격속도","중하"],["이동속도","중하"],["치명타","중상"]],
-          skill:"팔방참", skillDesc:"8방향으로 검기를 동시 발사한다.",
-          passive:"카운터", passiveDesc:"패링 직후 다음 공격 피해량 3배",
-          charDesc:"검의 극의에 도달한 무인\n패링 후 역습으로 치명적인\n일격을 날리는 반격형 전사.",
-          unlockCond: "패링 20회" },
-        { name:"마창사", color:"#ff66ff", diffStars:3,
-          hp:55,  atk:65,  def:-5,  crit:22, atkSpd:80,  movSpd:100,
-          ratings:[["체력","중하"],["공격력","중상"],["방어","최하"],["공격속도","중하"],["이동속도","보통"],["치명타","중상"]],
-          skill:"마창 폭격", skillDesc:"전방 전체를 관통하는 마창 레이저를 발사한다.",
-          passive:"마력 충전", passiveDesc:"스킬 사용 시 MP +10 추가 충전",
-          charDesc:"마력을 창 끝에 응축시켜\n강력한 레이저를 발사하는 마창사\n스킬 연계가 핵심인 공세형 직업.",
-          unlockCond: "스킬 사용 15회" },
-        { name:"귀신병", color:"#66ffdd", diffStars:3,
-          hp:60,  atk:55,  def:-10, crit:18, atkSpd:100, movSpd:115,
-          ratings:[["체력","중하"],["공격력","중하"],["방어","최하"],["공격속도","보통"],["이동속도","상"],["치명타","중하"]],
-          skill:"귀신 강습", skillDesc:"적을 관통 이동 후 착지 지점 광역 폭발.",
-          passive:"대시 무적", passiveDesc:"대시 중 50% 피해 감소",
-          charDesc:"귀신처럼 빠르게 적진에 침투해\n관통 돌파 후 폭발로 마무리하는\n게릴라 전술의 달인.",
-          unlockCond: "엘리트 처치 10회" },
-        { name:"폭탄병", color:"#ff9922", diffStars:4,
-          hp:90,  atk:90,  def:8,   crit:15, atkSpd:55,  movSpd:88,
-          ratings:[["체력","상"],["공격력","최상"],["방어","중하"],["공격속도","최하"],["이동속도","하"],["치명타","중하"]],
-          skill:"초대형 폭탄", skillDesc:"포물선 폭탄을 던져 스킬 피해 3배 광역 대폭발을 일으킨다.",
-          passive:"폭발 전문가", passiveDesc:"스킬 피해량 300%, 폭발 반경 +40%",
-          charDesc:"처치 1000회를 달성한 자만이 다룰 수 있는\n극단적 한방 화력의 폭발 전문가\n한 발로 화면을 날려버리는 광역 섬멸형.",
-          unlockCond: "누적 처치 50회" },
-        { name:"빙술사", color:"#88ddff", diffStars:2,
-          hp:50,  atk:55,  def:0,   crit:15, atkSpd:75,  movSpd:95,
-          ratings:[["체력","중하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","중하"],["치명타","중하"]],
-          skill:"빙결 폭풍", skillDesc:"전방 부채꼴 범위의 적을 1.5초간 빙결시킨다.",
-          passive:"냉기 기운", passiveDesc:"빙결 적에게 공격 시 피해 +30%",
-          charDesc:"냉기 마법으로 적을 얼리는 빙술사\n군중 제어와 후속 딜의 조합으로\n싸우는 제어 특화 마법사.",
-          unlockCond: "영구 강화 합산 10" },
-        { name:"무당",   color:"#dd88ff", diffStars:4,
-          hp:55,  atk:50,  def:0,   crit:28, atkSpd:85,  movSpd:100,
-          ratings:[["체력","중하"],["공격력","중하"],["방어","보통"],["공격속도","중하"],["이동속도","보통"],["치명타","상"]],
-          skill:"저주 의식", skillDesc:"주변 적 전체에 저주 — 스킬 피해 250%의 독 지속 피해.",
-          passive:"원한 축적", passiveDesc:"저주 적 처치 시 MP +5, 스킬 피해 250%",
-          charDesc:"스킬 200회를 채운 숙련된 무당\n저주 하나로 화면의 적을 모두 녹이는\n극강 지속 피해형 직업.",
-          unlockCond: "스킬 사용 30회" },
-        { name:"도박사", color:"#ffdd00", diffStars:5,
-          hp:60,  atk:55,  def:-10, crit:50, atkSpd:110, movSpd:115,
+        { name:"조커", color:"#ffdd00", diffStars:5,
+          hp:55,  atk:42,  def:0,  crit:45, atkSpd:110, movSpd:115,
           ratings:[["체력","중하"],["공격력","중하"],["방어","최하"],["공격속도","상"],["이동속도","상"],["치명타","최상"]],
-          skill:"도박 일격", skillDesc:"50% 확률로 4배 대박 OR 자신 HP 25% 손실.",
-          passive:"행운아", passiveDesc:"치명타 50%, 치명타 피해 700%",
-          charDesc:"처치 2000회 달성자만의 절대 강자\n크리티컬 하나로 보스를 순살하는\n확률형 최강 직업. 운이 나쁘면 자멸.",
-          unlockCond: "누적 처치 100회" },
-        { name:"분신술사", color:"#cc88ff", diffStars:4,
-          hp:55,  atk:60,  def:-5,  crit:40, atkSpd:150, movSpd:125,
-          ratings:[["체력","중하"],["공격력","중상"],["방어","최하"],["공격속도","최상"],["이동속도","최상"],["치명타","최상"]],
-          skill:"분신 소환", skillDesc:"4방향 그림자 분신을 생성해 함께 공격한다.",
-          passive:"그림자 수호", passiveDesc:"항상 분신 1기 유지, 분신도 강화 스탯 적용",
-          charDesc:"엘리트 200회 달성자의 증표\n분신들이 진짜 강해 동시 타격으로\n화면을 뒤덮는 물량 최강형 직업.",
-          unlockCond: "엘리트 처치 30회" },
-        { name:"연금술사", color:"#99ff66", diffStars:4,
-          hp:70,  atk:60,  def:8,   crit:22, atkSpd:100, movSpd:100,
-          ratings:[["체력","중상"],["공격력","중상"],["방어","중상"],["공격속도","보통"],["이동속도","보통"],["치명타","중상"]],
-          skill:"독 폭탄", skillDesc:"착탄 범위에 광역 독 구름을 생성해 지속 피해를 준다.",
-          passive:"연금 포션", passiveDesc:"5초마다 무작위 포션 (회복/강화/무적) + 피격 시 HP 회복",
-          charDesc:"다양한 포션과 독을 활용하는 연금술사\n5초마다 포션이 자동 발동되며\n독 피해가 극단적으로 강한 지속형 직업.",
-          unlockCond: "영구 강화 합산 15" },
-        { name:"선봉대", color:"#8899aa", diffStars:4,
-          hp:130, atk:50,  def:35,  crit:12, atkSpd:85,  movSpd:88,
-          ratings:[["체력","최상"],["공격력","중하"],["방어","최상"],["공격속도","중하"],["이동속도","하"],["치명타","최하"]],
-          skill:"전방 돌격", skillDesc:"전방 돌진하며 경로상 적 전체를 기절시킨다.",
-          passive:"전위 방패", passiveDesc:"피격 시 10초간 방어력 +10 추가 (중첩 가능)",
-          charDesc:"최전선을 책임지는 돌격대원\n체력 130 방어 35의 압도적 내구성\n방어 레벨을 극한으로 올린 자만 해금된다.",
-          unlockCond: "영구 방어 레벨 3" },
+          skill:"와일드카드", skillDesc:"7장의 카드를 연속으로 투척. 색에 따라 강타/기본/MP 회복 효과.",
+          passive:"행운아", passiveDesc:"치명타 45%, 치명타 피해 500% / 카드 색에 따라 MP 회복",
+          charDesc:"모든 직업을 해금한 자만 선택 가능한 최종 직업\n빨강(강타)·검정(기본)·파랑(MP 회복) 카드를 무작위 투척\n와일드카드 스킬로 7장을 연속으로 날린다.",
+          unlockCond: "모든 캐릭터 해금" },
     ];
 
     const RATING_COLORS = {
@@ -175,7 +98,7 @@ function renderClassSelect(frameNow) {
 
     const cur = Game.pClass || 0;
     const cl  = classes[cur];
-    const isUnlocked = (Game.unlockedClasses || Array(19).fill(0).map((v,i)=>i===0?1:0))[cur] === 1;
+    const isUnlocked = (Game.unlockedClasses || Array(8).fill(0).map((v,i)=>i<3?1:0))[cur] === 1;
 
     const slideDir = Game._classSlideDir || 0;
     const slideT   = Game._classSlideT !== undefined ? Game._classSlideT : 1;
@@ -446,13 +369,15 @@ function renderClassSelect(frameNow) {
 
     ctx.restore(); // translate
 
-    // ── 페이지 인디케이터 (19직업) ──
-    for (let i = 0; i < 19; i++) {
-        const dotX = CW/2 - 9*10 + i*10;
+    // ── 페이지 인디케이터 (8직업) ──
+    const _dotVc = typeof VALID_CLASSES !== 'undefined' ? VALID_CLASSES : [0,1,2,3,4,5,6,7];
+    for (let i = 0; i < _dotVc.length; i++) {
+        const _cid = _dotVc[i];
+        const dotX = CW/2 - ((_dotVc.length - 1) / 2) * 10 + i * 10;
         const dotY = CARD_Y + CARD_H + 14;
-        const ulk = (Game.unlockedClasses || Array(19).fill(0).map((v,j)=>j===0?1:0))[i] === 1;
-        ctx.fillStyle = i === cur ? "#ffcc00" : (ulk ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)");
-        ctx.beginPath(); ctx.arc(dotX, dotY, i === cur ? 5 : 3, 0, Math.PI*2); ctx.fill();
+        const ulk = (Game.unlockedClasses || Array(8).fill(0))[_cid] === 1;
+        ctx.fillStyle = _cid === cur ? "#ffcc00" : (ulk ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)");
+        ctx.beginPath(); ctx.arc(dotX, dotY, _cid === cur ? 5 : 3, 0, Math.PI*2); ctx.fill();
     }
 
     ctx.restore(); // clip
@@ -930,106 +855,10 @@ if (
         }
     }
 
-    // ── 소환사 UI: 소환수 수명 표시 ──
-    if (Game.pClass === 6 && Game.player && !Game.player.dead && Game.summons && Game.summons.length > 0) {
-        const p = Game.player;
-        const pcx = Math.round(p.x + p.w/2 - Game.camX);
-        const pcy = Math.round(p.y) - 36;
-        const typeCols  = { fire: '#ff6600', thunder: '#ffee00', light: '#ffffff' };
-        Game.summons.forEach((s, idx) => {
-            if (s.life <= 0) return;
-            const sx = pcx + (idx - 1) * 28;
-            const lifeRatio = s.life / 600;
-            ctx.fillStyle = lifeRatio > 0.3 ? (typeCols[s.type] || '#ff8800') : '#ff2200';
-            ctx.font = "10px SkullFont, NeoDunggeunmo";
-            ctx.textAlign = "center";
-            ctx.fillText({ fire:'炎', thunder:'雷', light:'光' }[s.type] || '?', sx, pcy);
-            ctx.fillStyle = "rgba(0,0,0,0.6)";
-            ctx.fillRect(sx - 8, pcy + 3, 16, 3);
-            ctx.fillStyle = lifeRatio > 0.3 ? (typeCols[s.type] || '#ff8800') : '#ff2200';
-            ctx.fillRect(sx - 8, pcy + 3, Math.floor(16 * lifeRatio), 3);
-        });
-        ctx.textAlign = "left";
-    }
 
-    // ── 강령술사 UI: 영혼 스택 표시 ──
+
+    // ── 조커 UI: 치명타 강조 표시 ──
     if (Game.pClass === 7 && Game.player && !Game.player.dead) {
-        const stacks = Game.soulStacks || 0;
-        const p = Game.player;
-        const pcx = Math.round(p.x + p.w/2 - Game.camX);
-        const pcy = Math.round(p.y) - 34;
-        const maxStacks = 10;
-        const slotW = 9, slotGap = 1;
-        const totalW = maxStacks * slotW + (maxStacks - 1) * slotGap;
-        const startX = pcx - Math.floor(totalW / 2);
-        ctx.fillStyle = "rgba(0,0,0,0.75)";
-        ctx.fillRect(startX - 2, pcy - 2, totalW + 4, 11);
-        for (let i = 0; i < maxStacks; i++) {
-            const filled = i < stacks;
-            ctx.fillStyle = filled ? (stacks >= 10 ? "#00ffaa" : "#44ff88") : "#1a1a1a";
-            if (filled && stacks >= 10) { ctx.shadowBlur = 6; ctx.shadowColor = "#00ffaa"; }
-            ctx.fillRect(startX + i * (slotW + slotGap), pcy, slotW, 7);
-            ctx.shadowBlur = 0;
-        }
-        ctx.fillStyle = stacks >= 10 ? "#00ffaa" : "#44ff88";
-        ctx.font = "9px SkullFont, NeoDunggeunmo";
-        ctx.textAlign = "center";
-        ctx.fillText(`영혼 ${stacks}/10`, pcx, pcy - 4);
-        ctx.textAlign = "left";
-    }
-
-    // ── 혈귀 UI: 분노의 피 스택 표시 ──
-    if (Game.pClass === 8 && Game.player && !Game.player.dead) {
-        const stacks = Game.soulStacks || 0;  // reuse var name — actually use _bloodFuryStacks
-        const fury  = Game._bloodFuryStacks || 0;
-        const furyT = Game._bloodFuryTimer  || 0;
-        const p = Game.player;
-        const pcx = Math.round(p.x + p.w/2 - Game.camX);
-        const pcy = Math.round(p.y) - 34;
-        const maxFury = 5;
-        const slotW = 10, slotGap = 2;
-        const totalW = maxFury * slotW + (maxFury - 1) * slotGap;
-        const startX = pcx - Math.floor(totalW / 2);
-        ctx.fillStyle = "rgba(0,0,0,0.75)";
-        ctx.fillRect(startX - 2, pcy - 2, totalW + 4, 12);
-        for (let i = 0; i < maxFury; i++) {
-            const filled = i < fury;
-            ctx.fillStyle = filled ? "#cc2244" : "#1a1a1a";
-            if (filled) { ctx.shadowBlur = fury >= 5 ? 8 : 3; ctx.shadowColor = "#cc2244"; }
-            ctx.fillRect(startX + i * (slotW + slotGap), pcy, slotW, 8);
-            ctx.shadowBlur = 0;
-        }
-        if (fury > 0) {
-            const timerRatio = furyT / 240;
-            ctx.fillStyle = `rgba(180,0,40,${0.3 + timerRatio * 0.4})`;
-            ctx.fillRect(startX, pcy + 9, Math.floor(totalW * timerRatio), 2);
-            ctx.fillStyle = "#ff4466";
-            ctx.font = "9px SkullFont, NeoDunggeunmo";
-            ctx.textAlign = "center";
-            ctx.fillText(`분노 ${fury}`, pcx, pcy - 4);
-            ctx.textAlign = "left";
-        }
-    }
-
-    // ── 검성 UI: 카운터 준비 표시 ──
-    if (Game.pClass === 9 && Game._swordParryReady && Game.player && !Game.player.dead) {
-        const p = Game.player;
-        const pcx = Math.round(p.x + p.w/2 - Game.camX);
-        const pcy = Math.round(p.y) - 44;
-        const blink = Math.floor(Date.now() / 200) % 2 === 0;
-        if (blink) {
-            ctx.fillStyle = "#aaddff";
-            ctx.font = "bold 11px SkullFont, NeoDunggeunmo";
-            ctx.textAlign = "center";
-            ctx.shadowBlur = 10; ctx.shadowColor = "#aaddff";
-            ctx.fillText("⚔ 카운터 준비!", pcx, pcy);
-            ctx.shadowBlur = 0;
-            ctx.textAlign = "left";
-        }
-    }
-
-    // ── 도박사 UI: 치명타 강조 표시 ──
-    if (Game.pClass === 15 && Game.player && !Game.player.dead) {
         const p = Game.player;
         const pcx = Math.round(p.x + p.w/2 - Game.camX);
         const pcy = Math.round(p.y) - 44;
@@ -1040,23 +869,6 @@ if (
         ctx.textAlign = "left";
     }
 
-    // ── 선봉대 UI: 방어 강화 타이머 ──
-    if (Game.pClass === 18 && (Game._vanguardDefBuff||0) > 0 && Game.player && !Game.player.dead) {
-        const p = Game.player;
-        const pcx = Math.round(p.x + p.w/2 - Game.camX);
-        const pcy = Math.round(p.y) - 44;
-        const ratio = (Game._vanguardDefBuff || 0) / 600;
-        const barW = 36;
-        ctx.fillStyle = "rgba(0,0,0,0.6)";
-        ctx.fillRect(pcx - barW/2 - 1, pcy - 1, barW + 2, 7);
-        ctx.fillStyle = "#8899aa";
-        ctx.fillRect(pcx - barW/2, pcy, Math.floor(barW * ratio), 5);
-        ctx.fillStyle = "#aabbcc";
-        ctx.font = "9px SkullFont, NeoDunggeunmo";
-        ctx.textAlign = "center";
-        ctx.fillText("방어강화", pcx, pcy - 4);
-        ctx.textAlign = "left";
-    }
 
     // 크루 미니언 렌더 (해적 픽셀아트)
     if (Game.crewMinions && Game.crewMinions.length > 0) {

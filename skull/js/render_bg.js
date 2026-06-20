@@ -114,35 +114,6 @@ function drawBone(isLarge, classType) {
         ctx.fillStyle = "rgba(255,220,0,0.6)";
         ctx.fillRect(9, -3, 2, 2);
     } else if (classType === 6) {
-        // 소환사 — 주황 오브 지팡이
-        ctx.fillStyle = "#7a5530";
-        ctx.fillRect(0, -1, 18 + ext, 3);
-        ctx.fillStyle = "#ff8800";
-        ctx.shadowBlur = 6; ctx.shadowColor = "#ff8800";
-        ctx.beginPath(); ctx.arc(18 + ext, 1, 6, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#ffcc44";
-        ctx.beginPath(); ctx.arc(18 + ext, 1, 3, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath(); ctx.arc(16 + ext, -1, 1, 0, Math.PI*2); ctx.fill();
-    } else if (classType === 7) {
-        // 강령술사 — 해골 지팡이
-        ctx.fillStyle = "#1a1a2a";
-        ctx.fillRect(0, -1, 18 + ext, 3);
-        ctx.fillStyle = "#cccccc";
-        ctx.fillRect(16 + ext, -5, 8, 6); // 두개골 상단
-        ctx.fillRect(17 + ext, 1, 6, 3);  // 두개골 하단
-        ctx.fillStyle = "#1a1a2a";
-        ctx.fillRect(17 + ext, -3, 2, 2); // 눈1
-        ctx.fillRect(20 + ext, -3, 2, 2); // 눈2
-        ctx.fillRect(18 + ext, 2, 1, 1);  // 이빨1
-        ctx.fillRect(20 + ext, 2, 1, 1);  // 이빨2
-        ctx.fillStyle = "#44ff88";
-        ctx.shadowBlur = 4; ctx.shadowColor = "#44ff88";
-        ctx.beginPath(); ctx.arc(18 + ext, -2, 1, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(21 + ext, -2, 1, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur = 0;
-    } else if (classType === 8) {
         // 혈귀 — 혈조 (혈기 집중된 클로)
         ctx.fillStyle = "#550011";
         ctx.fillRect(0, -2, 6, 5);
@@ -153,90 +124,8 @@ function drawBone(isLarge, classType) {
             ctx.beginPath(); ctx.moveTo(6, yOff); ctx.lineTo(18+ext, yOff-3+c*1); ctx.lineTo(16+ext, yOff+1+c*1); ctx.closePath(); ctx.fill();
         }
         ctx.shadowBlur = 0;
-    } else if (classType === 9) {
-        // 검성 — 카타나 (얇고 긴 일본도)
-        ctx.fillStyle = "#2a1a00";
-        ctx.fillRect(0, -1, 7, 3);   // 손잡이
-        ctx.fillStyle = "#8B6914";
-        ctx.fillRect(1, -1, 5, 1);   // 손잡이 장식
-        ctx.fillRect(1, 1, 5, 1);
-        ctx.fillStyle = "#555";
-        ctx.fillRect(7, -3, 3, 7);   // 쓰바(날밑)
-        ctx.fillStyle = "#dddddd";
-        ctx.fillRect(10, -1, 18 + ext, 2); // 얇은 칼날
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(10, -1, 16 + ext, 1); // 칼날 빛반사
-        ctx.fillStyle = "#aaaaaa";
-        ctx.beginPath(); ctx.moveTo(28+ext, -1); ctx.lineTo(32+ext, 0); ctx.lineTo(28+ext, 2); ctx.fill(); // 칼끝
-    } else if (classType === 10) {
-        // 마창사 — 마력 장창
-        ctx.fillStyle = "#3a1a5a";
-        ctx.fillRect(0, -1, 20 + ext, 3);  // 창 자루
-        ctx.fillStyle = "#aa44cc";
-        ctx.fillRect(18 + ext, -3, 4, 7);  // 창날 본체
-        ctx.fillStyle = "#ff66ff";
-        ctx.shadowBlur = 6; ctx.shadowColor = "#dd44ff";
-        ctx.beginPath(); ctx.moveTo(22+ext, -3); ctx.lineTo(28+ext, 0); ctx.lineTo(22+ext, 3); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(19+ext, -1, 2, 1);
-    } else if (classType === 11) {
-        // 귀신병 — 귀신검 (반투명)
-        ctx.globalAlpha = 0.85;
-        ctx.fillStyle = "#224433";
-        ctx.fillRect(0, -1, 6, 3);
-        ctx.fillStyle = "#66ffdd";
-        ctx.shadowBlur = 5; ctx.shadowColor = "#66ffdd";
-        ctx.fillRect(6, -1, 16+ext, 3);
-        ctx.fillStyle = "#ccffee";
-        ctx.fillRect(6, -1, 14+ext, 1);
-        ctx.beginPath(); ctx.moveTo(22+ext,-1); ctx.lineTo(26+ext,0); ctx.lineTo(22+ext,2); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-    } else if (classType === 12) {
-        // 폭탄병 — 폭탄 발사관
-        ctx.fillStyle = "#444";
-        ctx.fillRect(0, -3, 14+ext, 6);  // 포신
-        ctx.fillStyle = "#666";
-        ctx.fillRect(1, -2, 12+ext, 4);
-        ctx.fillStyle = "#222";
-        ctx.fillRect(13+ext, -3, 5, 6); // 총구
-        ctx.fillStyle = "#ff6600";
-        ctx.beginPath(); ctx.arc(4, 0, 5, 0, Math.PI*2); ctx.fill(); // 폭탄 원형
-        ctx.fillStyle = "#ff9900";
-        ctx.beginPath(); ctx.arc(4, 0, 3, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#000";
-        ctx.fillRect(3, -4, 2, 4); // 심지
-    } else if (classType === 13) {
-        // 빙술사 — 얼음 수정 지팡이
-        ctx.fillStyle = "#2244aa";
-        ctx.fillRect(0, -1, 16+ext, 3);
-        ctx.fillStyle = "#44eeff";
-        ctx.shadowBlur = 8; ctx.shadowColor = "#44eeff";
-        ctx.beginPath();
-        ctx.moveTo(16+ext, -7); ctx.lineTo(19+ext, 0); ctx.lineTo(16+ext, 7);
-        ctx.lineTo(13+ext, 0); ctx.closePath(); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#aaffff";
-        ctx.beginPath();
-        ctx.moveTo(16+ext, -4); ctx.lineTo(18+ext, 0); ctx.lineTo(16+ext, 4);
-        ctx.lineTo(14+ext, 0); ctx.closePath(); ctx.fill();
-    } else if (classType === 14) {
-        // 무당 — 의식 방울 지팡이
-        ctx.fillStyle = "#7a4a10";
-        ctx.fillRect(0, -1, 16+ext, 3);
-        ctx.fillStyle = "#dd88ff";
-        ctx.beginPath(); ctx.arc(16+ext, 0, 5, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#aa44cc";
-        ctx.beginPath(); ctx.arc(16+ext, 0, 3, 0, Math.PI*2); ctx.fill();
-        // 방울 장식
-        ctx.fillStyle = "#ffcc44";
-        ctx.fillRect(14+ext, 5, 2, 4);
-        ctx.fillRect(17+ext, 4, 2, 3);
-        ctx.beginPath(); ctx.arc(15+ext, 9, 2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(18+ext, 7, 2, 0, Math.PI*2); ctx.fill();
-    } else if (classType === 15) {
-        // 도박사 — 카드 패
+    } else if (classType === 7) {
+        // 조커 — 카드 패
         const cards = ["#ff2222","#2222ff","#ff2222","#000000"];
         for(let c=0;c<4;c++) {
             ctx.fillStyle = "#ffffff";
@@ -244,52 +133,6 @@ function drawBone(isLarge, classType) {
             ctx.fillStyle = cards[c];
             ctx.fillRect(c*5+1, -5+c*2, 5, 8);
         }
-    } else if (classType === 16) {
-        // 분신술사 — 닌자토 (직검)
-        ctx.fillStyle = "#1a1a1a";
-        ctx.fillRect(0, -1, 6, 3);   // 손잡이
-        ctx.fillStyle = "#333";
-        ctx.fillRect(6, -4, 3, 8);   // 가드
-        ctx.fillStyle = "#9977cc";
-        ctx.fillRect(9, -1, 16+ext, 3);  // 직선 칼날
-        ctx.fillStyle = "#ccaaff";
-        ctx.fillRect(9, -1, 14+ext, 1);
-        ctx.shadowBlur = 4; ctx.shadowColor = "#cc88ff";
-        ctx.fillStyle = "#cc88ff";
-        ctx.beginPath(); ctx.moveTo(25+ext,-1); ctx.lineTo(28+ext,0); ctx.lineTo(25+ext,2); ctx.fill();
-        ctx.shadowBlur = 0;
-    } else if (classType === 17) {
-        // 연금술사 — 대형 플라스크
-        ctx.fillStyle = "#2a4a1a";
-        ctx.fillRect(0, -1, 8, 3);   // 손잡이
-        ctx.fillStyle = "#555";
-        ctx.fillRect(7, -3, 4, 7);   // 플라스크 목
-        ctx.fillStyle = "#99ff66";
-        ctx.shadowBlur = 6; ctx.shadowColor = "#88ff44";
-        ctx.beginPath(); ctx.arc(15+ext, 1, 8, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#ccff88";
-        ctx.beginPath(); ctx.arc(13+ext, -1, 4, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "rgba(255,255,255,0.5)";
-        ctx.beginPath(); ctx.arc(12+ext, -2, 2, 0, Math.PI*2); ctx.fill();
-    } else if (classType === 18) {
-        // 선봉대 — 방패 + 창
-        // 방패
-        ctx.fillStyle = "#445566";
-        ctx.fillRect(-14, -8, 10, 18);
-        ctx.fillStyle = "#667788";
-        ctx.fillRect(-13, -7, 8, 16);
-        ctx.fillStyle = "#8899aa";
-        ctx.fillRect(-11, -5, 4, 12);
-        ctx.fillStyle = "#ffcc44";
-        ctx.fillRect(-10, -4, 2, 10); // 방패 문양
-        // 창
-        ctx.fillStyle = "#4a3a1a";
-        ctx.fillRect(0, -1, 14+ext, 3);
-        ctx.fillStyle = "#aaaaaa";
-        ctx.fillRect(13+ext, -3, 3, 7);
-        ctx.fillStyle = "#cccccc";
-        ctx.beginPath(); ctx.moveTo(16+ext,-3); ctx.lineTo(20+ext,0); ctx.lineTo(16+ext,3); ctx.fill();
     } else {
         // 검사: 날렵한 정통 한손검 (뼈검 완전 삭제)
         // 1. 손잡이 끝 장식 (Pommel)
