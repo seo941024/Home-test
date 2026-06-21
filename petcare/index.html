@@ -1,0 +1,1612 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>펫케어 - 초보 반려인을 위한 케어 서비스</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- ALERT -->
+    <div class="alert-banner">
+      🐾 유기동물 입양하면 첫 달 동물병원 진료비 20% 할인!
+      <a href="#">자세히 보기 →</a>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+      <nav class="container">
+        <div class="logo"><span>🐾</span> 펫케어</div>
+        <ul class="nav-links">
+          <li><a href="#pre-adoption">입양 준비</a></li>
+          <li><a href="#health">건강 관리</a></li>
+          <li><a href="#danger">위험 예방</a></li>
+          <li><a href="#community">커뮤니티</a></li>
+          <li><a href="#auth">등록 인증</a></li>
+        </ul>
+        <div class="nav-actions" id="navActions">
+          <button
+            class="btn btn-outline"
+            style="padding: 8px 20px; font-size: 0.85rem"
+            onclick="openLoginModal('login')"
+          >
+            로그인
+          </button>
+          <button
+            class="btn btn-primary"
+            style="padding: 8px 20px; font-size: 0.85rem"
+            onclick="openLoginModal('signup')"
+          >
+            회원가입
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main-content">
+
+    <!-- HERO -->
+    <section class="hero" aria-label="서비스 소개">
+      <div class="container hero-inner">
+        <div>
+          <div class="hero-eyebrow">
+            <span class="badge badge-orange">🐣 초보 반려인 전용</span>
+          </div>
+          <h1>처음 만나는 내 아이,<br /><em>함께</em> 잘 키워봐요</h1>
+          <p>
+            입양부터 건강 관리, 응급 처치까지 — 처음이라 불안한 반려인을 위해
+            모든 것을 한 곳에 모았습니다. 동물등록번호로 인증된 믿을 수 있는
+            커뮤니티와 함께해요.
+          </p>
+          <div class="hero-cta">
+            <a href="breed-quiz.html" class="btn btn-primary"
+              >🔍 품종 추천 테스트</a
+            >
+            <a href="#auth" class="btn btn-outline">동물등록 인증하기</a>
+          </div>
+          <div class="step-bar">
+            <div class="step-dot">1</div>
+            품종 선택
+            <span class="step-arrow">→</span>
+            <div class="step-dot">2</div>
+            입양 준비
+            <span class="step-arrow">→</span>
+            <div class="step-dot">3</div>
+            동물 등록
+            <span class="step-arrow">→</span>
+            <div class="step-dot">4</div>
+            커뮤니티
+          </div>
+        </div>
+        <div>
+          <div class="hero-pet-cards">
+            <div
+              class="hero-pet-card active"
+              onclick="selectPet(this, '강아지')"
+            >
+              <div class="hero-pet-emoji">🐶</div>
+              <div class="hero-pet-name">강아지</div>
+              <div class="hero-pet-desc">활발하고 교감이 큰 친구</div>
+              <div
+                style="
+                  margin-top: 10px;
+                  font-size: 0.75rem;
+                  color: var(--primary);
+                  font-weight: 700;
+                "
+              >
+                35개 품종 보유
+              </div>
+            </div>
+            <div class="hero-pet-card" onclick="selectPet(this, '고양이')">
+              <div class="hero-pet-emoji">🐱</div>
+              <div class="hero-pet-name">고양이</div>
+              <div class="hero-pet-desc">독립적이고 털털한 친구</div>
+              <div
+                style="
+                  margin-top: 10px;
+                  font-size: 0.75rem;
+                  color: var(--primary);
+                  font-weight: 700;
+                "
+              >
+                22개 품종 보유
+              </div>
+            </div>
+          </div>
+          <a href="breed-quiz.html" class="hero-quiz-banner">
+            <div style="font-size: 1.3rem; margin-bottom: 4px">
+              🔍 품종 추천 테스트
+            </div>
+            <div style="font-size: 0.82rem; opacity: 0.9">
+              총 57종 DB에서 나에게 맞는 품종 찾기
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES OVERVIEW -->
+    <section class="section features-overview" aria-label="주요 기능 소개">
+      <div class="container">
+        <div class="grid-4">
+          <div class="feature-item">
+            <div class="icon">🏡</div>
+            <h3>입양 전 준비</h3>
+            <p>성향 매칭 테스트, 용품 체크리스트, 첫 달 예산 계산기</p>
+          </div>
+          <div class="feature-item">
+            <div class="icon">💊</div>
+            <h3>건강 관리</h3>
+            <p>예방접종 알림, 바디랭귀지 사전, 홈케어 미션</p>
+          </div>
+          <div class="feature-item">
+            <div class="icon">🚨</div>
+            <h3>위험 예방</h3>
+            <p>금지 음식/식물 검색기, 응급처치 가이드</p>
+          </div>
+          <div class="feature-item">
+            <div class="icon">👥</div>
+            <h3>커뮤니티</h3>
+            <p>동네 멘토 매칭, 성장 일기, 진료 리포트 PDF</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 1: PRE-ADOPTION -->
+    <section id="pre-adoption" class="section pre-adoption" aria-label="입양 전 준비">
+      <div class="container">
+        <span
+          class="badge badge-orange"
+          style="display: block; text-align: center; margin-bottom: 12px"
+          >STEP 1</span
+        >
+        <h2 class="section-title">입양 전 준비 & 시뮬레이션</h2>
+        <p class="section-sub">데려오기 전에 충분히 알고 준비해요</p>
+        <div class="grid-3">
+          <!-- 성향 퀴즈 -->
+          <div class="card quiz-card">
+            <div class="icon-circle" style="background: #dcfce7">🧪</div>
+            <span class="badge badge-orange" style="margin-bottom: 10px"
+              >반려인 성향 매칭</span
+            >
+            <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 8px">
+              어떤 동물이 나에게 맞을까요?
+            </h3>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-sub);
+                margin-bottom: 12px;
+              "
+            >
+              질문 5개로 나와 맞는 반려동물 유형을 찾아드려요
+            </p>
+            <div class="quiz-progress">
+              <div
+                class="quiz-progress-bar"
+                id="quizBar"
+                style="width: 20%"
+              ></div>
+            </div>
+            <p
+              style="
+                font-size: 0.78rem;
+                color: var(--text-sub);
+                margin-bottom: 12px;
+              "
+              id="quizStep"
+            >
+              질문 1 / 5
+            </p>
+            <p
+              style="font-size: 0.9rem; font-weight: 700; margin-bottom: 12px"
+              id="quizQ"
+            >
+              하루에 산책이나 외출에 쓸 수 있는 시간은?
+            </p>
+            <div class="quiz-options" id="quizOptions">
+              <div class="quiz-option" onclick="nextQuiz(this)">1시간 이상</div>
+              <div class="quiz-option" onclick="nextQuiz(this)">30분 정도</div>
+              <div class="quiz-option" onclick="nextQuiz(this)">거의 없음</div>
+              <div class="quiz-option" onclick="nextQuiz(this)">
+                재택근무라 항상
+              </div>
+            </div>
+            <a
+              href="breed-quiz.html"
+              class="btn btn-primary"
+              style="
+                width: 100%;
+                margin-top: 8px;
+                display: block;
+                text-align: center;
+              "
+              >정밀 품종 추천 테스트 →</a
+            >
+          </div>
+
+          <!-- 체크리스트 -->
+          <div class="card checklist-card">
+            <div class="icon-circle" style="background: #c8f0dc">🛒</div>
+            <span class="badge badge-green" style="margin-bottom: 10px"
+              >필수 용품 체크리스트</span
+            >
+            <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px">
+              데려오기 전 꼭 챙겨요
+            </h3>
+            <p
+              style="
+                font-size: 0.82rem;
+                color: var(--text-sub);
+                margin-bottom: 14px;
+              "
+            >
+              첫날 있어야 할 최소한의 것들
+            </p>
+            <div id="checklistItems">
+              <div class="checklist-item">
+                <input type="checkbox" id="c1" /><label for="c1"
+                  >🍽️ 사료와 물그릇 (각 1개씩)</label
+                >
+              </div>
+              <div class="checklist-item">
+                <input type="checkbox" id="c2" /><label for="c2"
+                  >🛏️ 잠자리 (켄넬 or 방석)</label
+                >
+              </div>
+              <div class="checklist-item">
+                <input type="checkbox" id="c3" /><label for="c3"
+                  >🚽 배변패드 or 모래화장실</label
+                >
+              </div>
+              <div class="checklist-item">
+                <input type="checkbox" id="c4" /><label for="c4"
+                  >🧸 스트레스 해소용 장난감</label
+                >
+              </div>
+              <div class="checklist-item">
+                <input type="checkbox" id="c5" /><label for="c5"
+                  >🏥 이동장 (병원 방문용)</label
+                >
+              </div>
+              <div class="checklist-item">
+                <input type="checkbox" id="c6" /><label for="c6"
+                  >🛡️ 안전문 (위험 구역 차단)</label
+                >
+              </div>
+              <div class="checklist-item">
+                <input type="checkbox" id="c7" /><label for="c7"
+                  >🧴 동물용 샴푸 & 브러시</label
+                >
+              </div>
+            </div>
+            <div
+              style="
+                margin-top: 14px;
+                padding: 10px;
+                background: #fff;
+                border-radius: 10px;
+                font-size: 0.83rem;
+                color: var(--secondary);
+                font-weight: 700;
+              "
+            >
+              ✅ <span id="checkCount">0</span> / 7 완료
+            </div>
+          </div>
+
+          <!-- 예산 계산기 -->
+          <div class="card budget-card">
+            <div class="icon-circle" style="background: #fff9c4">💰</div>
+            <span class="badge badge-yellow" style="margin-bottom: 10px"
+              >첫 달 예산 계산기</span
+            >
+            <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px">
+              얼마나 들까요?
+            </h3>
+            <p
+              style="
+                font-size: 0.82rem;
+                color: var(--text-sub);
+                margin-bottom: 14px;
+              "
+            >
+              강아지 기준 / 슬라이더로 조정해요
+            </p>
+            <div
+              style="
+                font-size: 0.82rem;
+                color: var(--text-sub);
+                margin-bottom: 4px;
+              "
+            >
+              입양비: <strong id="adoptFeeLabel">20,000</strong>원
+            </div>
+            <input
+              type="range"
+              class="budget-slider"
+              min="0"
+              max="500000"
+              step="10000"
+              value="20000"
+              oninput="updateBudget(this.value)"
+            />
+            <div class="budget-row">
+              <span>입양비</span><span id="bAdopt">20,000원</span>
+            </div>
+            <div class="budget-row">
+              <span>초기 예방접종 (3회)</span><span>약 90,000원</span>
+            </div>
+            <div class="budget-row">
+              <span>초기 용품 구매</span><span>약 80,000원</span>
+            </div>
+            <div class="budget-row">
+              <span>첫 달 사료비</span><span>약 30,000원</span>
+            </div>
+            <div class="budget-row budget-total">
+              <span>예상 합계</span
+              ><span style="color: var(--primary)" id="budgetTotal"
+                >220,000원</span
+              >
+            </div>
+            <p
+              style="
+                font-size: 0.78rem;
+                color: var(--text-sub);
+                margin-top: 10px;
+              "
+            >
+              * 견종/묘종, 나이, 건강상태에 따라 다를 수 있어요
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 유기동물 입양 -->
+    <section id="adopt" class="section adopt-section" aria-label="유기동물 입양">
+      <div class="container">
+        <span
+          class="badge badge-orange"
+          style="display: block; text-align: center; margin-bottom: 12px"
+          >🏠 유기동물 입양</span
+        >
+        <h2 class="section-title">새 가족을 기다리는 친구들</h2>
+        <p class="section-sub">
+          전국 보호소에서 보호 중인 아이들이에요. 입양으로 한 생명을 구할 수
+          있어요
+        </p>
+        <div class="adopt-filters">
+          <button
+            class="adopt-filter active"
+            onclick="setAdoptFilter('all', this)"
+          >
+            전체
+          </button>
+          <button class="adopt-filter" onclick="setAdoptFilter('dog', this)">
+            🐶 강아지
+          </button>
+          <button class="adopt-filter" onclick="setAdoptFilter('cat', this)">
+            🐱 고양이
+          </button>
+        </div>
+        <div class="adopt-grid" id="adoptGrid"></div>
+        <p class="adopt-notice" id="adoptNotice"></p>
+        <div style="text-align: center">
+          <button class="btn btn-outline" onclick="loadAdopt()">
+            🔄 다른 친구들 보기
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section id="gallery" class="section gallery-section" aria-label="반려동물 갤러리">
+      <div class="container">
+        <span class="badge badge-orange gallery-badge">📸 갤러리</span>
+        <h2 class="section-title">함께하는 순간들</h2>
+        <p class="section-sub">우리 아이들의 소중한 일상을 나눠요</p>
+
+        <div class="gallery-slider" role="region" aria-label="갤러리 슬라이더">
+          <button class="gallery-arrow gallery-prev" onclick="moveSlider(-1)" aria-label="이전 사진">&#8249;</button>
+
+          <div class="gallery-track-wrap">
+            <ul class="gallery-track" id="galleryTrack">
+              <li class="gallery-slide">
+                <figure class="gallery-figure">
+                  <div class="gallery-img-wrap">
+                    <img src="./images/gallery-1.jpg" alt="갤러리 사진 1" onerror="galleryImgError(this,'gallery-1.jpg')">
+                  </div>
+                  <figcaption>첫 번째 사진 설명을 입력하세요</figcaption>
+                </figure>
+              </li>
+              <li class="gallery-slide">
+                <figure class="gallery-figure">
+                  <div class="gallery-img-wrap">
+                    <img src="./images/gallery-2.jpg" alt="갤러리 사진 2" onerror="galleryImgError(this,'gallery-2.jpg')">
+                  </div>
+                  <figcaption>두 번째 사진 설명을 입력하세요</figcaption>
+                </figure>
+              </li>
+              <li class="gallery-slide">
+                <figure class="gallery-figure">
+                  <div class="gallery-img-wrap">
+                    <img src="./images/gallery-3.jpg" alt="갤러리 사진 3" onerror="galleryImgError(this,'gallery-3.jpg')">
+                  </div>
+                  <figcaption>세 번째 사진 설명을 입력하세요</figcaption>
+                </figure>
+              </li>
+              <li class="gallery-slide">
+                <figure class="gallery-figure">
+                  <div class="gallery-img-wrap">
+                    <img src="./images/gallery-4.jpg" alt="갤러리 사진 4" onerror="galleryImgError(this,'gallery-4.jpg')">
+                  </div>
+                  <figcaption>네 번째 사진 설명을 입력하세요</figcaption>
+                </figure>
+              </li>
+              <li class="gallery-slide">
+                <figure class="gallery-figure">
+                  <div class="gallery-img-wrap">
+                    <img src="./images/gallery-5.jpg" alt="갤러리 사진 5" onerror="galleryImgError(this,'gallery-5.jpg')">
+                  </div>
+                  <figcaption>다섯 번째 사진 설명을 입력하세요</figcaption>
+                </figure>
+              </li>
+              <li class="gallery-slide">
+                <figure class="gallery-figure">
+                  <div class="gallery-img-wrap">
+                    <img src="./images/gallery-6.jpg" alt="갤러리 사진 6" onerror="galleryImgError(this,'gallery-6.jpg')">
+                  </div>
+                  <figcaption>여섯 번째 사진 설명을 입력하세요</figcaption>
+                </figure>
+              </li>
+            </ul>
+          </div>
+
+          <button class="gallery-arrow gallery-next" onclick="moveSlider(1)" aria-label="다음 사진">&#8250;</button>
+        </div>
+
+        <div class="gallery-dots" id="galleryDots" role="tablist" aria-label="갤러리 슬라이드 선택"></div>
+      </div>
+    </section>
+
+    <!-- STEP 2: HEALTH CARE -->
+    <section id="health" class="section health-care" aria-label="건강 관리">
+      <div class="container">
+        <span
+          class="badge badge-green"
+          style="display: block; text-align: center; margin-bottom: 12px"
+          >STEP 2</span
+        >
+        <h2 class="section-title">건강 관리 & 케어</h2>
+        <p class="section-sub">예방이 최선의 치료입니다</p>
+        <div class="grid-3">
+          <!-- 예방접종 타임라인 -->
+          <div class="card">
+            <div class="icon-circle" style="background: #edf7f1">💉</div>
+            <h3 style="font-weight: 800; margin-bottom: 6px">
+              생애주기별 예방접종
+            </h3>
+            <p
+              style="
+                font-size: 0.82rem;
+                color: var(--text-sub);
+                margin-bottom: 20px;
+              "
+            >
+              강아지 기준 / 다음 일정까지
+              <strong style="color: var(--primary)">12일</strong> 남았어요
+            </p>
+            <div class="timeline">
+              <div class="timeline-item">
+                <span class="badge badge-green" style="font-size: 0.72rem"
+                  >완료</span
+                >
+                <h4>6주 — 종합백신 1차 (DHPPL)</h4>
+                <p>홍역, 파보바이러스 등 5종 예방</p>
+              </div>
+              <div class="timeline-item">
+                <span class="badge badge-green" style="font-size: 0.72rem"
+                  >완료</span
+                >
+                <h4>8주 — 종합백신 2차</h4>
+                <p>1차 접종 2주 후 추가</p>
+              </div>
+              <div class="timeline-item" style="opacity: 0.5">
+                <span class="badge badge-orange" style="font-size: 0.72rem"
+                  >D-12</span
+                >
+                <h4>10주 — 종합백신 3차 + 코로나</h4>
+                <p>2026.06.27 예정 — 알림 설정됨 🔔</p>
+              </div>
+              <div class="timeline-item" style="opacity: 0.35">
+                <h4>12주 — 종합백신 4차 + 켄넬코프</h4>
+                <p>2026.07.11 예정</p>
+              </div>
+              <div class="timeline-item" style="opacity: 0.35">
+                <h4>14~16주 — 광견병 + 인플루엔자</h4>
+                <p>필요 시 수의사 상담</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 바디랭귀지 사전 -->
+          <div class="card">
+            <div class="icon-circle" style="background: #edf7f1">🗣️</div>
+            <h3 style="font-weight: 800; margin-bottom: 6px">
+              바디랭귀지 사전
+            </h3>
+            <p
+              style="
+                font-size: 0.82rem;
+                color: var(--text-sub);
+                margin-bottom: 16px;
+              "
+            >
+              이 행동, 무슨 뜻일까요? 눌러서 확인해요
+            </p>
+            <div class="body-lang-grid">
+              <div
+                class="body-lang-item"
+                onclick="
+                  showBodyLang(
+                    '하품',
+                    '😯',
+                    '불안·스트레스의 카밍 시그널이에요. 억지로 안으려 할 때 자주 나타나요.',
+                  )
+                "
+              >
+                <div class="emoji">😯</div>
+                <h5>하품</h5>
+                <p>피곤한 걸까요?</p>
+              </div>
+              <div
+                class="body-lang-item"
+                onclick="
+                  showBodyLang(
+                    '꼬리 낮춤',
+                    '🐕',
+                    '두려움 또는 복종의 표현입니다. 안심시켜 주세요.',
+                  )
+                "
+              >
+                <div class="emoji">🐕</div>
+                <h5>꼬리 낮춤</h5>
+                <p>무서운 걸까요?</p>
+              </div>
+              <div
+                class="body-lang-item"
+                onclick="
+                  showBodyLang(
+                    '골골송',
+                    '😺',
+                    '고양이가 행복하거나 안정됐을 때 내는 소리예요.',
+                  )
+                "
+              >
+                <div class="emoji">😺</div>
+                <h5>골골송</h5>
+                <p>좋은 신호인가요?</p>
+              </div>
+              <div
+                class="body-lang-item"
+                onclick="
+                  showBodyLang(
+                    '하악질',
+                    '😾',
+                    '고양이가 위협·공포를 느낄 때 내는 경고 소리예요. 즉시 접근을 멈춰주세요.',
+                  )
+                "
+              >
+                <div class="emoji">😾</div>
+                <h5>하악질</h5>
+                <p>화가 난 걸까요?</p>
+              </div>
+              <div
+                class="body-lang-item"
+                onclick="
+                  showBodyLang(
+                    '배 뒤집기',
+                    '🐾',
+                    '강아지는 복종·신뢰 표현이지만, 고양이는 방어 자세일 수도 있어요.',
+                  )
+                "
+              >
+                <div class="emoji">🐾</div>
+                <h5>배 뒤집기</h5>
+                <p>만져도 될까요?</p>
+              </div>
+              <div
+                class="body-lang-item"
+                onclick="showBodyLang('슬로우 윙크','😌','고양이의 슬로우 윙크는 &apos;나 편해요&apos; 표현이에요. 함께 눈 깜빡임으로 화답해보세요.')"
+              >
+                <div class="emoji">😌</div>
+                <h5>슬로우 윙크</h5>
+                <p>고양이가 찡긋해요</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 홈케어 미션 -->
+          <div class="card">
+            <div class="icon-circle" style="background: #ecfdf5">🎯</div>
+            <h3 style="font-weight: 800; margin-bottom: 6px">
+              이번 주 홈케어 미션
+            </h3>
+            <p
+              style="
+                font-size: 0.82rem;
+                color: var(--text-sub);
+                margin-bottom: 16px;
+              "
+            >
+              작은 습관이 아이의 건강을 지킵니다
+            </p>
+            <div class="mission-card">
+              <div class="mission-icon">🦷</div>
+              <div class="mission-info">
+                <h4>양치질 3회 성공하기</h4>
+                <p>치주질환 예방 — 매일 조금씩 익숙하게</p>
+              </div>
+              <div class="mission-progress">
+                <div class="mission-pct">2/3</div>
+                <div class="mission-bar">
+                  <div class="mission-bar-fill" style="width: 66%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mission-card">
+              <div class="mission-icon">💅</div>
+              <div class="mission-info">
+                <h4>발톱 확인 & 깎기</h4>
+                <p>2주에 1회 권장 — 전동 발톱갈이 추천</p>
+              </div>
+              <div class="mission-progress">
+                <div class="mission-pct">1/1</div>
+                <div class="mission-bar">
+                  <div class="mission-bar-fill" style="width: 100%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mission-card">
+              <div class="mission-icon">👂</div>
+              <div class="mission-info">
+                <h4>귀 청소 체크</h4>
+                <p>냄새·갈색 분비물 있으면 병원으로</p>
+              </div>
+              <div class="mission-progress">
+                <div class="mission-pct">0/1</div>
+                <div class="mission-bar">
+                  <div class="mission-bar-fill" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 14px; text-align: center">
+              <a
+                href="#"
+                class="btn btn-outline"
+                style="font-size: 0.85rem; padding: 10px 22px"
+                >케어 가이드 영상 보기 →</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: DANGER PREVENTION -->
+    <section id="danger" class="section danger-prev" aria-label="위험 예방 및 응급처치">
+      <div class="container">
+        <span
+          class="badge"
+          style="
+            display: block;
+            text-align: center;
+            margin-bottom: 12px;
+            background: #ffebee;
+            color: #e53935;
+          "
+          >⚠️ 위험 예방</span
+        >
+        <h2 class="section-title">금지 음식 & 응급 처치</h2>
+        <p class="section-sub">모르고 주면 위험해요. 미리 알아두세요</p>
+
+        <div class="danger-search-box">
+          <input
+            type="text"
+            id="foodSearch"
+            placeholder="음식이나 식물 이름 검색... (예: 포도, 초콜릿)"
+          />
+          <button onclick="searchDanger()">검색</button>
+        </div>
+        <div class="danger-result" id="dangerResult">
+          <div class="danger-level" id="dangerEmoji">❓</div>
+          <h3 id="dangerTitle">검색 결과</h3>
+          <p id="dangerDesc"></p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 48px">
+          <p
+            style="
+              font-size: 0.85rem;
+              color: var(--text-sub);
+              margin-bottom: 12px;
+            "
+          >
+            자주 찾는 검색어
+          </p>
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              flex-wrap: wrap;
+              justify-content: center;
+            "
+          >
+            <span
+              class="badge"
+              style="
+                background: #ffebee;
+                color: #e53935;
+                cursor: pointer;
+                padding: 6px 14px;
+              "
+              onclick="quickSearch('포도')"
+              >🍇 포도</span
+            >
+            <span
+              class="badge"
+              style="
+                background: #ffebee;
+                color: #e53935;
+                cursor: pointer;
+                padding: 6px 14px;
+              "
+              onclick="quickSearch('초콜릿')"
+              >🍫 초콜릿</span
+            >
+            <span
+              class="badge"
+              style="
+                background: #ffebee;
+                color: #e53935;
+                cursor: pointer;
+                padding: 6px 14px;
+              "
+              onclick="quickSearch('양파')"
+              >🧅 양파</span
+            >
+            <span
+              class="badge"
+              style="
+                background: #ffebee;
+                color: #e53935;
+                cursor: pointer;
+                padding: 6px 14px;
+              "
+              onclick="quickSearch('백합')"
+              >🌸 백합</span
+            >
+            <span
+              class="badge"
+              style="
+                background: #fff9e6;
+                color: #f59e0b;
+                cursor: pointer;
+                padding: 6px 14px;
+              "
+              onclick="quickSearch('아보카도')"
+              >🥑 아보카도</span
+            >
+            <span
+              class="badge"
+              style="
+                background: #edf7f1;
+                color: var(--secondary);
+                cursor: pointer;
+                padding: 6px 14px;
+              "
+              onclick="quickSearch('당근')"
+              >🥕 당근</span
+            >
+          </div>
+        </div>
+
+        <h3
+          style="
+            font-size: 1.3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 24px;
+          "
+        >
+          ⛑️ 응급 상황 대처 가이드
+        </h3>
+        <div class="first-aid-grid">
+          <div class="first-aid-card">
+            <h4>🚨 기도 이물질 (막혔을 때)</h4>
+            <ol>
+              <li>강아지를 뒤에서 안고 두 손을 배 아래 모아 쥡니다</li>
+              <li>명치 약간 위를 빠르게 4~5회 위로 밀어 올립니다</li>
+              <li>이물질이 나오면 제거, 안 나오면 즉시 병원 이동</li>
+              <li>의식이 없으면 CPR 시작 후 119에 연락하세요</li>
+            </ol>
+          </div>
+          <div class="first-aid-card green">
+            <h4 style="color: var(--secondary)">💊 독성 물질 섭취</h4>
+            <ol>
+              <li>섭취한 물질과 양을 메모하거나 사진 촬영</li>
+              <li>구토는 <strong>절대 유도하지 마세요</strong></li>
+              <li>즉시 동물병원 또는 동물 중독 신고센터에 연락</li>
+              <li>동물 중독 상담: 1670-0119</li>
+            </ol>
+          </div>
+          <div class="first-aid-card yellow">
+            <h4 style="color: #d97706">🔥 화상 / 고열</h4>
+            <ol>
+              <li>흐르는 차가운 물로 15~20분간 식혀줍니다</li>
+              <li>얼음은 절대 직접 대지 마세요</li>
+              <li>여름 차 안에 두면 10분 안에 위험 — 절대 금지</li>
+              <li>열사병 의심 시 몸을 적신 수건으로 감싸고 병원</li>
+            </ol>
+          </div>
+          <div class="first-aid-card green">
+            <h4 style="color: var(--secondary)">🩹 출혈 / 상처</h4>
+            <ol>
+              <li>깨끗한 천이나 거즈로 5~10분간 압박</li>
+              <li>상처 주변 털을 제거하면 소독이 쉬워집니다</li>
+              <li>사람용 소독약(과산화수소) 사용 금지</li>
+              <li>지혈이 안 되면 즉시 동물병원으로</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMUNITY -->
+    <section id="community" class="section community" aria-label="커뮤니티">
+      <div class="container">
+        <span
+          class="badge badge-blue"
+          style="display: block; text-align: center; margin-bottom: 12px"
+          >👥 커뮤니티</span
+        >
+        <h2 class="section-title">동네 멘토 & 성장 일기</h2>
+        <p class="section-sub">
+          동물등록번호로 인증된 믿을 수 있는 반려인들과 함께해요
+        </p>
+
+        <!-- 비로그인 상태 -->
+        <div id="communityLocked" class="community-locked">
+          <div class="lock-icon">🔐</div>
+          <h4>로그인이 필요한 서비스예요</h4>
+          <p>
+            멘토 매칭, 성장 일기, 커뮤니티 글쓰기는<br />회원가입 후 이용하실 수
+            있어요
+          </p>
+          <div
+            style="
+              display: flex;
+              gap: 12px;
+              justify-content: center;
+              flex-wrap: wrap;
+            "
+          >
+            <button class="btn btn-primary" onclick="openLoginModal('signup')">
+              회원가입하기
+            </button>
+            <button class="btn btn-outline" onclick="openLoginModal('login')">
+              로그인
+            </button>
+          </div>
+        </div>
+
+        <!-- 로그인 후 표시 (기본 hidden) -->
+        <div id="communityContent" style="display: none">
+          <!-- 인증 요구 배너 (일반 회원용) -->
+          <div
+            id="communityVerifyBanner"
+            style="
+              display: none;
+              background: linear-gradient(90deg, #ecfdf5, #f0fdf4);
+              border: 1.5px solid var(--primary);
+              border-radius: 16px;
+              padding: 16px 24px;
+              margin-bottom: 28px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+            "
+          >
+            <div>
+              <strong>🏅 동물등록번호를 인증하면 모든 기능이 열려요!</strong
+              ><span
+                style="
+                  font-size: 0.83rem;
+                  color: var(--text-sub);
+                  margin-left: 8px;
+                "
+                >멘토 연결 · 일기 작성 · PDF 등</span
+              >
+            </div>
+            <button
+              class="btn btn-primary"
+              style="font-size: 0.82rem; padding: 8px 18px; white-space: nowrap"
+              onclick="openAuthModal()"
+            >
+              인증하기
+            </button>
+          </div>
+
+          <!-- 펫 지도 -->
+          <div class="card" style="padding: 20px; margin-bottom: 24px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+                gap: 10px;
+              "
+            >
+              <h3 style="font-size: 1.05rem; font-weight: 800">
+                🗺️ 내 주변 펫 지도
+              </h3>
+              <button
+                class="btn btn-outline"
+                style="font-size: 0.8rem; padding: 7px 16px"
+                onclick="findVets()"
+              >
+                🏥 가까운 동물병원 찾기
+              </button>
+            </div>
+            <div class="map-box" id="petMap">
+              🗺️ 카카오맵 키를 입력하면<br />멘토·동물병원 위치가 지도에
+              표시돼요
+            </div>
+            <div class="vet-list" id="vetList"></div>
+          </div>
+
+          <div class="grid-2">
+            <!-- 멘토 -->
+            <div>
+              <h3
+                style="font-size: 1.1rem; font-weight: 800; margin-bottom: 16px"
+              >
+                🏘️ 내 동네 멘토 추천
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 12px">
+                <div class="card" style="padding: 20px">
+                  <div class="mentor-card">
+                    <div class="mentor-avatar">🐶</div>
+                    <div>
+                      <div class="mentor-name">
+                        김민준 님
+                        <span
+                          style="font-size: 0.78rem; color: var(--secondary)"
+                          >✅ 인증됨</span
+                        >
+                      </div>
+                      <div class="mentor-meta">
+                        마포구 합정동 · 골든리트리버 3년차
+                      </div>
+                      <div class="mentor-tags">
+                        <span>초보 환영</span><span>산책 모임</span
+                        ><span>병원 추천</span>
+                      </div>
+                    </div>
+                    <button
+                      class="mentor-btn"
+                      onclick="connectMentor('김민준')"
+                    >
+                      연결하기
+                    </button>
+                  </div>
+                </div>
+                <div class="card" style="padding: 20px">
+                  <div class="mentor-card">
+                    <div class="mentor-avatar">🐱</div>
+                    <div>
+                      <div class="mentor-name">
+                        이지아 님
+                        <span
+                          style="font-size: 0.78rem; color: var(--secondary)"
+                          >✅ 인증됨</span
+                        >
+                      </div>
+                      <div class="mentor-meta">
+                        마포구 망원동 · 코리안숏헤어 5년차
+                      </div>
+                      <div class="mentor-tags">
+                        <span>고양이 전문</span><span>사료 추천</span
+                        ><span>미용 정보</span>
+                      </div>
+                    </div>
+                    <button
+                      class="mentor-btn"
+                      onclick="connectMentor('이지아')"
+                    >
+                      연결하기
+                    </button>
+                  </div>
+                </div>
+                <div class="card" style="padding: 20px">
+                  <div class="mentor-card">
+                    <div class="mentor-avatar">🐶</div>
+                    <div>
+                      <div class="mentor-name">
+                        박서준 님
+                        <span
+                          style="font-size: 0.78rem; color: var(--secondary)"
+                          >✅ 인증됨</span
+                        >
+                      </div>
+                      <div class="mentor-meta">
+                        마포구 서교동 · 비숑프리제 2년차
+                      </div>
+                      <div class="mentor-tags">
+                        <span>소형견</span><span>홈케어</span
+                        ><span>분리불안 극복</span>
+                      </div>
+                    </div>
+                    <button
+                      class="mentor-btn"
+                      onclick="connectMentor('박서준')"
+                    >
+                      연결하기
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 성장 일기 -->
+            <div>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 16px;
+                "
+              >
+                <h3 style="font-size: 1.1rem; font-weight: 800">
+                  📓 <span id="diaryPetName">우리 아이</span>의 성장 일기
+                </h3>
+                <button
+                  class="btn btn-outline"
+                  style="font-size: 0.8rem; padding: 7px 16px"
+                  onclick="exportPDF()"
+                >
+                  PDF 내보내기
+                </button>
+              </div>
+              <div class="card diary-card" style="padding: 24px">
+                <div id="diaryEntries">
+                  <div class="diary-day">
+                    <div class="diary-date"><strong>15</strong>일</div>
+                    <div class="diary-content">
+                      <p>
+                        <strong>🍽️ 사료</strong> 오전 8시, 오후 6시 200g씩 잘
+                        먹음. 물도 잘 마심.
+                      </p>
+                      <div class="diary-icons">
+                        <span class="diary-icon">🚶 산책 30분</span
+                        ><span class="diary-icon">💩 배변 2회</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="diary-day">
+                    <div class="diary-date"><strong>14</strong>일</div>
+                    <div class="diary-content">
+                      <p>
+                        오늘 처음으로 앉아 명령을 따랐어요! 간식으로 칭찬했더니
+                        꼬리를 엄청 흔들었어요 🎉
+                      </p>
+                      <div class="diary-icons">
+                        <span class="diary-icon">🚶 산책 45분</span
+                        ><span class="diary-icon">💩 배변 3회</span
+                        ><span class="diary-icon">🦷 양치 O</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top: 16px; text-align: center">
+                  <button
+                    class="btn btn-primary"
+                    style="width: 100%; font-size: 0.85rem"
+                    onclick="openDiaryModal()"
+                  >
+                    + 오늘 일기 작성하기
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTH -->
+    <section id="auth" class="section auth-section" aria-label="동물등록 인증">
+      <div class="container">
+        <span
+          class="badge badge-orange"
+          style="display: block; text-align: center; margin-bottom: 12px"
+          >🔐 등록 인증</span
+        >
+        <h2 class="section-title">동물등록번호로 인증하기</h2>
+        <p class="section-sub">인증 여부에 따라 이용 가능한 기능이 달라져요</p>
+        <div class="auth-tiers">
+          <div class="auth-tier">
+            <div class="auth-tier-icon">👋</div>
+            <h3>입양 전 / 준비 단계</h3>
+            <p>동물을 데려오기 전, 미리 준비하는 단계의 회원</p>
+            <ul class="auth-feature-list">
+              <li>성향 매칭 테스트</li>
+              <li>품종 도감 열람</li>
+              <li>용품 체크리스트</li>
+              <li>예산 계산기</li>
+              <li>위험 음식 검색기</li>
+              <li>응급처치 가이드</li>
+              <li class="locked">커뮤니티 글쓰기</li>
+              <li class="locked">동네 멘토 매칭</li>
+              <li class="locked">성장 일기 & PDF</li>
+              <li class="locked">예방접종 알림</li>
+            </ul>
+            <button
+              class="btn btn-outline"
+              style="width: 100%"
+              onclick="openLoginModal('signup')"
+            >
+              일반 회원가입
+            </button>
+          </div>
+          <div class="auth-tier recommended">
+            <div class="rec-badge">🏅 인증 회원 전용</div>
+            <div class="auth-tier-icon">🐾</div>
+            <h3>동물등록 인증 완료</h3>
+            <p>동물등록번호(15자리)로 인증된 신뢰 회원</p>
+            <ul class="auth-feature-list">
+              <li>성향 매칭 테스트</li>
+              <li>품종 도감 열람</li>
+              <li>용품 체크리스트</li>
+              <li>예산 계산기</li>
+              <li>위험 음식 검색기</li>
+              <li>응급처치 가이드</li>
+              <li>커뮤니티 글쓰기 & 댓글</li>
+              <li>동네 멘토 매칭 신청</li>
+              <li>성장 일기 & 진료 PDF</li>
+              <li>예방접종 알림 캘린더</li>
+            </ul>
+            <button
+              class="btn btn-primary"
+              style="width: 100%"
+              onclick="openAuthModal()"
+            >
+              동물등록번호 인증하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    </main><!-- /#main-content -->
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <div class="logo"><span>🐾</span> 펫케어</div>
+            <p>
+              초보 반려인을 위한 통합 케어 서비스.<br />동물등록번호 인증으로
+              신뢰도 높은 커뮤니티를 운영합니다.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>서비스</h4>
+            <ul>
+              <li>품종 추천</li>
+              <li>입양 준비</li>
+              <li>건강 관리</li>
+              <li>커뮤니티</li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>고객센터</h4>
+            <ul>
+              <li>자주 묻는 질문</li>
+              <li>1:1 문의</li>
+              <li>이용 약관</li>
+              <li>개인정보처리방침</li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>동물등록</h4>
+            <ul>
+              <li>등록 방법 안내</li>
+              <li>가까운 등록 기관</li>
+              <li>유기동물 입양</li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            © 2026 펫케어. 반려동물 학대나 불법 거래는 신고해 주세요: 동물보호
+            신고 1566-1480
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- 토스트 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 바디랭귀지 모달 -->
+    <div class="modal-overlay" id="bodyLangModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('bodyLangModal')">
+          ✕
+        </button>
+        <div
+          style="font-size: 3rem; text-align: center; margin-bottom: 12px"
+          id="modalEmoji"
+        >
+          😯
+        </div>
+        <h3 id="modalTitle" style="text-align: center"></h3>
+        <div class="modal-result"><p id="modalDesc"></p></div>
+      </div>
+    </div>
+
+    <!-- 동물등록번호 인증 모달 -->
+    <div class="modal-overlay" id="authModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+
+        <!-- 입력 화면 -->
+        <div id="authFormView">
+          <div
+            style="font-size: 2.5rem; text-align: center; margin-bottom: 12px"
+          >
+            🐾
+          </div>
+          <h3 style="text-align: center; margin-bottom: 8px">
+            동물등록번호 인증
+          </h3>
+          <p style="text-align: center">
+            농림축산식품부 동물보호관리시스템(APMS)에 등록된 15자리 번호를
+            입력하세요.
+          </p>
+          <div style="margin-top: 20px">
+            <div class="form-group">
+              <label>동물등록번호 (15자리)</label>
+              <input
+                type="text"
+                placeholder="410XXXXXXXXXXXX"
+                maxlength="15"
+                id="authInput"
+                style="letter-spacing: 2px; text-align: center"
+                oninput="checkAuthInput(this)"
+              />
+              <p
+                style="
+                  font-size: 0.78rem;
+                  color: var(--text-sub);
+                  margin-top: 6px;
+                "
+              >
+                * 동물등록증 또는 동물보호관리시스템에서 확인
+              </p>
+            </div>
+          </div>
+          <button
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+            id="authSubmit"
+            disabled
+            onclick="submitAuth()"
+          >
+            인증하기
+          </button>
+        </div>
+
+        <!-- 완료 화면 -->
+        <div id="authDoneView" style="display: none; text-align: center">
+          <div style="font-size: 3rem; margin-bottom: 12px">🏅</div>
+          <h3 style="margin-bottom: 8px; color: var(--primary)">
+            등록 인증 완료!
+          </h3>
+          <p style="color: var(--text-sub); margin-bottom: 6px">
+            등록된 반려동물 번호
+          </p>
+          <div
+            id="authDoneNumbers"
+            style="
+              background: var(--bg);
+              border-radius: 10px;
+              padding: 10px 16px;
+              margin: 0 0 20px;
+              font-size: 0.88rem;
+              text-align: left;
+              max-height: 160px;
+              overflow-y: auto;
+            "
+          ></div>
+          <div style="display: flex; gap: 10px; flex-direction: column">
+            <button
+              class="btn btn-primary"
+              style="width: 100%"
+              onclick="addAnotherPet()"
+            >
+              🐾 함께하는 반려동물이 더 있다면? (추가 등록하기)
+            </button>
+            <button
+              class="btn"
+              style="width: 100%; background: #f0f0f0; color: var(--text)"
+              onclick="closeModal('authModal')"
+            >
+              완료
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 성향 퀴즈 결과 모달 -->
+    <div class="modal-overlay" id="quizModal">
+      <div class="modal" style="text-align: center">
+        <button class="modal-close" onclick="closeModal('quizModal')">✕</button>
+        <div style="font-size: 3rem; margin-bottom: 12px">🐶</div>
+        <h3>당신에게 맞는 반려동물은?</h3>
+        <div class="modal-result" style="margin-top: 16px">
+          <p style="font-weight: 800; color: var(--primary); font-size: 1.1rem">
+            활발한 중형 강아지
+          </p>
+          <p style="margin-top: 8px; font-size: 0.88rem">
+            활동량이 많고 교감을 즐기는 당신에게는 골든리트리버, 래브라도,
+            스피츠 등의 중형견이 잘 맞아요!
+          </p>
+        </div>
+        <a
+          href="breed-quiz.html"
+          class="btn btn-primary"
+          style="margin-top: 20px; display: inline-block"
+          onclick="closeModal('quizModal')"
+          >정밀 품종 추천 받기 →</a
+        >
+      </div>
+    </div>
+
+    <!-- 회원가입 / 로그인 모달 -->
+    <div class="modal-overlay" id="loginModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('loginModal')">
+          ✕
+        </button>
+        <div style="font-size: 2rem; text-align: center; margin-bottom: 16px">
+          🐾
+        </div>
+        <div class="auth-tabs">
+          <button
+            class="auth-tab active"
+            id="tabSignup"
+            onclick="switchTab('signup')"
+          >
+            회원가입
+          </button>
+          <button class="auth-tab" id="tabLogin" onclick="switchTab('login')">
+            로그인
+          </button>
+        </div>
+
+        <!-- 회원가입 폼 -->
+        <div id="formSignup">
+          <div class="form-group">
+            <label>닉네임</label>
+            <input
+              type="text"
+              id="signupName"
+              placeholder="예: 콩이집사"
+              maxlength="12"
+            />
+            <div class="form-err" id="errSignupName">닉네임을 입력해주세요</div>
+          </div>
+          <div class="form-group">
+            <label>이메일</label>
+            <input
+              type="email"
+              id="signupEmail"
+              placeholder="example@email.com"
+            />
+            <div class="form-err" id="errSignupEmail">
+              올바른 이메일 형식이 아니에요
+            </div>
+          </div>
+          <div class="form-group">
+            <label>비밀번호</label>
+            <input type="password" id="signupPw" placeholder="6자 이상" />
+            <div class="form-err" id="errSignupPw">
+              비밀번호는 6자 이상이어야 해요
+            </div>
+          </div>
+          <div class="form-group">
+            <label>비밀번호 확인</label>
+            <input
+              type="password"
+              id="signupPw2"
+              placeholder="비밀번호를 다시 입력"
+            />
+            <div class="form-err" id="errSignupPw2">
+              비밀번호가 일치하지 않아요
+            </div>
+          </div>
+          <button
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 4px"
+            onclick="doSignup()"
+          >
+            가입하기
+          </button>
+          <p
+            style="
+              text-align: center;
+              margin-top: 14px;
+              font-size: 0.85rem;
+              color: var(--text-sub);
+            "
+          >
+            이미 계정이 있으신가요?
+            <a
+              onclick="switchTab('login')"
+              style="color: var(--primary); cursor: pointer; font-weight: 700"
+              >로그인</a
+            >
+          </p>
+        </div>
+
+        <!-- 로그인 폼 -->
+        <div id="formLogin" style="display: none">
+          <div class="form-group">
+            <label>이메일</label>
+            <input type="email" id="loginEmail" placeholder="가입한 이메일" />
+            <div class="form-err" id="errLoginEmail">
+              이메일 또는 비밀번호가 올바르지 않아요
+            </div>
+          </div>
+          <div class="form-group">
+            <label>비밀번호</label>
+            <input type="password" id="loginPw" placeholder="비밀번호" />
+          </div>
+          <button
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 4px"
+            onclick="doLogin()"
+          >
+            로그인
+          </button>
+          <p
+            style="
+              text-align: center;
+              margin-top: 14px;
+              font-size: 0.85rem;
+              color: var(--text-sub);
+            "
+          >
+            계정이 없으신가요?
+            <a
+              onclick="switchTab('signup')"
+              style="color: var(--primary); cursor: pointer; font-weight: 700"
+              >회원가입</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 일기 작성 모달 -->
+    <div class="modal-overlay" id="diaryModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('diaryModal')">
+          ✕
+        </button>
+        <h3 style="margin-bottom: 16px">📓 오늘 일기 쓰기</h3>
+        <div class="form-group">
+          <label>오늘 있었던 일</label>
+          <textarea
+            id="diaryText"
+            rows="4"
+            placeholder="아이와 있었던 일을 기록해요..."
+            style="
+              width: 100%;
+              padding: 13px 16px;
+              border: 2px solid var(--border);
+              border-radius: 12px;
+              font-size: 0.92rem;
+              resize: vertical;
+              outline: none;
+              font-family: inherit;
+              transition: border-color 0.2s;
+            "
+            onfocus="this.style.borderColor = 'var(--primary)'"
+            onblur="this.style.borderColor = 'var(--border)'"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>오늘의 활동 (해당 항목 선택)</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.85rem;
+                font-weight: 400;
+                cursor: pointer;
+              "
+              ><input type="checkbox" value="🚶 산책" /> 🚶 산책</label
+            >
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.85rem;
+                font-weight: 400;
+                cursor: pointer;
+              "
+              ><input type="checkbox" value="💩 배변" /> 💩 배변</label
+            >
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.85rem;
+                font-weight: 400;
+                cursor: pointer;
+              "
+              ><input type="checkbox" value="🦷 양치" /> 🦷 양치</label
+            >
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.85rem;
+                font-weight: 400;
+                cursor: pointer;
+              "
+              ><input type="checkbox" value="🛁 목욕" /> 🛁 목욕</label
+            >
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.85rem;
+                font-weight: 400;
+                cursor: pointer;
+              "
+              ><input type="checkbox" value="💊 약" /> 💊 약</label
+            >
+          </div>
+        </div>
+        <button
+          class="btn btn-primary"
+          style="width: 100%; margin-top: 8px"
+          onclick="saveDiary()"
+        >
+          저장하기
+        </button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

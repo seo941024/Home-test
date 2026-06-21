@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품종 추천 테스트 - 펫케어</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#16a34a;--primary-d:#15803d;--secondary:#4CAF7D;--accent:#FFC107;--bg:#FAFAF8;--bg-card:#FFF;--text:#2D2D2D;--text-sub:#666;--border:#E8E8E8;--shadow:0 4px 20px rgba(0,0,0,.08);--radius:16px}
+html{scroll-behavior:smooth}
+body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{text-decoration:none;color:inherit}
+/* NAV */
+header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+nav{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:1100px;margin:0 auto;padding:0 20px}
+.logo{font-size:1.4rem;font-weight:900;color:var(--primary);display:flex;align-items:center;gap:8px}
+.btn{display:inline-block;padding:10px 24px;border-radius:999px;font-size:.9rem;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-d);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+.btn-outline:hover{background:var(--primary);color:#fff}
+/* LAYOUT */
+.page{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+/* PROGRESS */
+.progress-wrap{margin-bottom:32px}
+.progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.85rem;color:var(--text-sub)}
+.progress-meta strong{color:var(--primary)}
+.progress-bar-bg{background:#F0F0F0;border-radius:999px;height:8px;overflow:hidden}
+.progress-bar-fill{background:linear-gradient(90deg,var(--primary),#22c55e);height:100%;border-radius:999px;transition:width .4s ease}
+/* CANDIDATE COUNTER */
+.candidate-badge{display:inline-flex;align-items:center;gap:6px;background:#ecfdf5;border:1.5px solid #bbf7d0;border-radius:999px;padding:5px 14px;font-size:.82rem;font-weight:700;color:var(--primary);margin-bottom:28px}
+.candidate-num{font-size:1.1rem;font-weight:900}
+/* STEP */
+.step{display:none}
+.step.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.step-label{font-size:.8rem;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.step-q{font-size:1.7rem;font-weight:900;line-height:1.3;margin-bottom:6px}
+.step-hint{font-size:.9rem;color:var(--text-sub);margin-bottom:28px}
+/* CHOICE GRID */
+.choice-grid{display:grid;gap:14px}
+.choice-grid.col2{grid-template-columns:1fr 1fr}
+.choice-grid.col3{grid-template-columns:repeat(3,1fr)}
+.choice-card{background:#fff;border:2px solid var(--border);border-radius:18px;padding:22px 18px;cursor:pointer;transition:all .22s;text-align:center}
+.choice-card:hover{border-color:var(--primary);background:#ecfdf5;transform:translateY(-2px);box-shadow:0 6px 20px rgba(0, 0, 0,.12)}
+.choice-card.selected{border-color:var(--primary);background:#ecfdf5}
+.choice-icon{font-size:2.4rem;margin-bottom:10px}
+.choice-title{font-size:1rem;font-weight:800;margin-bottom:4px}
+.choice-desc{font-size:.8rem;color:var(--text-sub);line-height:1.4}
+/* MULTI SELECT */
+.multi-hint{font-size:.82rem;color:var(--secondary);margin-bottom:12px;font-weight:600}
+.choice-card.multi-card{text-align:left;display:flex;align-items:center;gap:14px;padding:16px 20px}
+.choice-card.multi-card .choice-icon{font-size:1.6rem;margin:0;flex-shrink:0}
+.choice-card.multi-card .choice-title{font-size:.92rem;margin-bottom:2px}
+.multi-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;transition:all .2s}
+.choice-card.selected .multi-check{background:var(--primary);border-color:var(--primary);color:#fff}
+/* SPECIES CARDS big */
+.species-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.species-card{background:#fff;border:3px solid var(--border);border-radius:24px;padding:36px 24px;cursor:pointer;text-align:center;transition:all .25s}
+.species-card:hover,.species-card.selected{border-color:var(--primary);background:#ecfdf5;transform:scale(1.02);box-shadow:0 8px 32px rgba(0, 0, 0,.15)}
+.species-emoji{font-size:4rem;margin-bottom:12px}
+.species-title{font-size:1.3rem;font-weight:900;margin-bottom:6px}
+.species-sub{font-size:.85rem;color:var(--text-sub)}
+/* NAV BUTTONS */
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:32px}
+.btn-back{background:transparent;color:var(--text-sub);border:none;cursor:pointer;font-size:.9rem;font-weight:600;padding:10px 0;display:flex;align-items:center;gap:6px}
+.btn-back:hover{color:var(--text)}
+/* RESULTS */
+#resultsScreen{display:none}
+.results-header{text-align:center;margin-bottom:48px}
+.results-header h2{font-size:2rem;font-weight:900;margin-bottom:8px}
+.results-header p{color:var(--text-sub)}
+.result-rank-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:32px}
+.result-rank-label span{font-size:.85rem;font-weight:700;color:var(--text-sub)}
+.result-rank-label::before,.result-rank-label::after{content:'';flex:1;height:1px;background:var(--border)}
+/* BREED CARD */
+.breed-card{background:#fff;border-radius:24px;padding:28px;box-shadow:var(--shadow);border:2px solid var(--border);margin-bottom:16px;transition:border-color .2s}
+.breed-card.rank1{border-color:var(--primary);box-shadow:0 8px 32px rgba(0, 0, 0,.15)}
+.breed-card-top{display:flex;align-items:flex-start;gap:20px}
+.breed-emoji-wrap{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);display:flex;align-items:center;justify-content:center;font-size:2.8rem;flex-shrink:0;position:relative}
+.rank-badge{position:absolute;top:-8px;left:-8px;width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;font-size:.75rem;font-weight:900;display:flex;align-items:center;justify-content:center}
+.rank-badge.g{background:#C9A227}
+.rank-badge.s{background:#8A8A8A}
+.rank-badge.b{background:#A0602A}
+.breed-info{flex:1}
+.breed-names{margin-bottom:6px}
+.breed-name-ko{font-size:1.3rem;font-weight:900}
+.breed-name-eng{font-size:.82rem;color:var(--text-sub);margin-left:8px}
+.breed-weight{font-size:.8rem;color:var(--text-sub);margin-bottom:6px}
+.breed-desc{font-size:.88rem;color:var(--text-sub);line-height:1.6;margin-bottom:12px}
+.match-circle{flex-shrink:0;text-align:center}
+.match-pct{font-size:2rem;font-weight:900;color:var(--primary);line-height:1}
+.match-label{font-size:.72rem;color:var(--text-sub);font-weight:600}
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 20px;margin:16px 0}
+.stat-row{display:flex;align-items:center;gap:8px}
+.stat-label{font-size:.75rem;color:var(--text-sub);width:58px;flex-shrink:0}
+.stat-bar{flex:1;background:#F0F0F0;border-radius:999px;height:6px;overflow:hidden}
+.stat-fill{height:100%;border-radius:999px;transition:width .6s ease}
+.stat-fill.orange{background:var(--primary)}
+.stat-fill.green{background:var(--secondary)}
+.stat-fill.blue{background:#4F6EF7}
+.stat-fill.yellow{background:var(--accent)}
+/* PROS CONS */
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.pros-box,.cons-box{padding:14px;border-radius:14px}
+.pros-box{background:#EDF7F1}
+.cons-box{background:#FFF5F5}
+.pros-box h5{color:var(--secondary);font-size:.8rem;font-weight:800;margin-bottom:8px}
+.cons-box h5{color:#E53935;font-size:.8rem;font-weight:800;margin-bottom:8px}
+.pros-box li,.cons-box li{font-size:.8rem;color:var(--text);list-style:none;padding:2px 0;display:flex;gap:6px}
+.pros-box li::before{content:'✓';color:var(--secondary);font-weight:700}
+.cons-box li::before{content:'!';color:#E53935;font-weight:700}
+/* CARE TIP */
+.care-tip{margin-top:14px;padding:12px 16px;background:#FFF9E6;border-radius:12px;border-left:3px solid var(--accent);font-size:.82rem;color:#856404}
+.care-tip strong{font-weight:700}
+/* TOGGLE DETAIL */
+.detail-toggle{font-size:.82rem;color:var(--primary);cursor:pointer;font-weight:600;margin-top:12px;display:inline-flex;align-items:center;gap:4px;border:none;background:none;padding:0}
+.detail-panel{display:none;margin-top:12px}
+.detail-panel.open{display:block}
+/* REDO */
+.results-footer{text-align:center;margin-top:48px;padding-top:32px;border-top:1px solid var(--border)}
+.results-footer p{color:var(--text-sub);margin-bottom:16px}
+/* INTRO */
+#introScreen{text-align:center;padding:60px 20px}
+#introScreen h1{font-size:2.4rem;font-weight:900;margin-bottom:12px}
+#introScreen h1 em{color:var(--primary);font-style:normal}
+#introScreen p{color:var(--text-sub);max-width:480px;margin:0 auto 32px;line-height:1.7}
+.intro-tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.intro-tag{padding:6px 16px;border-radius:999px;font-size:.82rem;font-weight:700}
+/* CATALOG */
+#catalogScreen{display:none;padding-bottom:60px}
+.catalog-header{max-width:1100px;margin:0 auto;padding:40px 20px 20px;text-align:center}
+.catalog-header h2{font-size:1.8rem;font-weight:900;margin-bottom:8px}
+.catalog-header p{color:var(--text-sub);font-size:.9rem;margin-bottom:24px}
+.filter-tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.filter-tab{padding:8px 20px;border-radius:999px;border:2px solid var(--border);background:#fff;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;color:var(--text-sub)}
+.filter-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.size-filters{display:flex;gap:6px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.size-filter{padding:5px 14px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--text-sub);transition:all .2s}
+.size-filter.active{background:#ecfdf5;border-color:var(--primary);color:var(--primary)}
+.catalog-grid{max-width:1100px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.cat-card{background:#fff;border-radius:18px;padding:18px 14px;border:2px solid var(--border);cursor:pointer;transition:all .22s;text-align:center}
+.cat-card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0, 0, 0,.12)}
+.cat-emoji{font-size:2.6rem;margin-bottom:8px}
+.cat-name-ko{font-size:.95rem;font-weight:800;margin-bottom:2px}
+.cat-name-en{font-size:.72rem;color:var(--text-sub);margin-bottom:6px}
+.cat-meta{font-size:.75rem;color:var(--text-sub);margin-bottom:8px}
+.cat-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:8px}
+.cat-tag{padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:700;background:#F5F5F5;color:var(--text-sub)}
+.cat-tag.orange{background:#ecfdf5;color:var(--primary)}
+.cat-tag.green{background:#EDF7F1;color:var(--secondary)}
+.cat-tag.blue{background:#EEF3FF;color:#4F6EF7}
+.cat-beginner{display:flex;justify-content:center;gap:2px}
+.cat-star{font-size:.7rem}
+/* BREED DETAIL MODAL */
+.breed-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;padding:20px}
+.breed-modal-overlay.open{opacity:1;pointer-events:all}
+.breed-modal{background:#fff;border-radius:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;transform:scale(.92);transition:transform .3s}
+.breed-modal-overlay.open .breed-modal{transform:scale(1)}
+.breed-modal-img{width:100%;height:220px;object-fit:cover;border-radius:20px 20px 0 0;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);display:flex;align-items:center;justify-content:center;font-size:5rem}
+.breed-modal-img img{width:100%;height:220px;object-fit:cover;border-radius:20px 20px 0 0;display:none}
+.breed-modal-body{padding:24px}
+.breed-modal-close{position:absolute;top:14px;right:18px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;border:none;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;z-index:10}
+.modal-name-ko{font-size:1.5rem;font-weight:900;margin-bottom:2px}
+.modal-name-en{font-size:.85rem;color:var(--text-sub);margin-bottom:12px}
+.modal-meta-row{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.modal-meta-item{font-size:.82rem;color:var(--text-sub)}.modal-meta-item strong{color:var(--text)}
+.modal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.modal-tag{padding:4px 12px;border-radius:999px;font-size:.78rem;font-weight:700}
+.modal-desc{font-size:.88rem;color:var(--text-sub);line-height:1.65;margin-bottom:16px}
+.modal-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;margin-bottom:16px}
+.modal-pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.m-pros,.m-cons{padding:12px;border-radius:12px}
+.m-pros{background:#EDF7F1}.m-cons{background:#FFF5F5}
+.m-pros h5{color:var(--secondary);font-size:.78rem;font-weight:800;margin-bottom:6px}
+.m-cons h5{color:#E53935;font-size:.78rem;font-weight:800;margin-bottom:6px}
+.m-pros li,.m-cons li{font-size:.78rem;list-style:none;padding:2px 0;display:flex;gap:5px}
+.m-pros li::before{content:'✓';color:var(--secondary);font-weight:700}
+.m-cons li::before{content:'!';color:#E53935;font-weight:700}
+.modal-care{padding:12px 14px;background:#FFF9E6;border-radius:12px;border-left:3px solid var(--accent);font-size:.82rem;color:#856404}
+@media(max-width:640px){.col2,.col3,.species-grid,.pros-cons,.stat-grid,.modal-pros-cons,.modal-stat-grid{grid-template-columns:1fr}.step-q{font-size:1.35rem}.breed-card-top{flex-wrap:wrap}.match-circle{align-self:flex-start}.catalog-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a class="logo" href="index.html"><span>🐾</span> 펫케어</a>
+    <a href="index.html" class="btn btn-outline" style="font-size:.85rem;padding:8px 18px">← 메인으로</a>
+  </nav>
+</header>
+
+<!-- INTRO -->
+<div class="page" id="introScreen">
+  <div style="font-size:3.5rem;margin-bottom:20px">🔍</div>
+  <h1>나에게 딱 맞는<br><em>품종</em>을 찾아드릴게요</h1>
+  <p>강아지 35종 · 고양이 22종, 총 57개 품종 데이터베이스에서 당신의 생활 방식에 가장 잘 맞는 품종을 골라드려요.</p>
+  <div class="intro-tags">
+    <span class="intro-tag" style="background:#ecfdf5;color:var(--primary)">🐶 강아지 35종</span>
+    <span class="intro-tag" style="background:#EDF7F1;color:var(--secondary)">🐱 고양이 22종</span>
+    <span class="intro-tag" style="background:#EEF3FF;color:#4F6EF7">8가지 취향 질문</span>
+    <span class="intro-tag" style="background:#FFF9E6;color:#D97706">상위 5개 품종 추천</span>
+  </div>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-primary" style="font-size:1.05rem;padding:15px 40px" onclick="startQuiz()">테스트 시작하기 →</button>
+    <button class="btn btn-outline" style="font-size:1.05rem;padding:15px 36px" onclick="showCatalog()">📖 품종 도감 보기</button>
+  </div>
+</div>
+
+<!-- CATALOG -->
+<div id="catalogScreen">
+  <div class="catalog-header">
+    <h2>🐾 품종 도감</h2>
+    <p>강아지 35종 · 고양이 22종 — 클릭하면 자세한 특징을 볼 수 있어요</p>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterCatalog('all',this)">전체 57종</button>
+      <button class="filter-tab" onclick="filterCatalog('dog',this)">🐶 강아지 35종</button>
+      <button class="filter-tab" onclick="filterCatalog('cat',this)">🐱 고양이 22종</button>
+    </div>
+    <div class="size-filters" id="sizeFilters">
+      <button class="size-filter active" onclick="filterSize('all',this)">전체 크기</button>
+      <button class="size-filter" onclick="filterSize('tiny',this)">초소형</button>
+      <button class="size-filter" onclick="filterSize('small',this)">소형</button>
+      <button class="size-filter" onclick="filterSize('medium',this)">중형</button>
+      <button class="size-filter" onclick="filterSize('large',this)">대형·초대형</button>
+    </div>
+  </div>
+  <div class="catalog-grid" id="catalogGrid"></div>
+  <div style="text-align:center;margin-top:36px;padding-bottom:40px">
+    <button class="btn btn-primary" style="margin-right:12px" onclick="startQuiz()">맞춤 테스트 시작 →</button>
+    <button class="btn btn-outline" onclick="showScreen('introScreen')">← 처음으로</button>
+  </div>
+</div>
+
+<!-- BREED DETAIL MODAL -->
+<div class="breed-modal-overlay" id="breedModal" onclick="if(event.target===this)closeModal()">
+  <div class="breed-modal">
+    <button class="breed-modal-close" onclick="closeModal()">✕</button>
+    <div class="breed-modal-img" id="modalImgWrap">
+      <img id="modalImg" alt="breed">
+      <span id="modalImgEmoji" style="font-size:5rem"></span>
+    </div>
+    <div class="breed-modal-body">
+      <div class="modal-name-ko" id="modalNameKo"></div>
+      <div class="modal-name-en" id="modalNameEn"></div>
+      <div class="modal-meta-row" id="modalMeta"></div>
+      <div class="modal-tags" id="modalTags"></div>
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="modal-stat-grid" id="modalStats"></div>
+      <div class="modal-pros-cons" id="modalProsCons"></div>
+      <div class="modal-care" id="modalCare"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="font-size:.85rem;flex:1" onclick="startQuizWith()">이 동물 기준으로 테스트 →</button>
+        <a href="index.html#pre-adoption" class="btn btn-outline" style="font-size:.85rem;flex:1;text-align:center">케어 가이드 보기</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="page" id="quizScreen" style="display:none">
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span>질문 <strong id="stepNum">1</strong> / <span id="totalSteps">8</span></span>
+      <span id="candidateCount" class="candidate-badge"><span>🐾</span> 후보 <span class="candidate-num" id="candNum">57</span>종</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:12%"></div></div>
+  </div>
+
+  <!-- STEP 1: SPECIES -->
+  <div class="step active" id="step-1">
+    <div class="step-label">STEP 1</div>
+    <div class="step-q">어떤 동물을 키울까요?</div>
+    <div class="step-hint">이후 질문은 선택한 종류에 맞게 조정돼요</div>
+    <div class="species-grid">
+      <div class="species-card" onclick="selectSpecies('dog',this)">
+        <div class="species-emoji">🐶</div>
+        <div class="species-title">강아지</div>
+        <div class="species-sub">35개 품종 보유<br>소형 ~ 대형</div>
+      </div>
+      <div class="species-card" onclick="selectSpecies('cat',this)">
+        <div class="species-emoji">🐱</div>
+        <div class="species-title">고양이</div>
+        <div class="species-sub">22개 품종 보유<br>단모 ~ 장모</div>
+      </div>
+    </div>
+    <div class="step-nav"><span></span></div>
+  </div>
+
+  <!-- STEP 2: SPACE -->
+  <div class="step" id="step-2">
+    <div class="step-label">STEP 2</div>
+    <div class="step-q">현재 주거 환경은 어떤가요?</div>
+    <div class="step-hint">반려동물이 지내는 공간 크기가 중요해요</div>
+    <div class="choice-grid col2">
+      <div class="choice-card" onclick="select(this,'space','studio')">
+        <div class="choice-icon">🏠</div>
+        <div class="choice-title">소형 원룸 / 오피스텔</div>
+        <div class="choice-desc">20평 이하, 공간이 협소함</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'space','apartment')">
+        <div class="choice-icon">🏢</div>
+        <div class="choice-title">일반 아파트</div>
+        <div class="choice-desc">20~40평, 베란다 없거나 협소</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'space','large_apt')">
+        <div class="choice-icon">🏬</div>
+        <div class="choice-title">넓은 아파트 / 빌라</div>
+        <div class="choice-desc">40평 이상, 공간 여유 있음</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'space','house')">
+        <div class="choice-icon">🏡</div>
+        <div class="choice-title">마당 있는 주택</div>
+        <div class="choice-desc">야외 공간 활용 가능</div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="prevStep()">← 이전</button></div>
+  </div>
+
+  <!-- STEP 3: ACTIVITY -->
+  <div class="step" id="step-3">
+    <div class="step-label">STEP 3</div>
+    <div class="step-q" id="step3q">하루에 운동·놀이에 쓸 수 있는 시간은?</div>
+    <div class="step-hint">산책, 함께 노는 시간을 솔직하게 선택해요</div>
+    <div class="choice-grid col2">
+      <div class="choice-card" onclick="select(this,'activity',1)">
+        <div class="choice-icon">😴</div>
+        <div class="choice-title">30분 미만</div>
+        <div class="choice-desc">매우 바쁜 편, 주말 활용</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'activity',2)">
+        <div class="choice-icon">🚶</div>
+        <div class="choice-title">30분~1시간</div>
+        <div class="choice-desc">매일 짧은 산책 가능</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'activity',3)">
+        <div class="choice-icon">🏃</div>
+        <div class="choice-title">1~2시간</div>
+        <div class="choice-desc">충분한 야외 활동 가능</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'activity',4)">
+        <div class="choice-icon">⚡</div>
+        <div class="choice-title">2시간 이상</div>
+        <div class="choice-desc">매우 활동적, 함께 달리고 싶음</div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="prevStep()">← 이전</button></div>
+  </div>
+
+  <!-- STEP 4: SHEDDING -->
+  <div class="step" id="step-4">
+    <div class="step-label">STEP 4</div>
+    <div class="step-q">털 빠짐과 알러지에 대해서는?</div>
+    <div class="step-hint">청소 빈도와 알러지 여부를 고려해주세요</div>
+    <div class="choice-grid col2">
+      <div class="choice-card" onclick="select(this,'shedding','any')">
+        <div class="choice-icon">😎</div>
+        <div class="choice-title">전혀 신경 안 써요</div>
+        <div class="choice-desc">털은 사랑의 증거, 청소 열심히 할게요</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'shedding','some')">
+        <div class="choice-icon">🙂</div>
+        <div class="choice-title">조금 있어도 괜찮아요</div>
+        <div class="choice-desc">많지 않으면 감당 가능</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'shedding','minimal')">
+        <div class="choice-icon">😬</div>
+        <div class="choice-title">최대한 적게 원해요</div>
+        <div class="choice-desc">청소가 너무 힘들 것 같음</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'shedding','allergy')">
+        <div class="choice-icon">🤧</div>
+        <div class="choice-title">알러지가 있어요</div>
+        <div class="choice-desc">저알러지 품종이 반드시 필요</div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="prevStep()">← 이전</button></div>
+  </div>
+
+  <!-- STEP 5: EXPERIENCE -->
+  <div class="step" id="step-5">
+    <div class="step-label">STEP 5</div>
+    <div class="step-q">반려동물 키워본 경험이 있나요?</div>
+    <div class="step-hint">솔직하게 선택할수록 더 잘 맞는 품종을 찾을 수 있어요</div>
+    <div class="choice-grid col3">
+      <div class="choice-card" onclick="select(this,'experience','beginner')">
+        <div class="choice-icon">🌱</div>
+        <div class="choice-title">완전 처음이에요</div>
+        <div class="choice-desc">반려동물을 키워본 적 없음</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'experience','some')">
+        <div class="choice-icon">🌿</div>
+        <div class="choice-title">어릴 때 있어요</div>
+        <div class="choice-desc">집에서 키운 경험 있음</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'experience','expert')">
+        <div class="choice-icon">🌳</div>
+        <div class="choice-title">경험이 많아요</div>
+        <div class="choice-desc">훈련, 케어 자신 있음</div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="prevStep()">← 이전</button></div>
+  </div>
+
+  <!-- STEP 6: PERSONALITY -->
+  <div class="step" id="step-6">
+    <div class="step-label">STEP 6</div>
+    <div class="step-q">어떤 성격을 원하나요?</div>
+    <div class="step-hint">당신의 라이프스타일과 가장 잘 맞는 것을 선택해요</div>
+    <div class="choice-grid col2">
+      <div class="choice-card" onclick="select(this,'personality','affectionate')">
+        <div class="choice-icon">🥰</div>
+        <div class="choice-title">항상 내 곁에 있는 애교쟁이</div>
+        <div class="choice-desc">스킨십을 좋아하고 항상 붙어다니는</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'personality','independent')">
+        <div class="choice-icon">😏</div>
+        <div class="choice-title">독립적이고 자기 페이스로</div>
+        <div class="choice-desc">간섭 없이 각자 편하게 생활</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'personality','quiet')">
+        <div class="choice-icon">😌</div>
+        <div class="choice-title">조용하고 차분한</div>
+        <div class="choice-desc">느긋하고 안정적인 성격</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'personality','energetic')">
+        <div class="choice-icon">💪</div>
+        <div class="choice-title">활발하고 에너지 넘치는</div>
+        <div class="choice-desc">같이 뛰고 놀 에너지 많은</div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="prevStep()">← 이전</button></div>
+  </div>
+
+  <!-- STEP 7: SIZE (강아지만, 고양이는 스킵) -->
+  <div class="step" id="step-7">
+    <div class="step-label">STEP 7</div>
+    <div class="step-q">선호하는 크기가 있나요?</div>
+    <div class="step-hint">강아지는 크기에 따라 생활 패턴이 크게 달라요</div>
+    <div class="choice-grid col2">
+      <div class="choice-card" onclick="select(this,'size','small')">
+        <div class="choice-icon">🐾</div>
+        <div class="choice-title">소형견 (10kg 미만)</div>
+        <div class="choice-desc">안고 다니기 편하고 공간 효율적</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'size','medium')">
+        <div class="choice-icon">🐕</div>
+        <div class="choice-title">중형견 (10~25kg)</div>
+        <div class="choice-desc">산책하기 좋은 적당한 크기</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'size','large')">
+        <div class="choice-icon">🦮</div>
+        <div class="choice-title">대형견 (25kg 이상)</div>
+        <div class="choice-desc">웅장하고 든든한 대형견</div>
+      </div>
+      <div class="choice-card" onclick="select(this,'size','any')">
+        <div class="choice-icon">❓</div>
+        <div class="choice-title">상관없어요</div>
+        <div class="choice-desc">크기보다 성격이 중요해요</div>
+      </div>
+    </div>
+    <div class="step-nav"><button class="btn-back" onclick="prevStep()">← 이전</button></div>
+  </div>
+
+  <!-- STEP 8: PRIORITIES (multi-select) -->
+  <div class="step" id="step-8">
+    <div class="step-label">STEP 8</div>
+    <div class="step-q">중요하게 생각하는 항목은?</div>
+    <div class="multi-hint">여러 개 선택 가능해요 (최대 3개)</div>
+    <div class="choice-grid" id="priorityGrid">
+      <div class="choice-card multi-card" onclick="togglePriority(this,'trainable')">
+        <div class="choice-icon">🎓</div>
+        <div><div class="choice-title">훈련하기 쉬운</div><div class="choice-desc">앉아, 기다려 등 기본 훈련이 잘 되는</div></div>
+        <div class="multi-check">✓</div>
+      </div>
+      <div class="choice-card multi-card" onclick="togglePriority(this,'family')">
+        <div class="choice-icon">👨‍👩‍👧</div>
+        <div><div class="choice-title">아이 · 가족과 친화적인</div><div class="choice-desc">아이, 어르신 등 모든 가족과 잘 어울림</div></div>
+        <div class="multi-check">✓</div>
+      </div>
+      <div class="choice-card multi-card" onclick="togglePriority(this,'quiet')">
+        <div class="choice-icon">🔇</div>
+        <div><div class="choice-title">짖음 · 소음이 적은</div><div class="choice-desc">층간 소음 걱정 없는 조용한 품종</div></div>
+        <div class="multi-check">✓</div>
+      </div>
+      <div class="choice-card multi-card" onclick="togglePriority(this,'low_grooming')">
+        <div class="choice-icon">✂️</div>
+        <div><div class="choice-title">미용 · 그루밍 비용이 적은</div><div class="choice-desc">셀프 관리가 가능하거나 비용이 낮은</div></div>
+        <div class="multi-check">✓</div>
+      </div>
+      <div class="choice-card multi-card" onclick="togglePriority(this,'healthy')">
+        <div class="choice-icon">💪</div>
+        <div><div class="choice-title">건강하고 의료비 걱정 적은</div><div class="choice-desc">유전 질환이 적고 강건한 체질</div></div>
+        <div class="multi-check">✓</div>
+      </div>
+      <div class="choice-card multi-card" onclick="togglePriority(this,'hypoallergenic')">
+        <div class="choice-icon">🤧</div>
+        <div><div class="choice-title">알러지 걱정 없는</div><div class="choice-desc">저알러지 또는 털 빠짐이 거의 없는</div></div>
+        <div class="multi-check">✓</div>
+      </div>
+    </div>
+    <div class="step-nav">
+      <button class="btn-back" onclick="prevStep()">← 이전</button>
+      <button class="btn btn-primary" onclick="showResults()">결과 보기 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="page" id="resultsScreen">
+  <div class="results-header">
+    <div style="font-size:2.5rem;margin-bottom:12px">🎉</div>
+    <h2>추천 품종 결과예요!</h2>
+    <p id="resultsSubtitle">총 57개 품종에서 당신에게 맞는 품종을 찾았어요</p>
+  </div>
+  <div id="resultsBody"></div>
+  <div class="results-footer">
+    <p>결과가 마음에 들지 않나요? 다시 테스트해보세요</p>
+    <button class="btn btn-outline" onclick="resetQuiz()">다시 테스트하기</button>
+    <a href="index.html" class="btn btn-primary" style="margin-left:12px">케어 서비스 이용하기 →</a>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// BREED DATABASE
+// =====================================================================
+const BREEDS = [
+  // ========== 강아지 ==========
+  {species:'dog',id:'maltese',name:'말티즈',eng:'Maltese',emoji:'🐩',size:'tiny',weight:'2~4kg',activity:2,shedding:1,beginner:5,apartment:true,affection:5,independent:1,quiet:3,grooming:4,family:4,trainable:3,health:3,hypo:true,desc:'새하얀 실크 털의 작고 우아한 반려견. 사람 곁에 항상 있고 싶어하는 충직한 친구.',pros:['저알러지 — 털 빠짐 극소','아파트 최적화 소형견','애교가 넘치고 주인만 바라봄'],cons:['분리불안 생기기 쉬움','정기 미용 비용 높음','눈물자국 관리 필요'],care:'매일 빗질 필수. 눈물자국은 전용 클리너로 닦아주세요.'},
+  {species:'dog',id:'pomeranian',name:'포메라니안',eng:'Pomeranian',emoji:'🦊',size:'tiny',weight:'2~3.5kg',activity:3,shedding:3,beginner:3,apartment:true,affection:4,independent:2,quiet:2,grooming:3,family:3,trainable:3,health:3,hypo:false,desc:'솜뭉치 같은 풍성한 털과 여우 같은 얼굴. 호기심 넘치고 활발한 성격.',pros:['독특하고 귀여운 외모','활발하고 장난기 많음','소형이라 어디든 편리'],cons:['털 빠짐 상당함','짖음 잦은 편','기관지 허탈증 주의'],care:'더블코트라 주 2-3회 빗질을 권장합니다.'},
+  {species:'dog',id:'chihuahua',name:'치와와',eng:'Chihuahua',emoji:'🐕',size:'tiny',weight:'1.5~3kg',activity:2,shedding:2,beginner:3,apartment:true,affection:4,independent:2,quiet:2,grooming:1,family:2,trainable:2,health:4,hypo:false,desc:'세상에서 가장 작은 견종 중 하나. 용감하고 자신감 넘치며 주인에게 매우 충성스러움.',pros:['그루밍 비용 거의 없음','매우 건강하고 장수','주인에게 극도로 충성'],cons:['낯선 사람·아이에게 경계심 강함','추위에 취약','고집 세 훈련 어려움'],care:'소형이지만 추위에 약해요. 겨울에 옷을 꼭 입혀주세요.'},
+  {species:'dog',id:'yorkshire',name:'요크셔테리어',eng:'Yorkshire Terrier',emoji:'🐕',size:'tiny',weight:'2~3.5kg',activity:3,shedding:1,beginner:3,apartment:true,affection:4,independent:2,quiet:2,grooming:4,family:3,trainable:3,health:3,hypo:true,desc:'실크 같은 긴 털과 당당한 성격. 소형이지만 테리어 특유의 용감함.',pros:['저알러지 — 털 빠짐 적음','용감하고 당당한 성격','소형으로 공간 제약 없음'],cons:['정기 미용 필수','짖음 잦음','고집 세기도 함'],care:'짧게 자르면 2~3개월마다, 길게 기르면 매일 빗질이 필요해요.'},
+  {species:'dog',id:'dachshund',name:'닥스훈트',eng:'Dachshund',emoji:'🌭',size:'small',weight:'4~9kg',activity:3,shedding:2,beginner:3,apartment:true,affection:4,independent:3,quiet:2,grooming:2,family:3,trainable:2,health:2,hypo:false,desc:'소시지처럼 긴 몸통이 특징. 사냥개 출신으로 용감하고 고집스러운 성격.',pros:['독특하고 귀여운 외모','작지만 용감한 성격','소형으로 아파트 가능'],cons:['척추 디스크 문제 흔함','고집 세 훈련 어려움','계단·점프 주의'],care:'척추 보호를 위해 소파·계단 오르내림을 최소화하세요.'},
+  {species:'dog',id:'shih_tzu',name:'시추',eng:'Shih Tzu',emoji:'🐩',size:'small',weight:'4~8kg',activity:2,shedding:1,beginner:5,apartment:true,affection:5,independent:2,quiet:4,grooming:3,family:5,trainable:3,health:3,hypo:true,desc:'왕족의 반려견으로 불린 우아한 강아지. 온순하고 친화적이며 모든 가족을 사랑함.',pros:['초보자에게 최적','가족 모두와 잘 어울림','저알러지'],cons:['눈·눈물자국 관리 필요','더위에 약함','정기 미용 필요'],care:'단두종이라 더위에 매우 취약해요. 여름철 온도 관리 필수.'},
+  {species:'dog',id:'bichon',name:'비숑프리제',eng:'Bichon Frise',emoji:'☁️',size:'small',weight:'5~7kg',activity:3,shedding:1,beginner:5,apartment:true,affection:5,independent:2,quiet:4,grooming:4,family:5,trainable:4,health:4,hypo:true,desc:'하얀 구름 같은 동그란 털이 특징. 항상 밝고 유쾌한 성격으로 모두를 행복하게 해줌.',pros:['저알러지 — 털 빠짐 거의 없음','항상 밝고 활발함','훈련하기 쉬운 편'],cons:['정기 미용 비용 발생','분리불안 주의','치아 질환 취약'],care:'곱슬털이라 엉킴이 생겨요. 주 2-3회 빗질 필수.'},
+  {species:'dog',id:'toy_poodle',name:'토이푸들',eng:'Toy Poodle',emoji:'🐩',size:'tiny',weight:'2~4kg',activity:3,shedding:1,beginner:5,apartment:true,affection:5,independent:2,quiet:3,grooming:4,family:5,trainable:5,health:4,hypo:true,desc:'푸들 중 가장 작은 종. 매우 영리하고 훈련성이 뛰어나며 사람을 좋아함.',pros:['저알러지 — 털 빠짐 없음','지능 매우 높아 훈련 쉬움','다양한 미용 스타일 가능'],cons:['정기 미용 비용 높음','분리불안 쉽게 생김','관절 건강 주의'],care:'매우 영리해서 지루함을 느끼기 쉬워요. 정신적 자극이 중요합니다.'},
+  {species:'dog',id:'french_bulldog',name:'프렌치불독',eng:'French Bulldog',emoji:'🐾',size:'small',weight:'8~13kg',activity:2,shedding:2,beginner:4,apartment:true,affection:5,independent:3,quiet:4,grooming:2,family:5,trainable:3,health:2,hypo:false,desc:'배트 같은 귀와 뭉툭한 코가 매력적. 유머러스하고 충직한 성격으로 도시 반려인에게 인기.',pros:['운동량 적어 바쁜 사람에게 적합','짖음 적은 편','귀엽고 독특한 외모'],cons:['호흡기 문제 주의 (단두종)','더위에 매우 취약','의료비 높을 수 있음'],care:'단두종이라 더운 날 야외 활동을 피하고, 비행기 탑승 시 규정 확인 필요.'},
+  {species:'dog',id:'pug',name:'퍼그',eng:'Pug',emoji:'🐾',size:'small',weight:'6~9kg',activity:2,shedding:3,beginner:4,apartment:true,affection:5,independent:3,quiet:4,grooming:2,family:5,trainable:2,health:2,hypo:false,desc:'주름진 얼굴과 동그란 눈이 매력적. 고집스럽지만 사랑스럽고 유머러스한 성격.',pros:['짖음 거의 없음','사람 매우 좋아하고 친화적','사교성 뛰어남'],cons:['털 빠짐 있는 편','호흡기·눈 건강 주의','더위에 취약'],care:'주름 사이 습기 주의 — 매일 닦아주세요. 과체중 방지에 신경 써요.'},
+  {species:'dog',id:'papillon',name:'파피용',eng:'Papillon',emoji:'🦋',size:'tiny',weight:'3~5kg',activity:3,shedding:2,beginner:4,apartment:true,affection:4,independent:2,quiet:3,grooming:2,family:4,trainable:5,health:4,hypo:false,desc:'나비 같은 귀가 아름다운 우아한 소형견. 소형견 중 지능이 가장 높은 편.',pros:['지능 매우 높아 훈련 능력 최상','그루밍 외모에 비해 간단','활발하고 영리함'],cons:['에너지 많아 충분한 놀이 필요','작아서 부상 위험','짖음 관리 필요'],care:'에너지가 넘쳐요. 매일 충분한 놀이와 정신 자극이 필요합니다.'},
+  {species:'dog',id:'havanese',name:'하바네즈',eng:'Havanese',emoji:'🐕',size:'small',weight:'3~6kg',activity:3,shedding:1,beginner:5,apartment:true,affection:5,independent:2,quiet:4,grooming:3,family:5,trainable:4,health:4,hypo:true,desc:'쿠바의 국견으로 항상 행복하고 사교적인 성격. 모든 연령대와 잘 어울림.',pros:['저알러지','초보자에게 최적','모든 가족과 잘 어울리는 사교성'],cons:['분리불안 취약','정기 미용 필요','눈 건강 관리 필요'],care:'사람과 함께하는 것을 좋아해요. 혼자 두는 시간을 최소화해 주세요.'},
+  {species:'dog',id:'boston_terrier',name:'보스턴테리어',eng:'Boston Terrier',emoji:'🐕',size:'small',weight:'5~11kg',activity:3,shedding:2,beginner:4,apartment:true,affection:4,independent:3,quiet:3,grooming:1,family:4,trainable:4,health:2,hypo:false,desc:'"아메리칸 젠틀맨"이라 불리는 점잖고 친절한 성격. 흑백의 정장 같은 코트가 특징.',pros:['그루밍 비용 거의 없음','다양한 환경에 잘 적응','훈련하기 쉬운 편'],cons:['단두종 호흡기 주의','눈 부상 주의 (눈이 큼)','더위에 약함'],care:'단두종이라 코골이와 방귀가 있을 수 있어요.'},
+  {species:'dog',id:'corgi',name:'웰시코기',eng:'Welsh Corgi Pembroke',emoji:'🐕',size:'small',weight:'10~14kg',activity:4,shedding:4,beginner:4,apartment:true,affection:5,independent:3,quiet:3,grooming:2,family:5,trainable:5,health:3,hypo:false,desc:'짧은 다리와 커다란 귀가 귀여운 목동 개. 영국 여왕의 사랑을 받은 영특하고 충성스러운 견종.',pros:['영리하고 훈련 잘 됨','사교적이고 가족을 매우 좋아함','활발하고 에너지 넘침'],cons:['털 빠짐 매우 많음','매일 운동 필수','발 뒤꿈치를 물 수 있음 (목동 본능)'],care:'털 빠짐이 많아요. 로봇청소기를 구매하시는 것을 추천합니다.'},
+  {species:'dog',id:'beagle',name:'비글',eng:'Beagle',emoji:'🐕',size:'medium',weight:'10~18kg',activity:4,shedding:3,beginner:3,apartment:false,affection:5,independent:3,quiet:2,grooming:1,family:5,trainable:2,health:4,hypo:false,desc:'귀엽고 동글동글한 얼굴에 항상 행복한 표정. 에너지 넘치고 탐구심 강한 사냥개.',pros:['건강하고 튼튼한 체질','가족·아이들 매우 좋아함','그루밍 간단'],cons:['짖음·하울링 잦음','고집 세 훈련 어려움','충분한 운동 필수 (아파트 비추)'],care:'냄새 맡기를 매우 좋아해요. 줄 관리 필수 — 달아날 수 있어요.'},
+  {species:'dog',id:'cocker_spaniel',name:'코커스패니얼',eng:'Cocker Spaniel',emoji:'🐕',size:'medium',weight:'11~14kg',activity:3,shedding:3,beginner:4,apartment:true,affection:5,independent:2,quiet:3,grooming:4,family:5,trainable:4,health:3,hypo:false,desc:'비단 같은 긴 털과 처진 귀가 우아한 사냥개. 유순하고 애정이 넘치는 가족견.',pros:['온순하고 부드러운 성격','가족 모두와 잘 어울림','훈련성 좋음'],cons:['귀 감염 잦음 — 청소 필수','정기 미용 필요','분리불안 주의'],care:'처진 귀 안쪽 주 1-2회 청소가 필수예요.'},
+  {species:'dog',id:'mini_schnauzer',name:'미니어처슈나우저',eng:'Miniature Schnauzer',emoji:'🧔',size:'small',weight:'5~9kg',activity:3,shedding:1,beginner:4,apartment:true,affection:4,independent:3,quiet:3,grooming:3,family:4,trainable:4,health:4,hypo:true,desc:'특유의 수염과 눈썹이 트레이드마크. 활발하고 영리하며 충성스러운 독일 테리어.',pros:['저알러지 — 털 빠짐 적음','영리하고 훈련성 좋음','건강하고 장수하는 편'],cons:['낯선 사람에게 경계심 강함','짖음 훈련 필요','정기 미용 필요'],care:'정기 트리밍이 필요해요. 눈 주변 털이 자라면 시야를 가릴 수 있어요.'},
+  {species:'dog',id:'sheltie',name:'셔틀랜드쉽독',eng:'Shetland Sheepdog',emoji:'🐕',size:'medium',weight:'6~12kg',activity:4,shedding:4,beginner:4,apartment:true,affection:5,independent:2,quiet:2,grooming:3,family:5,trainable:5,health:4,hypo:false,desc:'작은 러프 콜리라 불리는 쉘티. 매우 영리하고 민감하며 가족에게 헌신적.',pros:['지능 매우 높음 (훈련 최상위)','가족에게 헌신적','순종적이고 다루기 쉬움'],cons:['털 빠짐 많음','낯선 사람에게 예민','짖음 잦을 수 있음'],care:'지능이 높아 지루함 주의. 매일 두뇌 훈련 + 충분한 운동이 필요합니다.'},
+  {species:'dog',id:'aussie',name:'오스트레일리안셰퍼드',eng:'Australian Shepherd',emoji:'🐕',size:'medium',weight:'16~32kg',activity:5,shedding:3,beginner:2,apartment:false,affection:4,independent:3,quiet:3,grooming:3,family:4,trainable:5,health:4,hypo:false,desc:'멀티컬러 눈이 아름다운 목양견. 지능과 체력이 뛰어나 활동적인 견주에게 최적.',pros:['지능 매우 높음','매우 활발하고 운동 즐김','다양한 스포츠에 적합'],cons:['충분한 운동 없으면 문제 행동 발생','아파트 비추','초보자보다 경험자에게 적합'],care:'하루 2시간 이상 운동이 필요해요.'},
+  {species:'dog',id:'std_poodle',name:'스탠다드푸들',eng:'Standard Poodle',emoji:'🐩',size:'large',weight:'20~32kg',activity:4,shedding:1,beginner:4,apartment:false,affection:5,independent:2,quiet:3,grooming:5,family:5,trainable:5,health:4,hypo:true,desc:'대형견 중 지능이 가장 높은 편. 우아하고 다재다능하며 가족 모두를 좋아함.',pros:['저알러지 — 털 빠짐 없음','지능 최상위','사교적이고 다정함'],cons:['정기 미용 비용 매우 높음','운동 공간 필요','분리불안 취약'],care:'정기 미용이 매우 중요해요. 2개월에 한 번 전문 미용을 권장합니다.'},
+  {species:'dog',id:'samoyed',name:'사모예드',eng:'Samoyed',emoji:'🤍',size:'large',weight:'16~30kg',activity:4,shedding:5,beginner:3,apartment:false,affection:5,independent:3,quiet:3,grooming:4,family:5,trainable:3,health:4,hypo:false,desc:'항상 미소 짓는 것 같은 "스마일 독". 새하얀 풍성한 털과 온화한 성격으로 인기.',pros:['항상 밝고 친화적','아이들과 매우 잘 어울림','독특하고 아름다운 외모'],cons:['털 빠짐 극도로 많음','충분한 운동 필요','더위에 약함'],care:'털갈이 시즌에 매일 빗질이 필요해요. 에어컨은 필수입니다.'},
+  {species:'dog',id:'husky',name:'시베리안허스키',eng:'Siberian Husky',emoji:'🐺',size:'large',weight:'16~27kg',activity:5,shedding:5,beginner:2,apartment:false,affection:4,independent:4,quiet:2,grooming:3,family:4,trainable:3,health:4,hypo:false,desc:'늑대를 닮은 아름다운 외모와 파란 눈. 자유로운 영혼을 가진 달리기 전문가.',pros:['아름다운 외모','독립적이고 자유로운 성격','매우 강건한 체력'],cons:['탈출 시도 잦음','하울링 심함','초보자에게 매우 어려움'],care:'하루 2시간 이상 달리기가 필요해요. 탈출 방지 울타리 필수.'},
+  {species:'dog',id:'golden',name:'골든리트리버',eng:'Golden Retriever',emoji:'🌟',size:'large',weight:'25~34kg',activity:4,shedding:4,beginner:5,apartment:false,affection:5,independent:2,quiet:4,grooming:3,family:5,trainable:5,health:3,hypo:false,desc:'세상에서 가장 인기 있는 가족견 중 하나. 항상 행복하고 모든 사람과 잘 어울리는 완벽한 반려견.',pros:['초보자에게도 적합한 온순한 성격','훈련 매우 쉬움','모든 가족과 최고의 친구'],cons:['털 빠짐 많음','넓은 공간 필요','암 발생률 높은 편'],care:'매일 1시간 이상 운동이 필요해요. 수영을 매우 좋아합니다.'},
+  {species:'dog',id:'labrador',name:'래브라도리트리버',eng:'Labrador Retriever',emoji:'🐕',size:'large',weight:'25~36kg',activity:4,shedding:4,beginner:5,apartment:false,affection:5,independent:2,quiet:4,grooming:2,family:5,trainable:5,health:3,hypo:false,desc:'장애인 안내견으로 활약하는 만능 견종. 착하고 친근하며 모든 상황에 잘 적응.',pros:['초보자에게 매우 적합','누구와도 잘 어울림','훈련 능력 최상위'],cons:['털 빠짐 많음','비만 취약 (식탐 강함)','운동 공간 필요'],care:'식탐이 매우 강해요. 급식량 관리와 식기 보관에 신경 쓰세요.'},
+  {species:'dog',id:'border_collie',name:'보더콜리',eng:'Border Collie',emoji:'🐕',size:'medium',weight:'14~20kg',activity:5,shedding:3,beginner:1,apartment:false,affection:4,independent:3,quiet:3,grooming:3,family:4,trainable:5,health:5,hypo:false,desc:'세계에서 가장 지능이 높은 견종. 놀라운 목양 능력과 에너지를 가진 워킹 독.',pros:['지능 세계 1위','건강하고 장수하는 편','민첩성 스포츠에 최적'],cons:['초보자에게 매우 어려움','하루 3시간 이상 운동 필요','지루하면 문제 행동 발생'],care:'경험자에게만 추천해요. 충분한 운동 + 두뇌 자극이 생존의 조건입니다.'},
+  {species:'dog',id:'german_shepherd',name:'저먼셰퍼드',eng:'German Shepherd',emoji:'🐕',size:'large',weight:'22~40kg',activity:4,shedding:4,beginner:3,apartment:false,affection:4,independent:3,quiet:3,grooming:3,family:4,trainable:5,health:3,hypo:false,desc:'경찰견, 구조견으로 활약하는 세계 최고의 워킹 독. 충성스럽고 용감하며 지능이 뛰어남.',pros:['지능 매우 높아 다양한 훈련 가능','충성스럽고 보호 본능 강함','건강하고 다재다능'],cons:['털 빠짐 많음','충분한 사회화 훈련 필요','경험자에게 더 적합'],care:'어릴 때부터 다양한 환경에 노출하는 사회화 교육이 반드시 필요해요.'},
+  {species:'dog',id:'doberman',name:'도베르만',eng:'Doberman Pinscher',emoji:'🐕',size:'large',weight:'32~45kg',activity:4,shedding:2,beginner:2,apartment:false,affection:4,independent:3,quiet:3,grooming:1,family:3,trainable:5,health:3,hypo:false,desc:'날렵하고 우아한 경비견. 영리하고 충성스러우며 가족을 보호하는 본능이 강함.',pros:['그루밍 비용 거의 없음','지능 높아 훈련 우수','충성스럽고 보호 본능 강함'],cons:['초보자에게 어려움','충분한 사회화 필수','심장 질환 주의'],care:'어릴 때부터 지속적인 훈련과 사회화가 필수예요.'},
+  {species:'dog',id:'rottweiler',name:'로트와일러',eng:'Rottweiler',emoji:'🐕',size:'large',weight:'35~60kg',activity:3,shedding:2,beginner:2,apartment:false,affection:4,independent:3,quiet:3,grooming:2,family:4,trainable:5,health:3,hypo:false,desc:'강인한 체형과 자신감 넘치는 성격. 가족에게는 매우 다정하지만 훈련이 필요한 견종.',pros:['충성스럽고 가족 보호 본능 강함','그루밍 간단','훈련성 우수'],cons:['초보자 비적합','전문 훈련 반드시 필요','관절 건강 주의'],care:'반드시 어릴 때부터 전문적인 훈련이 필요해요.'},
+  {species:'dog',id:'boxer',name:'복서',eng:'Boxer',emoji:'🥊',size:'large',weight:'25~32kg',activity:4,shedding:2,beginner:3,apartment:false,affection:5,independent:2,quiet:3,grooming:1,family:5,trainable:4,health:2,hypo:false,desc:'영원한 강아지 같은 성격. 활발하고 유머러스하며 아이들을 매우 좋아함.',pros:['아이들과 최고의 궁합','그루밍 비용 없음','충성스럽고 장난기 넘침'],cons:['단두종 호흡기 문제','더위에 취약','건강 비용 높을 수 있음'],care:'단두종이라 여름 더위에 특히 주의. 야외 활동은 서늘한 시간대에.'},
+  {species:'dog',id:'dalmatian',name:'달마시안',eng:'Dalmatian',emoji:'🐕',size:'large',weight:'23~32kg',activity:5,shedding:3,beginner:2,apartment:false,affection:4,independent:3,quiet:3,grooming:2,family:4,trainable:3,health:3,hypo:false,desc:'흑백 점박이 무늬가 독특한 견종. 에너지가 넘치고 활발하지만 훈련이 다소 어려움.',pros:['독특하고 아름다운 외모','매우 활발하고 에너지 넘침','그루밍 간단'],cons:['에너지 관리 어려움','훈련에 인내심 필요','청각 장애 발생률 높음'],care:'하루 2시간 이상 강도 높은 운동이 필요해요.'},
+  {species:'dog',id:'great_dane',name:'그레이트데인',eng:'Great Dane',emoji:'🐕',size:'giant',weight:'50~90kg',activity:3,shedding:2,beginner:3,apartment:false,affection:5,independent:3,quiet:4,grooming:2,family:5,trainable:4,health:2,hypo:false,desc:'세계에서 가장 큰 견종 중 하나. 크지만 성격은 매우 온순한 "부드러운 거인".',pros:['성격 매우 온순하고 다정함','짖음 적은 편','아이들에게 친근함'],cons:['엄청난 크기로 공간 필요','수명 짧은 편 (7~10년)','관절·심장 건강 주의'],care:'크기 때문에 의료비와 사료비가 높아요. 충분한 예산 계획이 필요합니다.'},
+  {species:'dog',id:'saint_bernard',name:'세인트버나드',eng:'Saint Bernard',emoji:'🐕',size:'giant',weight:'60~120kg',activity:2,shedding:4,beginner:3,apartment:false,affection:5,independent:3,quiet:4,grooming:4,family:5,trainable:3,health:2,hypo:false,desc:'알프스의 구조견으로 유명한 온화한 거인. 느긋하고 참을성이 많으며 아이들을 좋아함.',pros:['매우 온순하고 인내심 강함','아이들의 보디가드','느긋한 성격'],cons:['침 흘림 매우 심함','더위에 매우 취약','크기로 인한 높은 유지비'],care:'침을 많이 흘려요. 수건 항상 구비. 더운 날은 실내 생활.'},
+  {species:'dog',id:'malinois',name:'말리노이즈',eng:'Belgian Malinois',emoji:'🐕',size:'large',weight:'18~30kg',activity:5,shedding:3,beginner:1,apartment:false,affection:4,independent:3,quiet:3,grooming:2,family:3,trainable:5,health:5,hypo:false,desc:'군견·경찰견으로 활약하는 최정예 워킹 독. 놀라운 지능과 체력을 가진 고급 견종.',pros:['최고 수준의 지능과 훈련 능력','건강하고 강인한 체력','충성심 매우 강함'],cons:['초보자에게 절대 비추','하루 3시간 이상 집중 운동','경험 많은 핸들러 필수'],care:'워킹독 경험이 있는 분에게만 추천합니다.'},
+  {species:'dog',id:'italian_grey',name:'이탈리안그레이하운드',eng:'Italian Greyhound',emoji:'🐕',size:'tiny',weight:'4~6kg',activity:3,shedding:1,beginner:3,apartment:true,affection:4,independent:3,quiet:4,grooming:1,family:3,trainable:2,health:3,hypo:true,desc:'우아하고 날씬한 소형 그레이하운드. 매우 예민하고 따뜻한 것을 좋아하는 실내 반려견.',pros:['그루밍 비용 거의 없음','조용하고 우아한 성격','저알러지'],cons:['매우 예민해 소음에 취약','추위에 매우 약함','뼈가 가늘어 골절 주의'],care:'추위에 매우 취약해요. 옷은 선택이 아닌 필수. 소파에서 점프 주의.'},
+  {species:'dog',id:'shiba',name:'시바견',eng:'Shiba Inu',emoji:'🐕',size:'small',weight:'8~11kg',activity:4,shedding:4,beginner:2,apartment:true,affection:3,independent:5,quiet:4,grooming:2,family:3,trainable:3,health:5,hypo:false,desc:'여우를 닮은 일본의 대표 견종. 고양이처럼 깔끔하고 독립적이며 자존심이 강한 성격.',pros:['매우 건강하고 장수','깔끔해서 냄새가 적음','조용한 편'],cons:['고집 세 훈련 어려움','털 빠짐 많음','독립적이라 애교는 적은 편'],care:'독립심이 강해요. 억지로 안기보다 스스로 다가올 때까지 기다려주세요.'},
+
+  // ========== 고양이 ==========
+  {species:'cat',id:'korean_sh',name:'코리안숏헤어',eng:'Korean Shorthair',emoji:'🐱',size:'medium',weight:'3~6kg',activity:3,shedding:3,beginner:5,apartment:true,affection:3,independent:4,quiet:3,grooming:1,family:4,trainable:3,health:5,hypo:false,desc:'우리나라 토종 고양이. 강인한 유전자로 건강하고 튼튼하며 다양한 성격.',pros:['매우 건강하고 유전 질환 적음','그루밍 비용 거의 없음','다양한 성격과 외모'],cons:['개체마다 성격 차이 큼','털 빠짐 있는 편','입양 경로 다양'],care:'건강하지만 중성화 수술과 정기 건강검진은 필수예요.'},
+  {species:'cat',id:'american_sh',name:'아메리칸숏헤어',eng:'American Shorthair',emoji:'🐱',size:'medium',weight:'3~7kg',activity:3,shedding:3,beginner:5,apartment:true,affection:3,independent:4,quiet:3,grooming:2,family:4,trainable:3,health:4,hypo:false,desc:'미국의 대표 가정 고양이. 적당한 사교성과 독립성을 갖춘 균형 잡힌 성격.',pros:['초보자에게 매우 적합','독립적이지만 다정함','건강한 편'],cons:['털 빠짐 있음','많이 안기를 원하지 않을 수 있음','식탐 주의'],care:'비만이 되기 쉬워요. 장난감으로 매일 충분한 운동을 시켜주세요.'},
+  {species:'cat',id:'british_sh',name:'브리티시숏헤어',eng:'British Shorthair',emoji:'🐱',size:'large',weight:'4~8kg',activity:2,shedding:3,beginner:5,apartment:true,affection:3,independent:5,quiet:4,grooming:2,family:4,trainable:2,health:3,hypo:false,desc:'"통통 고양이"의 대표 주자. 조용하고 느긋하며 독립적인 영국 신사 스타일.',pros:['독립적이라 혼자 두기 적합','조용하고 차분','초보자에게 적합'],cons:['비만 취약 — 식이 관리 필수','심장 질환(HCM) 주의','안기를 좋아하지 않음'],care:'식탐이 강해요. 체중 유지를 위한 식이 관리가 필요합니다.'},
+  {species:'cat',id:'scottish_fold',name:'스코티시폴드',eng:'Scottish Fold',emoji:'🐱',size:'medium',weight:'3~6kg',activity:2,shedding:3,beginner:4,apartment:true,affection:4,independent:3,quiet:4,grooming:2,family:4,trainable:2,health:2,hypo:false,desc:'독특하게 접힌 귀가 특징. 조용하고 온화하며 사람 곁에 있기를 좋아함.',pros:['온화하고 다정한 성격','조용하여 이웃 민폐 걱정 없음','독특하고 귀여운 외모'],cons:['골연골 이형성증 위험','정기 건강검진 필수','귀 청소 자주 필요'],care:'접힌 귀 특성상 골격 문제 가능. 3-6개월마다 수의사 검진을 권장합니다.'},
+  {species:'cat',id:'russian_blue',name:'러시안블루',eng:'Russian Blue',emoji:'🩵',size:'medium',weight:'3~6kg',activity:2,shedding:2,beginner:4,apartment:true,affection:3,independent:4,quiet:5,grooming:2,family:3,trainable:3,health:5,hypo:true,desc:'은빛 파란 털과 녹색 눈이 아름다운 귀족 고양이. 조용하고 수줍지만 주인에게 헌신적.',pros:['저알러지 — 알러지 유발 물질 적음','조용하고 우아한 성격','건강하고 장수하는 편'],cons:['낯선 사람에게 매우 수줍음','애정 표현 적은 편','환경 변화에 예민'],care:'처음에는 수줍어하지만 신뢰를 쌓으면 매우 헌신적이에요.'},
+  {species:'cat',id:'persian',name:'페르시안',eng:'Persian',emoji:'🐱',size:'large',weight:'3~7kg',activity:1,shedding:4,beginner:4,apartment:true,affection:4,independent:4,quiet:5,grooming:5,family:4,trainable:1,health:2,hypo:false,desc:'긴 털과 납작한 얼굴이 특징인 왕실 고양이. 고요하고 우아하며 실내 생활에 최적화.',pros:['매우 조용하고 차분함','실내에서만 생활해도 만족','우아하고 아름다운 외모'],cons:['매일 빗질 필수 — 그루밍 비용 최상위','단두종 호흡기·눈물 관리 필요','건강 문제 많은 편'],care:'매일 빗질하지 않으면 털이 엉켜요. 눈물자국도 매일 닦아줘야 합니다.'},
+  {species:'cat',id:'maine_coon',name:'메인쿤',eng:'Maine Coon',emoji:'🦁',size:'large',weight:'5~11kg',activity:4,shedding:4,beginner:5,apartment:true,affection:5,independent:3,quiet:3,grooming:3,family:5,trainable:4,health:3,hypo:false,desc:'"개 같은 고양이"로 불리는 메인쿤. 크고 사교적이며 놀기를 좋아하는 점이 강아지와 비슷.',pros:['매우 사교적이고 다정함','아이들과 잘 어울림','높은 지능으로 훈련 가능'],cons:['털 빠짐 많고 그루밍 필요','유전 심장 질환(HCM) 주의','큰 크기로 사료비 높음'],care:'주 2-3회 빗질이 필요해요. 충분한 공간과 큰 화장실이 필요합니다.'},
+  {species:'cat',id:'ragdoll',name:'라그돌',eng:'Ragdoll',emoji:'💙',size:'large',weight:'4~9kg',activity:2,shedding:4,beginner:5,apartment:true,affection:5,independent:2,quiet:4,grooming:3,family:5,trainable:3,health:3,hypo:false,desc:'안아올리면 근육이 풀리는 "천사 고양이". 매우 온순하고 사람을 좋아하며 다루기 쉬움.',pros:['성격 매우 온순 — 초보자 최적','아이들과 매우 잘 어울림','다정하고 애교 넘침'],cons:['털 빠짐 많음','혼자 두기 어려울 수 있음','심장 질환 주의'],care:'안고 다니기 좋아해요. 다견·다묘 가정에도 잘 적응합니다.'},
+  {species:'cat',id:'abyssinian',name:'아비시니안',eng:'Abyssinian',emoji:'🐱',size:'medium',weight:'3~5kg',activity:5,shedding:2,beginner:3,apartment:true,affection:4,independent:4,quiet:3,grooming:1,family:4,trainable:4,health:4,hypo:false,desc:'고양이계의 아이돌. 호기심 넘치고 매우 활발하여 끊임없이 탐험하는 모험가.',pros:['그루밍 비용 거의 없음','매우 활발하고 장난기 넘침','지능이 높아 훈련 가능'],cons:['에너지 넘쳐 충분한 놀이 환경 필요','혼자 두면 지루해함','분리불안 주의'],care:'높은 곳을 매우 좋아해요. 캣타워와 다양한 장난감이 필수입니다.'},
+  {species:'cat',id:'bengal',name:'벵갈',eng:'Bengal',emoji:'🐆',size:'medium',weight:'3~7kg',activity:5,shedding:2,beginner:2,apartment:true,affection:4,independent:4,quiet:2,grooming:1,family:3,trainable:4,health:5,hypo:false,desc:'야생 표범을 닮은 화려한 무늬. 강한 야성과 높은 에너지를 가진 모험가.',pros:['아름다운 무늬와 독특한 외모','그루밍 비용 없음','매우 건강하고 강인함'],cons:['에너지 매우 넘쳐 초보자 어려움','활동적이라 좁은 공간에 불만족','시끄러울 수 있음'],care:'수영을 좋아하는 고양이예요. 물 장난감이나 수조 환경을 만들어주면 좋아합니다.'},
+  {species:'cat',id:'siamese',name:'샴',eng:'Siamese',emoji:'🐱',size:'medium',weight:'3~5kg',activity:4,shedding:2,beginner:3,apartment:true,affection:5,independent:2,quiet:1,grooming:1,family:4,trainable:4,health:3,hypo:false,desc:'세상에서 가장 수다스러운 고양이. 깊은 파란 눈과 포인트 털색이 특징인 사교적 고양이.',pros:['사람을 매우 좋아하는 사교성','그루밍 간단','지능이 높아 훈련 가능'],cons:['매우 시끄럽고 수다스러움','혼자 두면 스트레스','관심 욕구 매우 강함'],care:'많은 관심과 대화가 필요해요. 바쁜 분에게는 적합하지 않을 수 있습니다.'},
+  {species:'cat',id:'norwegian_forest',name:'노르웨이숲고양이',eng:'Norwegian Forest Cat',emoji:'🌲',size:'large',weight:'4~9kg',activity:3,shedding:4,beginner:4,apartment:true,affection:3,independent:5,quiet:4,grooming:3,family:4,trainable:2,health:4,hypo:false,desc:'북유럽의 숲에서 온 독립적인 대형 고양이. 자기 페이스로 사는 것을 좋아함.',pros:['독립적이라 혼자 두기 적합','건강하고 튼튼함','다양한 환경에 잘 적응'],cons:['털 빠짐 매우 많음 (봄/가을)','안기를 강요하면 스트레스','그루밍 필요'],care:'주 2-3회 빗질이 필요해요. 독립성을 존중하되 필요할 때 곁에 있어주세요.'},
+  {species:'cat',id:'exotic_sh',name:'이그조틱숏헤어',eng:'Exotic Shorthair',emoji:'🐱',size:'medium',weight:'3~6kg',activity:2,shedding:3,beginner:5,apartment:true,affection:4,independent:4,quiet:4,grooming:2,family:4,trainable:2,health:2,hypo:false,desc:'페르시안의 얼굴에 짧은 털로 관리가 쉬운 버전. 조용하고 온화한 성격.',pros:['페르시안보다 그루밍 훨씬 간단','조용하고 온화한 성격','초보자에게 적합'],cons:['단두종 호흡기·눈물 관리 필요','눈물자국 매일 닦아줘야 함','건강 관리 비용'],care:'납작한 코 때문에 눈물이 많이 나요. 매일 부드러운 천으로 닦아주세요.'},
+  {species:'cat',id:'sphynx',name:'스핑크스',eng:'Sphynx',emoji:'🐱',size:'medium',weight:'3~6kg',activity:4,shedding:1,beginner:4,apartment:true,affection:5,independent:2,quiet:3,grooming:3,family:4,trainable:3,health:3,hypo:true,desc:'털이 없는 독특한 외모의 고양이. 사람을 매우 좋아하고 항상 따뜻한 곳을 찾아다님.',pros:['저알러지 — 털이 없음','사람을 매우 좋아하는 애교쟁이','독특하고 특별한 외모'],cons:['피부 관리 필요 (목욕 주 1회)','추위에 매우 취약','피부병 주의'],care:'털이 없어 피부에 기름기가 쌓여요. 주 1회 목욕 필수. 옷을 입혀주세요.'},
+  {species:'cat',id:'munchkin',name:'먼치킨',eng:'Munchkin',emoji:'🐱',size:'small',weight:'2~5kg',activity:4,shedding:3,beginner:4,apartment:true,affection:4,independent:3,quiet:3,grooming:2,family:4,trainable:3,health:2,hypo:false,desc:'짧은 다리가 귀여운 소형 고양이. 다리가 짧아도 점프력과 활동성은 일반 고양이 수준.',pros:['귀엽고 독특한 외모','사교적이고 다정함','활발하지만 소형으로 공간 효율적'],cons:['척추·관절 건강 문제 위험','계단·높은 점프 주의','건강 관리 비용'],care:'짧은 다리지만 뛰고 놀기를 좋아해요. 너무 높은 곳에 오르지 않도록 주의.'},
+  {species:'cat',id:'burmese',name:'버미즈',eng:'Burmese',emoji:'🐱',size:'medium',weight:'3~6kg',activity:4,shedding:2,beginner:4,apartment:true,affection:5,independent:2,quiet:3,grooming:1,family:5,trainable:4,health:4,hypo:false,desc:'"강아지 같은 고양이"의 대표 주자. 사람을 매우 좋아하고 놀기를 즐기는 활발한 고양이.',pros:['사람을 매우 좋아하는 사교성','그루밍 비용 거의 없음','건강한 편'],cons:['혼자 두면 외로워함','관심 욕구가 강함','바쁜 사람에게는 어려울 수 있음'],care:'혼자 있는 시간이 많다면 두 마리 함께 입양을 고려해보세요.'},
+  {species:'cat',id:'devon_rex',name:'데본렉스',eng:'Devon Rex',emoji:'🐱',size:'small',weight:'2~4kg',activity:4,shedding:1,beginner:4,apartment:true,affection:5,independent:2,quiet:3,grooming:2,family:4,trainable:4,health:3,hypo:true,desc:'곱슬거리는 부드러운 털과 큰 귀, 요정 같은 외모. 개처럼 사람을 따르는 애교쟁이.',pros:['저알러지 — 털 빠짐 매우 적음','사람을 매우 좋아하고 애교 넘침','작고 귀여운 외모'],cons:['피부가 민감해 목욕 필요','추위에 약함','체온 유지를 위해 따뜻한 환경 필요'],care:'피부 기름기 관리를 위해 주 1회 목욕을 권장해요.'},
+  {species:'cat',id:'chartreux',name:'샤르트뢰',eng:'Chartreux',emoji:'🩶',size:'medium',weight:'3~7kg',activity:3,shedding:3,beginner:4,apartment:true,affection:3,independent:5,quiet:5,grooming:2,family:3,trainable:3,health:5,hypo:false,desc:'회청색 털과 황금빛 눈이 아름다운 프랑스 국보 고양이. 조용하고 독립적이며 매우 건강함.',pros:['매우 조용 — 층간 소음 걱정 없음','독립적이라 혼자 두기 좋음','매우 건강하고 장수'],cons:['애정 표현 적은 편','털 빠짐 있음','처음에 낯을 많이 가림'],care:'매우 조용해서 아픈지 파악하기 어려울 수 있어요. 정기 건강검진 꼭 받으세요.'},
+  {species:'cat',id:'birman',name:'버만',eng:'Birman',emoji:'🤍',size:'medium',weight:'3~6kg',activity:2,shedding:3,beginner:5,apartment:true,affection:4,independent:3,quiet:4,grooming:3,family:5,trainable:3,health:4,hypo:false,desc:'하얀 장갑을 낀 듯한 발이 특징인 "버마의 신성한 고양이". 온화하고 다정한 성격.',pros:['초보자에게 매우 적합','온화하고 다정한 성격','가족 모두와 잘 어울림'],cons:['털 빠짐과 그루밍 관리 필요','체중 관리 필요','동료 동물과의 마찰 주의'],care:'주 2-3회 빗질로 털 엉킴을 예방해주세요.'},
+  {species:'cat',id:'tonkinese',name:'통키니즈',eng:'Tonkinese',emoji:'🐱',size:'medium',weight:'3~5kg',activity:4,shedding:2,beginner:4,apartment:true,affection:5,independent:3,quiet:2,grooming:1,family:5,trainable:4,health:4,hypo:false,desc:'샴과 버미즈의 교배종. 두 품종의 장점만 모아 사교적이고 활발하면서도 지능이 높음.',pros:['매우 사교적이고 다정함','그루밍 비용 없음','건강한 편'],cons:['수다스러움 (샴 기질)','관심을 매우 원함','충분한 놀이 필요'],care:'관심 욕구가 강해요. 다묘 가정이나 함께 있어줄 수 있는 가정에 적합합니다.'},
+  {species:'cat',id:'turkish_angora',name:'터키시앙고라',eng:'Turkish Angora',emoji:'🐱',size:'medium',weight:'3~5kg',activity:4,shedding:3,beginner:4,apartment:true,affection:4,independent:3,quiet:3,grooming:3,family:4,trainable:4,health:4,hypo:false,desc:'비단결 같은 털과 우아한 자태의 터키 고양이. 활발하고 영리하며 사람과 교감을 즐김.',pros:['우아하고 아름다운 외모','영리해서 훈련 가능','사교적이고 활발함'],cons:['털 빠짐 관리 필요','심심하면 장난 심해짐','관심 욕구 있음'],care:'활동적이라 캣타워와 장난감이 필요해요. 단모처럼 보여도 주 2회 빗질 권장.'},
+  {species:'cat',id:'singapura',name:'싱가푸라',eng:'Singapura',emoji:'🐱',size:'small',weight:'2~4kg',activity:4,shedding:2,beginner:4,apartment:true,affection:5,independent:2,quiet:3,grooming:1,family:4,trainable:3,health:4,hypo:false,desc:'세계에서 가장 작은 묘종 중 하나. 큰 눈과 귀가 매력적이며 사람을 졸졸 따라다니는 애교쟁이.',pros:['초소형으로 공간 효율적','그루밍 비용 거의 없음','사람을 매우 좋아함'],cons:['추위에 약함','혼자 두면 외로워함','개체 수가 적어 분양가 높음'],care:'몸집이 작아 따뜻한 환경이 필요해요. 사람 곁을 좋아하니 자주 놀아주세요.'},
+];
+
+// =====================================================================
+// QUIZ STATE
+// =====================================================================
+let answers = { priorities: [] };
+let currentStep = 1;
+let totalSteps = 8;
+let selectedSpecies = null;
+
+function getCandidateCount() {
+  let pool = BREEDS;
+  if (answers.species) pool = pool.filter(b => b.species === answers.species);
+  if (answers.space === 'studio') pool = pool.filter(b => !['large','giant'].includes(b.size) && b.apartment);
+  if (answers.space === 'apartment') pool = pool.filter(b => b.apartment || b.size !== 'giant');
+  if (answers.shedding === 'allergy') pool = pool.filter(b => b.hypo);
+  if (answers.shedding === 'minimal') pool = pool.filter(b => b.shedding <= 2);
+  if (answers.size === 'small') pool = pool.filter(b => ['tiny','small'].includes(b.size));
+  if (answers.size === 'medium') pool = pool.filter(b => b.size === 'medium');
+  if (answers.size === 'large') pool = pool.filter(b => ['large','giant'].includes(b.size));
+  return pool.length;
+}
+
+function updateProgress() {
+  const steps = answers.species === 'cat' ? 7 : 8;
+  totalSteps = steps;
+  document.getElementById('stepNum').textContent = currentStep;
+  document.getElementById('totalSteps').textContent = steps;
+  document.getElementById('progressFill').style.width = ((currentStep / steps) * 100) + '%';
+  document.getElementById('candNum').textContent = getCandidateCount();
+}
+
+function startQuiz() {
+  document.getElementById('introScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  updateProgress();
+}
+
+function selectSpecies(sp, el) {
+  document.querySelectorAll('.species-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  answers.species = sp;
+  selectedSpecies = sp;
+  document.getElementById('step3q').textContent = sp === 'cat'
+    ? '하루에 놀아줄 수 있는 시간은?' : '하루에 운동·산책에 쓸 수 있는 시간은?';
+  setTimeout(() => goToStep(2), 300);
+}
+
+function select(el, key, val) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[key] = val;
+  updateProgress();
+  setTimeout(() => {
+    const next = getNextStep(currentStep);
+    goToStep(next);
+  }, 280);
+}
+
+function getNextStep(step) {
+  if (step === 6 && answers.species === 'cat') return 8;
+  return step + 1;
+}
+
+function getPrevStep(step) {
+  if (step === 8 && answers.species === 'cat') return 6;
+  return step - 1;
+}
+
+function goToStep(n) {
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('step-' + currentStep).classList.add('active');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prevStep() {
+  const prev = getPrevStep(currentStep);
+  if (prev < 1) return;
+  goToStep(prev);
+}
+
+let selectedPriorities = [];
+function togglePriority(el, val) {
+  const MAX = 3;
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    selectedPriorities = selectedPriorities.filter(v => v !== val);
+  } else {
+    if (selectedPriorities.length >= MAX) return;
+    el.classList.add('selected');
+    selectedPriorities.push(val);
+  }
+  answers.priorities = selectedPriorities;
+}
+
+// =====================================================================
+// SCORING ALGORITHM
+// =====================================================================
+function calcScore(breed) {
+  let score = 100;
+
+  // Space constraints
+  if (answers.space === 'studio') {
+    if (['large','giant'].includes(breed.size)) score -= 60;
+    if (!breed.apartment) score -= 40;
+  }
+  if (answers.space === 'apartment') {
+    if (breed.size === 'giant') score -= 50;
+    if (!breed.apartment && breed.size === 'large') score -= 25;
+  }
+
+  // Shedding
+  if (answers.shedding === 'allergy') {
+    if (!breed.hypo) score -= 80;
+    score -= breed.shedding * 5;
+  } else if (answers.shedding === 'minimal') {
+    score -= Math.max(0, (breed.shedding - 2)) * 15;
+  } else if (answers.shedding === 'some') {
+    score -= Math.max(0, (breed.shedding - 3)) * 8;
+  }
+
+  // Activity match
+  const actPref = { 1: 1, 2: 2, 3: 3, 4: 5 }[answers.activity] || 3;
+  const actDiff = Math.abs(breed.activity - actPref);
+  score -= actDiff * 8;
+
+  // Experience
+  if (answers.experience === 'beginner') {
+    score += (breed.beginner - 3) * 10;
+  } else if (answers.experience === 'expert') {
+    // experts can handle any breed, slight bonus for challenging breeds
+    score += (5 - breed.beginner) * 2;
+  }
+
+  // Personality
+  if (answers.personality === 'affectionate') score += (breed.affection - 3) * 8;
+  if (answers.personality === 'independent')  score += (breed.independent - 3) * 8;
+  if (answers.personality === 'quiet')        score += (breed.quiet - 3) * 8 - (breed.activity - 1) * 2;
+  if (answers.personality === 'energetic')    score += (breed.activity - 3) * 8;
+
+  // Size (dogs only)
+  if (answers.species === 'dog' && answers.size && answers.size !== 'any') {
+    const sizeMap = { small: ['tiny','small'], medium: ['medium'], large: ['large','giant'] };
+    if (!sizeMap[answers.size]?.includes(breed.size)) score -= 30;
+  }
+
+  // Priorities
+  const p = answers.priorities || [];
+  if (p.includes('trainable'))      score += (breed.trainable - 3) * 8;
+  if (p.includes('family'))         score += (breed.family - 3) * 8;
+  if (p.includes('quiet'))          score += (breed.quiet - 3) * 8;
+  if (p.includes('low_grooming'))   score -= (breed.grooming - 1) * 6;
+  if (p.includes('healthy'))        score += (breed.health - 3) * 8;
+  if (p.includes('hypoallergenic')) score += breed.hypo ? 25 : -20;
+
+  return Math.max(5, Math.min(100, Math.round(score)));
+}
+
+// =====================================================================
+// BREED EXTRA DATA (수명 + 특징 태그)
+// =====================================================================
+const BREED_EXTRA = {
+  // 강아지 — img: dog.ceo API slug
+  maltese:        { lifespan:'12~15년', img:'maltese',                tags:['초소형','아파트OK','저알러지','애교쟁이'] },
+  pomeranian:     { lifespan:'12~16년', img:'pomeranian',             tags:['초소형','아파트OK','활발함','털주의'] },
+  chihuahua:      { lifespan:'14~17년', img:'chihuahua',              tags:['초소형','아파트OK','건강강함','충성심강함'] },
+  yorkshire:      { lifespan:'13~16년', img:'yorkshire',              tags:['초소형','아파트OK','저알러지','활발함'] },
+  dachshund:      { lifespan:'12~16년', img:'dachshund',              tags:['소형','아파트OK','척추주의','용감함'] },
+  shih_tzu:       { lifespan:'10~16년', img:'shihtzu',                tags:['소형','아파트OK','저알러지','초보추천'] },
+  bichon:         { lifespan:'12~15년', img:null,                     tags:['소형','아파트OK','저알러지','초보추천'] },
+  toy_poodle:     { lifespan:'10~18년', img:'poodle/toy',             tags:['초소형','아파트OK','저알러지','훈련천재'] },
+  french_bulldog: { lifespan:'10~12년', img:'bulldog/french',         tags:['소형','아파트OK','조용함','도시견'] },
+  pug:            { lifespan:'13~15년', img:'pug',                    tags:['소형','아파트OK','조용함','애교쟁이'] },
+  papillon:       { lifespan:'14~16년', img:'papillon',               tags:['초소형','아파트OK','훈련천재','활발함'] },
+  havanese:       { lifespan:'14~16년', img:'havanese',               tags:['소형','아파트OK','저알러지','초보추천'] },
+  boston_terrier: { lifespan:'11~13년', img:'terrier/boston',         tags:['소형','아파트OK','가족친화','미용간단'] },
+  corgi:          { lifespan:'12~15년', img:'corgi/pembroke',         tags:['소형','아파트OK','훈련잘됨','가족친화'] },
+  beagle:         { lifespan:'12~15년', img:'beagle',                 tags:['중형','건강강함','아이친화','탐험가'] },
+  cocker_spaniel: { lifespan:'10~14년', img:'spaniel/cocker',         tags:['중형','아파트가능','가족친화','온순함'] },
+  mini_schnauzer: { lifespan:'12~15년', img:'schnauzer/miniature',    tags:['소형','아파트OK','저알러지','충성심강함'] },
+  sheltie:        { lifespan:'12~14년', img:'sheepdog/shetland',      tags:['중형','아파트가능','훈련천재','가족친화'] },
+  aussie:         { lifespan:'13~15년', img:'australian/shepherd',    tags:['중형','마당필요','훈련천재','경험자추천'] },
+  std_poodle:     { lifespan:'10~18년', img:'poodle/standard',        tags:['대형','저알러지','훈련천재','가족친화'] },
+  samoyed:        { lifespan:'12~14년', img:'samoyed',                tags:['대형','마당필요','털주의','친화적'] },
+  husky:          { lifespan:'12~15년', img:'husky',                  tags:['대형','마당필요','독립적','경험자추천'] },
+  golden:         { lifespan:'10~12년', img:'retriever/golden',       tags:['대형','마당필요','초보추천','가족친화'] },
+  labrador:       { lifespan:'10~12년', img:'retriever/labrador',     tags:['대형','마당필요','초보추천','훈련잘됨'] },
+  border_collie:  { lifespan:'12~15년', img:'collie/border',          tags:['중형','마당필요','지능1위','경험자추천'] },
+  german_shepherd:{ lifespan:'9~13년',  img:'germanshepherd',         tags:['대형','마당필요','충성심강함','훈련잘됨'] },
+  doberman:       { lifespan:'10~13년', img:'doberman',               tags:['대형','마당필요','경비견','경험자추천'] },
+  rottweiler:     { lifespan:'8~10년',  img:'rottweiler',             tags:['대형','마당필요','경비견','경험자추천'] },
+  boxer:          { lifespan:'10~12년', img:'boxer',                  tags:['대형','마당필요','아이친화','활발함'] },
+  dalmatian:      { lifespan:'11~13년', img:'dalmatian',              tags:['대형','마당필요','독특한외모','활발함'] },
+  great_dane:     { lifespan:'7~10년',  img:'dane/great',             tags:['초대형','마당필요','온순한거인','조용함'] },
+  saint_bernard:  { lifespan:'8~10년',  img:'stbernard',              tags:['초대형','마당필요','온순함','침주의'] },
+  malinois:       { lifespan:'14~16년', img:'malinois',               tags:['대형','마당필요','군견경찰견','경험자전용'] },
+  italian_grey:   { lifespan:'14~15년', img:'greyhound/italian',      tags:['초소형','아파트OK','저알러지','우아함'] },
+  shiba:          { lifespan:'12~16년', img:'shiba',                  tags:['소형','아파트OK','건강강함','독립적'] },
+  // 고양이 — catId: thecatapi.com breed ID
+  korean_sh:       { lifespan:'15~20년', catId:null,   tags:['중형','건강강함','독립적','초보추천'] },
+  american_sh:     { lifespan:'15~20년', catId:'asho', tags:['중형','아파트OK','균형잡힌','초보추천'] },
+  british_sh:      { lifespan:'12~20년', catId:'bsho', tags:['대형','아파트OK','독립적','통통함'] },
+  scottish_fold:   { lifespan:'11~14년', catId:'sfol', tags:['중형','아파트OK','온화함','관절주의'] },
+  russian_blue:    { lifespan:'15~20년', catId:'rblu', tags:['중형','아파트OK','저알러지','조용함'] },
+  persian:         { lifespan:'12~17년', catId:'pers', tags:['대형','아파트OK','조용함','그루밍주의'] },
+  maine_coon:      { lifespan:'12~15년', catId:'mcoo', tags:['대형','아파트OK','개같은고양이','가족친화'] },
+  ragdoll:         { lifespan:'12~17년', catId:'rdol', tags:['대형','아파트OK','초보추천','온순함'] },
+  abyssinian:      { lifespan:'14~17년', catId:'abys', tags:['중형','아파트OK','활발함','호기심왕'] },
+  bengal:          { lifespan:'14~16년', catId:'beng', tags:['중형','아파트OK','야생미','건강강함'] },
+  siamese:         { lifespan:'15~20년', catId:'siam', tags:['중형','아파트OK','수다쟁이','애교쟁이'] },
+  norwegian_forest:{ lifespan:'14~16년', catId:'norw', tags:['대형','아파트OK','독립적','털주의'] },
+  exotic_sh:       { lifespan:'12~15년', catId:'esho', tags:['중형','아파트OK','조용함','초보추천'] },
+  sphynx:          { lifespan:'13~15년', catId:'sphy', tags:['중형','아파트OK','저알러지','목욕필요'] },
+  munchkin:        { lifespan:'12~15년', catId:'munc', tags:['소형','아파트OK','짧은다리','관절주의'] },
+  burmese:         { lifespan:'16~18년', catId:'bure', tags:['중형','아파트OK','개같은고양이','사교적'] },
+  devon_rex:       { lifespan:'13~15년', catId:'drex', tags:['소형','아파트OK','저알러지','애교쟁이'] },
+  chartreux:       { lifespan:'15~20년', catId:'char', tags:['중형','아파트OK','조용함','건강강함'] },
+  birman:          { lifespan:'12~16년', catId:'birm', tags:['중형','아파트OK','온화함','초보추천'] },
+  tonkinese:       { lifespan:'14~16년', catId:'tonk', tags:['중형','아파트OK','사교적','활발함'] },
+  turkish_angora:  { lifespan:'12~18년', catId:'tang', tags:['중형','아파트OK','우아함','활발함'] },
+  singapura:       { lifespan:'11~15년', catId:'sing', tags:['소형','아파트OK','애교쟁이','사교적'] },
+};
+
+function getExtra(breed) { return BREED_EXTRA[breed.id] || { lifespan:'-', tags:[] }; }
+
+function tagColor(tag) {
+  if (['아파트OK','초보추천','건강강함','가족친화','아이친화','훈련잘됨','훈련천재','온순함','균형잡힌'].includes(tag)) return 'green';
+  if (['저알러지','조용함','독립적','우아함'].includes(tag)) return 'blue';
+  if (['애교쟁이','활발함','사교적','충성심강함','친화적'].includes(tag)) return 'orange';
+  return '';
+}
+
+function tagHtml(tags) {
+  return tags.map(t => `<span class="cat-tag ${tagColor(t)}">${t}</span>`).join('');
+}
+
+// =====================================================================
+// SCREEN MANAGEMENT
+// =====================================================================
+const SCREENS = ['introScreen','catalogScreen','quizScreen','resultsScreen'];
+function showScreen(id) {
+  SCREENS.forEach(s => { const el = document.getElementById(s); if(el) el.style.display = 'none'; });
+  const target = document.getElementById(id);
+  if (target) { target.style.display = 'block'; window.scrollTo({top:0,behavior:'smooth'}); }
+}
+
+// =====================================================================
+// CATALOG
+// =====================================================================
+let catalogFilter = 'all';
+let sizeFilter = 'all';
+
+function showCatalog() {
+  showScreen('catalogScreen');
+  renderCatalog();
+}
+
+function renderCatalog() {
+  const grid = document.getElementById('catalogGrid');
+  const list = BREEDS.filter(b => {
+    if (catalogFilter !== 'all' && b.species !== catalogFilter) return false;
+    if (sizeFilter !== 'all') {
+      if (sizeFilter === 'large' && !['large','giant'].includes(b.size)) return false;
+      if (sizeFilter !== 'large' && b.size !== sizeFilter) return false;
+    }
+    return true;
+  });
+
+  grid.innerHTML = list.map(b => {
+    const ex = getExtra(b);
+    const stars = '★'.repeat(b.beginner) + '☆'.repeat(5 - b.beginner);
+    return `<div class="cat-card" onclick="openBreedModal('${b.id}')">
+      <div class="cat-emoji">${b.emoji}</div>
+      <div class="cat-name-ko">${b.name}</div>
+      <div class="cat-name-en">${b.eng}</div>
+      <div class="cat-meta">${b.weight} · ${ex.lifespan}</div>
+      <div class="cat-tags">${tagHtml(ex.tags.slice(0,3))}</div>
+      <div class="cat-beginner" title="초보자 적합도 ${b.beginner}/5">
+        <span style="color:var(--accent);font-size:.75rem">${stars}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCatalog(sp, btn) {
+  catalogFilter = sp;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const sf = document.getElementById('sizeFilters');
+  sf.style.display = (sp === 'cat') ? 'none' : 'flex';
+  renderCatalog();
+}
+
+function filterSize(sz, btn) {
+  sizeFilter = sz;
+  document.querySelectorAll('.size-filter').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderCatalog();
+}
+
+// =====================================================================
+// BREED DETAIL MODAL
+// =====================================================================
+function openBreedModal(id) {
+  const b = BREEDS.find(x => x.id === id);
+  if (!b) return;
+  const ex = getExtra(b);
+
+  document.getElementById('modalNameKo').textContent = b.name;
+  document.getElementById('modalNameEn').textContent = b.eng;
+  document.getElementById('modalMeta').innerHTML = `
+    <div class="modal-meta-item">⚖️ 무게 <strong>${b.weight}</strong></div>
+    <div class="modal-meta-item">📏 크기 <strong>${sizeLabel(b.size)}</strong></div>
+    <div class="modal-meta-item">🎂 수명 <strong>${ex.lifespan}</strong></div>
+    <div class="modal-meta-item">🏠 <strong>${b.apartment ? '아파트 가능' : '넓은 공간 권장'}</strong></div>`;
+  document.getElementById('modalTags').innerHTML = ex.tags.map(t =>
+    `<span class="modal-tag ${tagColor(t) === 'green' ? 'badge-green' : tagColor(t) === 'blue' ? 'badge-blue' : tagColor(t) === 'orange' ? 'badge-orange' : ''}" style="background:#F5F5F5;color:#555">${t}</span>`
+  ).join('');
+  document.getElementById('modalDesc').textContent = b.desc;
+  document.getElementById('modalStats').innerHTML = `
+    ${mStatBar('🏃 활동량', b.activity, 'orange')}
+    ${mStatBar('🧹 털빠짐', b.shedding, 'yellow')}
+    ${mStatBar('🌱 초보자', b.beginner, 'green')}
+    ${mStatBar('🥰 애교도', b.affection, 'blue')}
+    ${mStatBar('🎓 훈련성', b.trainable, 'orange')}
+    ${mStatBar('💪 건강도', b.health, 'green')}`;
+  document.getElementById('modalProsCons').innerHTML = `
+    <div class="m-pros"><h5>✅ 장점</h5><ul>${b.pros.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+    <div class="m-cons"><h5>⚠️ 단점</h5><ul>${b.cons.map(c=>`<li>${c}</li>`).join('')}</ul></div>`;
+  document.getElementById('modalCare').innerHTML = `<strong>💡 케어 팁:</strong> ${b.care}`;
+
+  // 이미지 로드
+  const imgEl = document.getElementById('modalImg');
+  const emojiEl = document.getElementById('modalImgEmoji');
+  imgEl.style.display = 'none';
+  emojiEl.style.display = 'block';
+  emojiEl.textContent = b.emoji;
+  loadBreedImg(b, imgEl, emojiEl);
+
+  // 모달에 breed id 저장 (테스트 연동용)
+  document.getElementById('breedModal').dataset.species = b.species;
+  document.getElementById('breedModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('breedModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function startQuizWith() {
+  const sp = document.getElementById('breedModal').dataset.species;
+  closeModal();
+  answers.species = sp;
+  showScreen('quizScreen');
+  // Step 1에서 자동 선택
+  document.querySelectorAll('.species-card').forEach(c => c.classList.remove('selected'));
+  const target = sp === 'dog' ? 0 : 1;
+  document.querySelectorAll('.species-card')[target]?.classList.add('selected');
+  goToStep(2);
+}
+
+async function loadBreedImg(b, imgEl, emojiEl) {
+  const ex = getExtra(b);
+  let url = null;
+  try {
+    if (b.species === 'dog' && ex.img) {
+      const res = await fetch(`https://dog.ceo/api/breed/${ex.img}/images/random`);
+      const d = await res.json();
+      if (d.status === 'success') url = d.message;
+    } else if (b.species === 'cat' && ex.catId) {
+      const res = await fetch(`https://api.thecatapi.com/v1/images/search?breed_ids=${ex.catId}&limit=1`);
+      const d = await res.json();
+      if (d[0]?.url) url = d[0].url;
+    }
+    if (url) {
+      imgEl.src = url;
+      imgEl.onload = () => { imgEl.style.display = 'block'; emojiEl.style.display = 'none'; };
+    }
+  } catch(e) {}
+}
+
+// =====================================================================
+// RESULTS (updated with tags + lifespan + more stats)
+// =====================================================================
+function showResults() {
+  const pool = BREEDS.filter(b => b.species === answers.species);
+  const scored = pool.map(b => ({ ...b, score: calcScore(b) }))
+    .sort((a, b) => b.score - a.score);
+  const top = scored.slice(0, 5);
+
+  showScreen('resultsScreen');
+  document.getElementById('resultsSubtitle').textContent =
+    `총 ${pool.length}개 ${answers.species === 'dog' ? '강아지' : '고양이'} 품종에서 당신에게 맞는 품종을 찾았어요`;
+
+  const rankColors = ['g','g','s','b',''];
+  const rankLabels = ['🥇 1위 — 가장 잘 맞아요!','🥈 2위','🥉 3위','4위','5위'];
+
+  let html = '';
+  top.forEach((breed, i) => {
+    const ex = getExtra(breed);
+    const matchColor = breed.score >= 75 ? '#2e7d32' : breed.score >= 55 ? '#E65100' : '#666';
+    html += `
+    <div class="result-rank-label"><span>${rankLabels[i]}</span></div>
+    <div class="breed-card ${i === 0 ? 'rank1' : ''}">
+      <div class="breed-card-top">
+        <div class="breed-emoji-wrap" style="cursor:pointer" onclick="openBreedModal('${breed.id}')">
+          <span style="font-size:2.6rem">${breed.emoji}</span>
+          ${i < 3 ? `<div class="rank-badge ${rankColors[i]}">${i+1}</div>` : ''}
+        </div>
+        <div class="breed-info">
+          <div class="breed-names">
+            <span class="breed-name-ko">${breed.name}</span>
+            <span class="breed-name-eng">${breed.eng}</span>
+          </div>
+          <div class="breed-weight">⚖️ ${breed.weight} · 📏 ${sizeLabel(breed.size)} · 🎂 ${ex.lifespan}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin:8px 0">${tagHtml(ex.tags)}</div>
+          <div class="breed-desc">${breed.desc}</div>
+          <div class="stat-grid">
+            ${statBar('활동량',breed.activity,'orange')}
+            ${statBar('털빠짐',breed.shedding,'yellow')}
+            ${statBar('초보자',breed.beginner,'green')}
+            ${statBar('애교도',breed.affection,'blue')}
+            ${statBar('훈련성',breed.trainable,'orange')}
+            ${statBar('건강도',breed.health,'green')}
+          </div>
+        </div>
+        <div class="match-circle">
+          <div class="match-pct" style="color:${matchColor}">${breed.score}%</div>
+          <div class="match-label">매칭률</div>
+        </div>
+      </div>
+      <button class="detail-toggle" onclick="toggleDetail(this)">▼ 상세 정보 보기</button>
+      <div class="detail-panel">
+        <div class="pros-cons">
+          <div class="pros-box"><h5>✅ 장점</h5><ul>${breed.pros.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+          <div class="cons-box"><h5>⚠️ 단점</h5><ul>${breed.cons.map(c=>`<li>${c}</li>`).join('')}</ul></div>
+        </div>
+        <div class="care-tip"><strong>💡 케어 팁:</strong> ${breed.care}</div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" style="font-size:.85rem;padding:10px 20px" onclick="openBreedModal('${breed.id}')">품종 상세 보기</button>
+          <a href="index.html#pre-adoption" class="btn btn-outline" style="font-size:.85rem;padding:10px 20px">케어 가이드 →</a>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('resultsBody').innerHTML = html;
+}
+
+function mStatBar(label, val, color) {
+  return `<div class="stat-row">
+    <div class="stat-label" style="width:70px;font-size:.78rem">${label}</div>
+    <div class="stat-bar"><div class="stat-fill ${color}" style="width:${val*20}%"></div></div>
+  </div>`;
+}
+
+function statBar(label, val, color) {
+  return `<div class="stat-row">
+    <div class="stat-label">${label}</div>
+    <div class="stat-bar"><div class="stat-fill ${color}" style="width:${val*20}%"></div></div>
+  </div>`;
+}
+
+function sizeLabel(s) {
+  return {tiny:'초소형',small:'소형',medium:'중형',large:'대형',giant:'초대형'}[s] || s;
+}
+
+function toggleDetail(btn) {
+  const panel = btn.nextElementSibling;
+  const open = panel.classList.toggle('open');
+  btn.textContent = open ? '▲ 접기' : '▼ 상세 정보 보기';
+}
+
+function resetQuiz() {
+  answers = { priorities: [] };
+  selectedPriorities = [];
+  currentStep = 1;
+  selectedSpecies = null;
+  document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+  showScreen('introScreen');
+  document.getElementById('step-1').classList.add('active');
+  for (let i = 2; i <= 8; i++) {
+    const el = document.getElementById('step-' + i);
+    if (el) el.classList.remove('active');
+  }
+}
+</script>
+</body>
+</html>
